@@ -1,7 +1,6 @@
 ########################################################################
 ## INTERFAZ GUI ESTACIÓN LÁSER
 #C:\Users\dasag\Desktop\Automation1\PyQt6_CodeOnly>venv\Scripts\activate
-#prueba
 ########################################################################
 
 import os

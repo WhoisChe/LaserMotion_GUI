@@ -33,7 +33,7 @@ class AerotechController:
     # ─────────────────────────────────────────────────────────────────
     # Conexión
     # ─────────────────────────────────────────────────────────────────
-    def connect(self, host="::1"):
+    def connect(self, host="192.168.7.1"):  
         """
         Conecta y arranca el controlador iSMC.
         host: "::1" (localhost) si la app corre en el mismo PC industrial
