@@ -1,0 +1,268 @@
+{
+  "QtBinding": "PySide6",
+  "ShowLogs": true,
+  "LiveCompileQss": true,
+  "CheckForMissingicons": true,
+  "QMainWindow": [
+    {
+      "tittle": "Laser UI",
+      "icon":":/font_awesome_solid/icons/font_awesome/solid/arrow-down-wide-short.png",
+      "frameless": true,
+      "transluscentBg": true,
+      "sizeGrip": "size_grip",
+      "navigation":[
+				{
+					"minimize":"minimizeBtn",
+					"close": "closeBtn",
+          "moveWindow": "header",
+					"tittleBar": "header",
+					"restore":[
+						{	
+							"buttonName": "restoreBtn",
+							"normalIcon": ":/feather/icons/feather/square.png",
+							"maximizedIcon": ":/feather/icons/feather/window_undock.png"
+						}
+					]
+        }
+			]
+    }
+  ],
+  "QSettings": [
+    {
+      "ThemeSettings": [
+        {
+          "CustomTheme": [
+            {
+              "Background-color": "#F7F5EE",
+              "Text-color": "#06112B",
+              "Accent-color": "#015185",
+              "Icons-color": "#F7A618",
+              "Theme-name": "TIDE",
+              "Default-Theme": true
+            },
+            {
+              "Background-color": "#022726",
+              "Text-color": "#F5F5F5",
+              "Accent-color": "#06E080",
+              "Icons-color": "#116958",
+              "Theme-name": "NEON",
+              "Default-Theme": false
+            },
+            {
+              "Background-color": "#FFFFF7",
+              "Text-color": "#1E2F5E",
+              "Accent-color": "#E84A5F",
+              "Icons-color": "#F08A6B",
+              "Theme-name": "EMBER",
+              "Default-Theme": false
+            }
+          ]
+        }
+      ],
+      "AppSettings": {
+        "OrginizationName": "Laser UI",
+        "ApplicationName": "Laser UI Company",
+        "OrginizationDormain": "Laser UI.org"
+      }
+    }
+  ],
+  "QPushButtonGroup": [
+        {
+            "Buttons": [
+                "homeBtn",
+                "manualBtn",
+                "autoBtn",
+                "gcodeBtn"
+            ],
+            "ActiveButton": "homeBtn",
+            "Style":[
+                {
+                    "Active": "QPushButton{background-color: THEME.COLOR_BACKGROUND_2; font-weight:bold; border-top: 2px solid $COLOR_BACKGROUND_3; border-left: 6px solid $COLOR_BACKGROUND_3; border-bottom: 6px solid $COLOR_BACKGROUND_3;}",
+                    "NotActive": "QPushButton{background-color: transparent; font-weight:normal; border-top: 2px solid transparent; border-left: 5px solid transparent; border-bottom: 6px solid transparent;}"
+                }
+            ]
+        },
+        {
+            "Buttons": [
+                "settingsBtn",
+                "helpBtn",
+                "closeCenterMenuBtn"
+            ],
+            "ActiveButton": "closeCenterMenuBtn",
+            "Style":[
+                {
+                    "Active": "QPushButton{background-color: THEME.COLOR_BACKGROUND_2; font-weight:bold; border-top: 6px solid $COLOR_BACKGROUND_3; border-left: 6px solid $COLOR_BACKGROUND_3; border-bottom: 6px solid $COLOR_BACKGROUND_3;}",
+                    "NotActive": "QPushButton{background-color: transparent; font-weight:normal; border-top: 6px solid transparent; border-left: 6px solid transparent; border-bottom: 6px solid transparent;}"
+                }
+            ]
+        },
+        {
+            "Buttons": [
+                "connectionBtn",
+                "calibrationBtn",
+                "closeRightMenuBtn"
+            ],
+            "Style":[
+                {
+                    "Active": "QPushButton{background-color: THEME.COLOR_BACKGROUND_2; font-weight:bold; border-top: 2px solid $COLOR_BACKGROUND_3; border-left: 5px solid $COLOR_BACKGROUND_3; border-bottom: 6px solid $COLOR_BACKGROUND_3;}",
+                    "NotActive": "QPushButton{background-color: transparent; font-weight:normal; border-top: 2px solid transparent; border-left: 5px solid transparent; border-bottom: 6px solid transparent;}"
+                }
+                
+            ]
+        }
+	],
+	"QCustomSlideMenu": [{
+		"name": "leftMenu",
+		"defaultSize": [{
+			"width": 40,
+			"height": "parent"
+		}],
+		"collapsedSize": [{
+			"width": 40,
+			"height": "parent"
+		}],
+		"expandedSize": [{
+			"width": 150,
+			"height": "parent"
+		}],
+		"toggleButton": [{
+			"buttonName": "menuBtn",
+			"icons": [{
+				"whenMenuIsCollapsed": ":/feather/icons/feather/menu.png",
+				"whenMenuIsExpanded": ":/feather/icons/feather/arrow-left-circle.png"
+			}]
+		}],
+		"menuTransitionAnimation": [{
+			"animationDuration": 500,
+			"animationEasingCurve": "Linear"
+		}]
+	},
+  {
+		"name": "centerMenu",
+		"defaultSize": [{
+			"width": 0,
+			"height": "parent"
+		}],
+		"collapsedSize": [{
+			"width": 0,
+			"height": "parent"
+		}],
+		"expandedSize": [{
+			"width": 200,
+			"height": "parent"
+		}],
+		"menuTransitionAnimation": [{
+			"animationDuration": 500,
+			"animationEasingCurve": "Linear"
+		}]
+	},
+  {
+		"name": "rightMenu",
+		"defaultSize": [{
+			"width": 0,
+			"height": "parent"
+		}],
+		"collapsedSize": [{
+			"width": 0,
+			"height": "parent"
+		}],
+		"expandedSize": [{
+			"width": 200,
+			"height": "parent"
+		}],
+		"menuTransitionAnimation": [{
+			"animationDuration": 500,
+			"animationEasingCurve": "Linear"
+		}]
+	}],
+  "QCustomQStackedWidget":[
+		{
+			"name":"mainPages",
+			"navigation":[
+				{
+          "navigationButtons": [
+            {
+              "homeBtn":"homePage",
+					    "manualBtn": "manualPage",
+              "autoBtn":"autoPage",
+					    "gcodeBtn": "gcodePage"
+            }
+          ]
+				}
+			], 
+      "transitionAnimation": [
+        {
+          "slide": [
+            {
+              "active": true,
+              "duration": 500,
+              "easingCurve": "InSine"
+            }
+          ]
+        }
+      ]
+    },
+    {
+			"name":"centerMenuPages",
+			"navigation":[
+				{
+          "navigationButtons": [
+            {
+              "settingsBtn":"settingsPage",
+					    "helpBtn": "helpPage"
+            }
+          ]
+				}
+			], 
+      "transitionAnimation": [
+        {
+          "fade": [
+            {
+              "active": true,
+              "duration": 500,
+              "easingCurve": "InSine"
+            }
+          ],
+          "slide": [
+            {
+              "active": true,
+              "duration": 500,
+              "easingCurve": "InSine"
+            }
+          ]
+        }
+      ]
+    },
+    {
+    "name":"rightMenuPages",
+			"navigation":[
+				{
+          "navigationButtons": [
+            {
+              "connectionBtn":"connectionPage",
+					    "calibrationBtn": "calibrationPage"
+            }
+          ]
+				}
+			], 
+      "transitionAnimation": [
+        {
+          "slide": [
+            {
+              "active": true,
+              "duration": 500,
+              "easingCurve": "InSine"
+            }
+          ],
+          "fade": [
+            {
+              "active": true,
+              "duration": 500,
+              "easingCurve": "InSine"
+            }
+          ]
+        }
+      ]
+    }    
+]
+}
