@@ -18,6 +18,10 @@ AXIS_Y = "Y"   # ANT130XY — Eje Y
 AXIS_Z = "Z"   # ANT130LZS — Eje Z
 AXES = (AXIS_X, AXIS_Y, AXIS_Z)
 
+# Potencia máxima del módulo láser NEJE B30635 (mW), usada para convertir el
+# duty cycle (%) de la consigna a una potencia estimada en mW.
+NEJE_B30635_MAX_POWER_MW = 500.0
+
 
 class AerotechController:
     """Envoltorio fino sobre la API automation1 para el controlador iSMC."""
@@ -25,10 +29,20 @@ class AerotechController:
     def __init__(self):
         self._controller = None
         self._status_config = None
+        self._host = None
+        # Consigna de potencia del láser (0-100%), aplicada por software con
+        # set_laser_power_percent(). Ver comentario de esa función: hasta que
+        # se confirme el canal PWM real, no se escribe sobre ninguna salida.
+        self._laser_duty_cycle = 0.0
 
     @property
     def is_connected(self):
         return self._controller is not None
+
+    @property
+    def host(self):
+        """Host/IP del último intento de conexión (None si nunca se ha conectado)."""
+        return self._host
 
     # ─────────────────────────────────────────────────────────────────
     # Conexión
@@ -43,13 +57,15 @@ class AerotechController:
         try:
             self._controller = a1.Controller.connect(host=host)
             self._controller.start()
+            self._host = host
 
             # Configuración de los items de estado que se piden en cada
-            # refresco (posición y estado de los drives de los 3 ejes)
+            # refresco (posición, estado de los drives y fallos de los 3 ejes)
             self._status_config = a1.StatusItemConfiguration()
             for axis in AXES:
                 self._status_config.axis.add(a1.AxisStatusItem.PositionFeedback, axis)
                 self._status_config.axis.add(a1.AxisStatusItem.DriveStatus, axis)
+                self._status_config.axis.add(a1.AxisStatusItem.AxisFault, axis)
 
             print(f"[Aerotech] Conectado y arrancado correctamente (host={host})")
             return True
@@ -99,6 +115,77 @@ class AerotechController:
             return True
         except Exception as e:
             print(f"[Aerotech] Error comprobando estado de los drives: {e}")
+            return False
+
+    def get_axis_faults(self):
+        """
+        Descompone el bitmask de AxisFault de cada eje en banderas legibles.
+        Devuelve {axis: {"position_error": bool, "limit_cw": bool, "limit_ccw": bool}}.
+        Si no hay conexión, todas las banderas vuelven False para los 3 ejes.
+        """
+        # TODO: verificar nombres exactos de los bits contra a1.AxisFault en
+        # la instalación real (dir(a1.AxisFault)) — no asumir nombres de bit
+        # sin esa verificación.
+        empty = {"position_error": False, "limit_cw": False, "limit_ccw": False}
+        if not self.is_connected:
+            return {axis: dict(empty) for axis in AXES}
+        try:
+            results = self._controller.runtime.status.get_status_items(self._status_config)
+            faults = {}
+            for axis in AXES:
+                fault_bits = int(results.axis.get(a1.AxisStatusItem.AxisFault, axis).value)
+                faults[axis] = {
+                    "position_error": bool(fault_bits & int(a1.AxisFault.PositionErrorFault)),
+                    "limit_cw": bool(fault_bits & int(a1.AxisFault.CwEndOfTravelLimitFault)),
+                    "limit_ccw": bool(fault_bits & int(a1.AxisFault.CcwEndOfTravelLimitFault)),
+                }
+            return faults
+        except Exception as e:
+            print(f"[Aerotech] Error leyendo fallos de eje: {e}")
+            return {axis: dict(empty) for axis in AXES}
+
+    def get_axes_homed(self):
+        """True/False por eje según el bit de homed dentro de DriveStatus."""
+        # TODO: verificar el nombre exacto del bit de homed contra
+        # a1.DriveStatus en la instalación real (dir(a1.DriveStatus)).
+        if not self.is_connected:
+            return {axis: False for axis in AXES}
+        try:
+            results = self._controller.runtime.status.get_status_items(self._status_config)
+            homed_bit = int(a1.DriveStatus.Homed)
+            homed = {}
+            for axis in AXES:
+                drive_status = int(results.axis.get(a1.AxisStatusItem.DriveStatus, axis).value)
+                homed[axis] = bool(drive_status & homed_bit)
+            return homed
+        except Exception as e:
+            print(f"[Aerotech] Error comprobando estado de homing: {e}")
+            return {axis: False for axis in AXES}
+
+    def get_sto_status(self, axis=None):
+        """
+        True si el STO (Safe Torque Off) está activo. Si "axis" es None, hace
+        OR del estado de todos los ejes; si se pasa un eje, solo el suyo.
+        """
+        # TODO: puede ser un bit dentro de AxisFault o un status item de
+        # sistema aparte, depende de cómo esté cableada la cadena de
+        # seguridad en HyperWire — dejar preparado para ambos casos hasta
+        # confirmar con el documento de interconexión (620D1426-10-01).
+        if not self.is_connected:
+            return False
+        try:
+            results = self._controller.runtime.status.get_status_items(self._status_config)
+            sto_bit = int(a1.AxisFault.StoFault) if hasattr(a1.AxisFault, "StoFault") else 0
+            if sto_bit == 0:
+                return False
+            axes_to_check = (axis,) if axis is not None else AXES
+            for ax in axes_to_check:
+                fault_bits = int(results.axis.get(a1.AxisStatusItem.AxisFault, ax).value)
+                if fault_bits & sto_bit:
+                    return True
+            return False
+        except Exception as e:
+            print(f"[Aerotech] Error comprobando estado de STO: {e}")
             return False
 
     # ─────────────────────────────────────────────────────────────────
@@ -223,3 +310,28 @@ class AerotechController:
             print(f"[Aerotech] Salida digital {output_num} (eje {axis}) -> {int(value)}")
         except Exception as e:
             print(f"[Aerotech] Error escribiendo salida digital: {e}")
+
+    # ─────────────────────────────────────────────────────────────────
+    # Salida de potencia del láser (PWM) — ver NEJE_B30635_MAX_POWER_MW
+    # ─────────────────────────────────────────────────────────────────
+    def set_laser_power_percent(self, duty_percent: float):
+        """
+        Fija la consigna de duty cycle del láser (0-100%).
+
+        El canal PWM físico todavía no está confirmado (falta el documento
+        620D1426-10-01 System Interconnect para saber a qué eje/salida está
+        cableado el pin TTL/PWM del NEJE), así que por ahora esta función NO
+        escribe sobre ninguna salida real: solo guarda el valor y avisa por
+        consola que está en modo simulado. Cuando se confirme el canal físico,
+        esta función pasará a escribir también sobre el output real.
+        """
+        self._laser_duty_cycle = duty_percent
+        print(f"[Aerotech] (modo simulado) Consigna de potencia láser -> {duty_percent:.0f}% "
+              f"— canal PWM real aún no confirmado, no se escribe salida física")
+
+    def get_laser_output_state(self):
+        """Devuelve (is_on, duty_percent, power_mw) según la última consigna guardada."""
+        duty_percent = self._laser_duty_cycle
+        power_mw = duty_percent / 100 * NEJE_B30635_MAX_POWER_MW
+        is_on = duty_percent > 0
+        return is_on, duty_percent, power_mw

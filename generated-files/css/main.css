@@ -1732,7 +1732,7 @@ QPushButton, QLineEdit, QDteEdit {
       border: none; }
     #mainPagesCont #homePage QWidget#movementManual, #mainPagesCont #homePage #movementAuto, #mainPagesCont #manualPage QWidget#movementManual, #mainPagesCont #manualPage #movementAuto, #mainPagesCont #autoPage QWidget#movementManual, #mainPagesCont #autoPage #movementAuto, #mainPagesCont #gcodePage QWidget#movementManual, #mainPagesCont #gcodePage #movementAuto {
       border-right: 6px solid #F7F5EE; }
-    #mainPagesCont #homePage QFrame#shutterStatus, #mainPagesCont #homePage #powerStatus, #mainPagesCont #manualPage QFrame#shutterStatus, #mainPagesCont #manualPage #powerStatus, #mainPagesCont #autoPage QFrame#shutterStatus, #mainPagesCont #autoPage #powerStatus, #mainPagesCont #gcodePage QFrame#shutterStatus, #mainPagesCont #gcodePage #powerStatus {
+    #mainPagesCont #homePage QFrame#laserOutputCard, #mainPagesCont #manualPage QFrame#laserOutputCard, #mainPagesCont #autoPage QFrame#laserOutputCard, #mainPagesCont #gcodePage QFrame#laserOutputCard {
       background-color: #015185;
       border: 2px solid #DEDCD6;
       border-radius: 20px; }

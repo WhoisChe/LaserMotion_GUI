@@ -8,7 +8,7 @@
 
 El proyecto es una aplicación de escritorio (GUI) que sirve de panel de control para una estación de posicionamiento láser de precisión. Permite:
 
-- Ver en tiempo real la posición de los ejes X, Y, Z y el estado del *shutter* del láser (página **Home**).
+- Ver en tiempo real la posición de los ejes X, Y, Z, el estado de seguridad (STO), la salud de cada eje (habilitado/homed/sin error/límites libres) y la consigna de salida del láser (página **Home**).
 - Mover los ejes manualmente, paso a paso, con escala/velocidad/aceleración configurables (página **Manual**).
 - Mover los ejes a una posición absoluta y programar el tiempo de apertura del *shutter* (página **Auto**).
 - Cargar, editar y ejecutar programas G-Code (página **G-Code**).
@@ -77,6 +77,7 @@ El entorno tiene instaladas **ambas** familias de bindings de Qt (`PySide6` y `P
 ```
 PyQt6_CodeOnly/
 ├── main.py                        # Punto de entrada de la aplicación
+├── config.py                      # Flags de configuración globales (p. ej. LASER_INTERLOCK_AVAILABLE)
 ├── json-styles/
 │   └── style.json                 # Configuración declarativa de la UI (temas, menús, botones...)
 ├── src/
@@ -106,18 +107,19 @@ PyQt6_CodeOnly/
 
 | Fichero | Líneas | Rol |
 |---|---:|---|
-| `src/ui_interface.py` | 1555 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
+| `src/ui_interface.py` | 2009 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
 | `src/ui_extensions_gcode.py` | 451 | Página G-Code + diálogo de edición + intérprete G-Code |
 | `src/ui_extensions_auto.py` | 334 | Página Auto (movimiento absoluto + shutter temporizado) |
 | `src/ui_extensions_manual.py` | 279 | Página Manual (jog manual + shutter) |
-| `src/ui_extensions_home.py` | 236 | Página Home (estado en vivo) |
 | `src/ui_extensions_connection.py` | 239 | Página Connection (puerto serie + conexión Aerotech) |
+| `src/ui_extensions_home.py` | 296 | Página Home (banner conexión/STO, LEDs por eje, tarjeta de salida láser) |
+| `src/aerotech_controller.py` | 337 | Envoltorio de la API automation1 (conexión, movimiento, E/S digital, fallos/homing/STO, potencia láser) |
 | `src/ui_extensions_calibration.py` | 204 | Página Calibration |
-| `src/aerotech_controller.py` | 204 | Envoltorio de la API automation1 (conexión, movimiento, E/S digital) |
 | `src/Functions.py` | 103 | Fuentes, temas, señales de menú |
 | `src/ui_extensions.py` | 90 | Orquestador de páginas + instancia compartida del controlador |
 | `main.py` | 50 | Arranque de la aplicación |
-| **Total** | **~3 745** | |
+| `config.py` | 12 | Flags de configuración globales |
+| **Total** | **~4 404** | |
 
 (No se cuentan los miles de ficheros `.png`/`.svg` de iconos ni las imágenes, que son binarios/recursos, no código.)
 
@@ -185,6 +187,8 @@ El control real del sistema se hace a través del SDK oficial `automation1`, env
 - `move_absolute(ejes, posiciones, vel, acc)` — movimiento absoluto, vía `motion.moveabsolute`, aplicando antes la rampa de aceleración con `motion_setup.setupaxisrampvalue(...)`.
 - `zero_axis(axis, valor)` — fija el origen de coordenadas del eje en la posición actual (`motion.positionoffsetset`), usado por Calibration para las funciones "Zero X/Y" y "Set Z as calibrated".
 - `set_digital_output(axis, output_num, valor)` — activa/desactiva una salida digital del drive; es lo que abre/cierra el shutter del láser desde la página Manual (`SHUTTER_OUTPUT_AXIS` / `SHUTTER_OUTPUT_NUM` en `ui_extensions_manual.py`, a ajustar según el cableado real de la estación).
+- `get_axis_faults()` / `get_axes_homed()` / `get_sto_status(axis=None)` — añadidos en el rediseño de la página Home (sección 9) para alimentar los LEDs de estado por eje y el banner de STO. Leen `AxisFault`/`DriveStatus` vía el mismo `StatusItemConfiguration` ya usado para posición y habilitación. **Los nombres exactos de los bits (`AxisFault.PositionErrorFault`, `CwEndOfTravelLimitFault`, `CcwEndOfTravelLimitFault`, `DriveStatus.Homed`, y el bit de STO) están marcados con `# TODO` en el código: no se han verificado todavía contra la instalación real de `automation1` (`dir(a1.AxisFault)` / `dir(a1.DriveStatus)`).**
+- `set_laser_power_percent(duty_percent)` / `get_laser_output_state()` — gestionan la consigna de potencia del láser (0-100% de duty cycle, convertido a mW usando `NEJE_B30635_MAX_POWER_MW = 500.0`). El canal PWM/TTL físico del NEJE **no está confirmado** (falta el documento *620D1426-10-01 System Interconnect*), así que `set_laser_power_percent()` solo guarda el valor en memoria y avisa por consola que corre en modo simulado; no escribe ninguna salida real todavía.
 
 **Limitaciones conocidas y deliberadas:**
 
@@ -214,7 +218,13 @@ Clase `GuiFunctions`. Se encarga de:
 Clase `UIExtensions`: orquestador central descrito en el punto 5.2. Crea la única instancia de `AerotechController` y la reparte por constructor a las seis páginas. También aplica la fuente global (`Sitka Small`) a toda la ventana y la fuente de título en negrita a los encabezados de cada sección.
 
 ### 6.5. `src/ui_extensions_home.py`
-Página de estado general: posición X/Y/Z, estado del *shutter* (abierto/cerrado, con colores verde/rojo) y potencia del láser. Un `QTimer` refresca la posición cada 100 ms llamando a `controller.get_axis_positions()` / `controller.get_axes_enabled()`.
+Página de estado general, rediseñada en agosto de 2026 (ver sección 9). Muestra:
+- Un **banner superior** de conexión (IP del host) y de STO (Safe Torque Off), que pasa a rojo de alerta fijo cuando el STO está activo.
+- Posición X/Y/Z, mostrando "—" en gris atenuado en vez de "0.000" cuando no hay conexión (para no confundir "en el origen" con "desconectado").
+- 4 LEDs por eje (Habilitado, Homed, Sin error de posición, Límites libres), construidos con el helper único `_make_led()`.
+- Una tarjeta **"Salida Láser"** (`laserOutputCard`, fusión de las antiguas `shutterStatus`/`powerStatus`) con LED ON/OFF, consigna de potencia (`estadoPotencia`, siempre con el sufijo "(consigna)" para dejar claro que no es una medida real) y un slot de interlock (gris fijo mientras `config.LASER_INTERLOCK_AVAILABLE` sea `False`).
+
+Un `QTimer` de 100 ms refresca todo el estado llamando a `controller.get_axis_positions()`, `get_axes_enabled()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
 
 ### 6.6. `src/ui_extensions_manual.py`
 Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`) con selector de escala (nm/μm/mm/cm), velocidad y aceleración configurables, y control del *shutter* (abrir/cerrar, mutuamente excluyentes, vía `controller.set_digital_output`).
@@ -245,6 +255,9 @@ Clase `AerotechController`: envoltorio único sobre el SDK `automation1`, descri
 - **Sin control de versiones**: el directorio de trabajo no es (todavía) un repositorio Git.
 - **Sin fichero de dependencias**: falta un `requirements.txt`/`pyproject.toml` para fijar versiones y facilitar la reproducibilidad del entorno.
 - **Ruta de fuente tipográfica**: `Functions.py` carga la fuente desde `.fonts/google-sans-cufonfonts/ProductSans-Regular.ttf`, carpeta que no existe actualmente en el proyecto (falla de forma silenciosa y Qt usa una fuente de reemplazo).
+- **Bits de estado sin verificar**: `get_axis_faults()`, `get_axes_homed()` y `get_sto_status()` (nuevos, ver sección 9) asumen nombres de bit de `a1.AxisFault`/`a1.DriveStatus` que no se han contrastado todavía contra la instalación real del SDK — marcado con `# TODO` en `aerotech_controller.py`.
+- **Interlock del láser**: el LED de interlock de la tarjeta "Salida Láser" existe en la interfaz pero se mantiene en gris fijo (`config.LASER_INTERLOCK_AVAILABLE = False`) hasta confirmar la señal en el interconnect real.
+- **Canal PWM del láser**: `set_laser_power_percent()` guarda la consigna en memoria pero no escribe sobre ninguna salida física; falta el documento de interconexión para saber a qué eje/salida está cableado el pin TTL/PWM del NEJE B30635.
 
 ---
 
@@ -255,3 +268,40 @@ python main.py
 ```
 
 Requiere Python 3.12 y las dependencias listadas en la sección 3 instaladas en el entorno (`pip install PySide6 QT-PyQt-PySide-Custom-Widgets qtsass libsass cairosvg watchdog`, como mínimo, para la parte de interfaz/temas). El primer arranque tras cambiar de tema puede tardar unos segundos mientras `Custom_Widgets` genera en segundo plano los iconos coloreados que falten.
+
+---
+
+## 9. Rediseño de la página Home (2026-08-14)
+
+Cambio de alcance acotado a la página **Home** (`src/ui_interface.py`, `src/ui_extensions_home.py`) y a las adiciones necesarias en `src/aerotech_controller.py` / `config.py` para soportarla. No se ha tocado Manual, Auto, G-Code, Connection ni Calibration.
+
+### 9.1. Motivación
+
+La página Home mezclaba dos problemas: (1) el estado del *shutter* se inferían de la habilitación de los ejes, algo que no tiene relación real con si el láser está emitiendo; y (2) no había forma de distinguir, de un vistazo, "eje en el origen (0.000)" de "sin conexión con el controlador", ni ningún indicador de seguridad (STO) o de salud por eje (homed, límites, error de posición).
+
+### 9.2. Cambios de interfaz (`src/ui_interface.py`)
+
+- **Tarjetas fusionadas**: `shutterStatus` y `powerStatus` (y sus widgets internos `label_18`, `label`, `estadoOn`, `estadoOff`, `label_30`, `label_34`, `estadoPower`) desaparecen. En su lugar, una única tarjeta `laserOutputCard` con icono, título "Salida Láser:", LED + texto ON/OFF, campo de solo lectura `estadoPotencia` (formato `"{duty:.0f}% · {mw:.0f} mW (consigna)"`, con el sufijo "(consigna)" siempre presente) y un slot de interlock (LED + texto "Interlock: N/D").
+- **Banner superior** (`statusBanner`, primer elemento de la página, alto 40-48 px): LED + texto de conexión ("Conectado — `<host>`" / "Desconectado") a la izquierda, LED + texto de STO ("Seguridad OK" / "STO ACTIVO") a la derecha. El fondo del banner cambia a `#DA190B` (rojo fijo, no ligado al tema) cuando el STO está activo.
+- **LEDs de estado por eje**: bajo cada línea de posición (X/Y/Z) se añadió una fila con 4 LEDs de 12×12 px (Habilitado, Homed, Sin error de posición, Límites libres), cada uno con `toolTip` del nombre completo.
+- Para insertar el banner sin romper el layout horizontal existente de `homePage`, su layout raíz pasó de `QHBoxLayout` (`horizontalLayout_18`, aplicado directamente sobre `homePage`) a un `QVBoxLayout` nuevo (`verticalLayout_home`) que contiene el banner arriba y el antiguo `horizontalLayout_18` (ahora un sub-layout, sin cambios internos) debajo.
+- Se actualizó el selector SCSS `QFrame#shutterStatus,#powerStatus` de `Qss/scss/defaultStyle.scss` a `QFrame#laserOutputCard`, para que la tarjeta fusionada conserve el mismo fondo/borde de "card" que tenían las dos originales (único cambio en el sistema de temas; no se tocaron paletas de color ni `style.json`).
+
+### 9.3. Cambios de lógica (`src/ui_extensions_home.py`)
+
+- Nuevo método `_make_led(color, size, tooltip)`: única factoría para los 16 LEDs de la página (12 de eje + ON/OFF + interlock + 2 del banner), evita repetir la construcción del indicador. Todos son `QFrame` circulares (no `QLineEdit`, a diferencia del `estadoOn`/`estadoOff` original).
+- `update_position_display()` reescrito: si `controller.is_connected` es `False`, pinta "—" en gris (`#999999`) en X/Y/Z, todos los LEDs en gris y el banner en "Desconectado", sin leer ningún otro estado. Si hay conexión, además de la posición lee `get_axes_enabled()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
+- Eliminados `update_shutter_display(is_open)` y el uso de `get_axes_enabled()` como proxy del estado del shutter (lógica incorrecta); sustituidos por la tarjeta "Salida Láser", alimentada por `get_laser_output_state()`.
+- Nota de implementación: como `get_axes_enabled()` devuelve un único booleano combinado para los 3 ejes (no hay lectura individual por eje en la API), el LED "Habilitado" de X, Y y Z muestra ese mismo valor combinado — no hay 3 lecturas independientes.
+- El `QTimer` de 100 ms se mantiene sin cambios (no se ha migrado el polling a un `QThread` en esta fase).
+
+### 9.4. Cambios en `src/aerotech_controller.py` y `config.py`
+
+Ver detalle en las secciones 5.5, 6.11 y 7. Resumen: se añadieron `get_axis_faults()`, `get_axes_homed()`, `get_sto_status(axis=None)`, `set_laser_power_percent(duty_percent)`, `get_laser_output_state()` y la constante `NEJE_B30635_MAX_POWER_MW`, sin eliminar ni modificar el comportamiento de ningún método existente. Se creó `config.py` con el flag `LASER_INTERLOCK_AVAILABLE = False`.
+
+### 9.5. Pendiente / no implementado en esta fase
+
+- Verificar contra la instalación real de `automation1` los nombres de bit usados en `get_axis_faults()`, `get_axes_homed()` y `get_sto_status()` (marcados con `# TODO` en el código).
+- Confirmar el canal PWM/TTL físico del láser NEJE B30635 contra el documento *620D1426-10-01 System Interconnect* y conectar `set_laser_power_percent()` a la salida real.
+- Confirmar la señal de interlock en el interconnect y activar `config.LASER_INTERLOCK_AVAILABLE`.
+- Migración de las páginas Manual/Auto/G-Code del antiguo `set_digital_output` del shutter al nuevo esquema de PWM/láser (fuera de alcance de este cambio).
