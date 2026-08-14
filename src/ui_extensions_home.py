@@ -22,6 +22,15 @@ DISCONNECTED_TEXT_COLOR = "#999999"
 # Rojo de alerta fijo del banner cuando el STO está activo (no depende del tema).
 BANNER_ALERT_COLOR = "#DA190B"
 
+# Filas de la matriz de estado por eje: (clave interna, etiqueta en español)
+AXIS_STATUS_ROWS = [
+    ("limit_cw", "Límite CW"),
+    ("limit_ccw", "Límite CCW"),
+    ("fault", "Fallo"),
+    ("homed", "Referenciado"),
+]
+AXIS_ORDER = ("X", "Y", "Z")
+
 
 class HomePageExtensions:
     """Extensiones de UI para la página Home"""
@@ -34,7 +43,7 @@ class HomePageExtensions:
 
         # Referencias a los LEDs creados dinámicamente, indexadas para poder
         # actualizar su color en cada refresco sin recrearlos.
-        self._axis_leds = {}     # {"X": {"enabled": QFrame, "homed": QFrame, "no_pos_error": QFrame, "limits_free": QFrame}, ...}
+        self._axis_leds = {}     # {"X": {"limit_cw": QFrame, "limit_ccw": QFrame, "fault": QFrame, "homed": QFrame}, ...}
         self._led_conexion = None
         self._led_sto = None
         self._led_laser_state = None
@@ -44,7 +53,7 @@ class HomePageExtensions:
         """Aplica todas las modificaciones de la página Home"""
         self.setup_position_status()
         self.setup_status_banner()
-        self.setup_axis_led_rows()
+        self.setup_axis_status_card()
         self.setup_laser_card()
 
     def connect_signals(self):
@@ -99,24 +108,16 @@ class HomePageExtensions:
         sto_active = self.controller.get_sto_status()
         self._update_sto_banner(sto_active)
 
-        # LEDs por eje (habilitación, homing, error de posición, límites)
-        # NOTA: get_axes_enabled() devuelve un único booleano combinado para
-        # los 3 ejes (no hay lectura individual por eje en la API actual), así
-        # que se aplica el mismo valor al indicador "Habilitado" de cada eje.
-        enabled = self.controller.get_axes_enabled()
+        # Matriz de LEDs por eje (límites, fallo de posición, referenciado)
         homed = self.controller.get_axes_homed()
         faults = self.controller.get_axis_faults()
-        for axis in ("X", "Y", "Z"):
+        for axis in AXIS_ORDER:
             leds = self._axis_leds[axis]
             axis_faults = faults[axis]
-            self._set_led_color(leds["enabled"], LED_COLOR_OK if enabled else LED_COLOR_INACTIVE)
+            self._set_led_color(leds["limit_cw"], LED_COLOR_FAULT if axis_faults["limit_cw"] else LED_COLOR_OK)
+            self._set_led_color(leds["limit_ccw"], LED_COLOR_FAULT if axis_faults["limit_ccw"] else LED_COLOR_OK)
+            self._set_led_color(leds["fault"], LED_COLOR_FAULT if axis_faults["position_error"] else LED_COLOR_OK)
             self._set_led_color(leds["homed"], LED_COLOR_OK if homed[axis] else LED_COLOR_INACTIVE)
-            self._set_led_color(
-                leds["no_pos_error"],
-                LED_COLOR_FAULT if axis_faults["position_error"] else LED_COLOR_OK,
-            )
-            limits_ok = not (axis_faults["limit_cw"] or axis_faults["limit_ccw"])
-            self._set_led_color(leds["limits_free"], LED_COLOR_OK if limits_ok else LED_COLOR_FAULT)
 
         # Tarjeta de Salida Láser
         is_on, duty_percent, power_mw = self.controller.get_laser_output_state()
@@ -138,7 +139,7 @@ class HomePageExtensions:
 
         self._update_sto_banner(False)
 
-        for axis in ("X", "Y", "Z"):
+        for axis in AXIS_ORDER:
             for led in self._axis_leds[axis].values():
                 self._set_led_color(led, LED_COLOR_INACTIVE)
 
@@ -155,12 +156,12 @@ class HomePageExtensions:
     def _update_sto_banner(self, sto_active):
         if sto_active:
             self.ui.statusBanner.setStyleSheet(
-                f"QFrame#statusBanner {{ background-color: {BANNER_ALERT_COLOR}; border-radius: 8px; }}"
+                f"QFrame#statusBanner {{ background-color: {BANNER_ALERT_COLOR}; border-radius: 12px; }}"
             )
             self.ui.labelSTO.setText("STO ACTIVO")
         else:
             self.ui.statusBanner.setStyleSheet(
-                "QFrame#statusBanner { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 8px; }"
+                "QFrame#statusBanner { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 12px; }"
             )
             self.ui.labelSTO.setText("Seguridad OK")
         self._set_led_color(self._led_sto, LED_COLOR_FAULT if sto_active else LED_COLOR_OK)
@@ -179,69 +180,100 @@ class HomePageExtensions:
 
         for label, value in position_labels:
             # Label del eje
-            label.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
+            label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
             label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
             # Valor de la posición
-            value.setFont(QFont("Sitka Small", 11))
+            value.setFont(QFont("Sitka Small", 15))
+            value.setMinimumWidth(110)
             value.setStyleSheet("color: THEME.COLOR_ACCENT_3;")
+
+        # Más aire entre las 3 líneas de posición
+        self.ui.verticalLayout_20.setSpacing(16)
 
         # Ajustar tamaño de la imagen de la estación
         self.ui.estacionAerotech.setMaximumSize(QSize(300, 300))
         self.ui.estacionAerotech.setScaledContents(True)
 
     def setup_status_banner(self):
-        """Configura el banner superior de conexión + STO (directriz 1.2)"""
+        """Configura el banner superior de conexión + STO, agrandado y centrado (directriz 1.2)"""
         self.ui.statusBanner.setStyleSheet(
-            "QFrame#statusBanner { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 8px; }"
+            "QFrame#statusBanner { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 12px; }"
         )
 
         for label in (self.ui.labelConexion, self.ui.labelSTO):
-            label.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+            label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
             label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
-        self._led_conexion = self._make_led(LED_COLOR_INACTIVE, size=16, tooltip="Estado de conexión con el iSMC")
+        self._led_conexion = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Estado de conexión con el iSMC")
         self.ui.horizontalLayout_connectionRow.insertWidget(0, self._led_conexion)
+        self.ui.horizontalLayout_connectionRow.setSpacing(10)
 
-        self._led_sto = self._make_led(LED_COLOR_INACTIVE, size=16, tooltip="Estado de seguridad (STO)")
+        self._led_sto = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Estado de seguridad (STO)")
         self.ui.horizontalLayout_stoRow.insertWidget(0, self._led_sto)
+        self.ui.horizontalLayout_stoRow.setSpacing(10)
 
         self.ui.labelConexion.setText("Desconectado")
         self.ui.labelSTO.setText("Seguridad OK")
 
-    def setup_axis_led_rows(self):
-        """Crea los 4 LEDs de estado (Habilitado, Homed, Sin error de posición,
-        Límites libres) para cada uno de los 3 ejes (directriz 1.3)."""
-        led_specs = [
-            ("enabled", "Habilitado"),
-            ("homed", "Homed"),
-            ("no_pos_error", "Sin error de posición"),
-            ("limits_free", "Límites libres"),
-        ]
-        axis_layouts = {
-            "X": self.ui.horizontalLayout_ledRowX,
-            "Y": self.ui.horizontalLayout_ledRowY,
-            "Z": self.ui.horizontalLayout_ledRowZ,
-        }
+    def setup_axis_status_card(self):
+        """Crea la tarjeta intermedia con la matriz de estado por eje (límites,
+        fallo de posición y referenciado), entre la imagen de posición y la
+        tarjeta de Salida Láser."""
+        self.ui.axisStatusCard.setStyleSheet("""
+            QFrame#axisStatusCard {
+                max-width: 320px;
+            }
+        """)
 
-        for axis, layout in axis_layouts.items():
+        self.ui.axisStatusIcon.setStyleSheet("""
+            QLabel {
+                border: none;
+            }
+        """)
+
+        self.ui.axisStatusTitle.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
+        self.ui.axisStatusTitle.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.axisStatusTitle.setText("Estado de Ejes:")
+
+        grid = self.ui.gridLayout_axisStatus
+
+        # Cabecera de columnas: X, Y, Z
+        grid.addWidget(QLabel(""), 0, 0)
+        for col, axis in enumerate(AXIS_ORDER, start=1):
+            header = QLabel(axis)
+            header.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
+            header.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+            header.setAlignment(Qt.AlignCenter)
+            grid.addWidget(header, 0, col, Qt.AlignCenter)
+
+        # Filas: una por indicador, con un LED por eje
+        for axis in AXIS_ORDER:
             self._axis_leds[axis] = {}
-            for key, tooltip in led_specs:
-                led = self._make_led(LED_COLOR_INACTIVE, size=12, tooltip=tooltip)
-                layout.addWidget(led)
+
+        for row, (key, label_text) in enumerate(AXIS_STATUS_ROWS, start=1):
+            row_label = QLabel(label_text)
+            row_label.setFont(QFont("Sitka Small", 11))
+            row_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+            grid.addWidget(row_label, row, 0, Qt.AlignRight | Qt.AlignVCenter)
+
+            for col, axis in enumerate(AXIS_ORDER, start=1):
+                led = self._make_led(LED_COLOR_INACTIVE, size=16, tooltip=f"{label_text} — eje {axis}")
+                grid.addWidget(led, row, col, Qt.AlignCenter)
                 self._axis_leds[axis][key] = led
 
+        # Aplicar sombra a la tarjeta (mismo patrón visual que las demás)
+        self.apply_card_shadow(self.ui.axisStatusCard)
+
     def setup_laser_card(self):
-        """Configura la tarjeta fusionada 'Salida Láser' (directriz 1.1)"""
+        """Configura la tarjeta fusionada 'Salida Láser', agrandada (directriz 1.1)"""
         self.ui.laserOutputCard.setStyleSheet("""
             QFrame#laserOutputCard {
-                max-width: 250px;
+                max-width: 340px;
             }
         """)
 
         # Icono
-        self.ui.laserIcon.setMaximumSize(QSize(50, 50))
-        self.ui.laserIcon.setMinimumSize(QSize(50, 50))
         self.ui.laserIcon.setStyleSheet("""
             QLabel {
                 border: none;
@@ -249,38 +281,40 @@ class HomePageExtensions:
         """)
 
         # Título
-        self.ui.laserTitleLabel.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
+        self.ui.laserTitleLabel.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
         self.ui.laserTitleLabel.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         self.ui.laserTitleLabel.setText("Salida Láser:")
 
         # Indicador ON/OFF
-        self.ui.labelLaserState.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.labelLaserState.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
         self.ui.labelLaserState.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        self._led_laser_state = self._make_led(LED_COLOR_INACTIVE, size=16, tooltip="Estado de salida del láser")
+        self._led_laser_state = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Estado de salida del láser")
         self.ui.horizontalLayout_laserState.insertWidget(0, self._led_laser_state)
+        self.ui.horizontalLayout_laserState.setSpacing(10)
 
         # Consigna de potencia
-        self.ui.estadoPotencia.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.estadoPotencia.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.ui.estadoPotencia.setStyleSheet("""
             QLineEdit#estadoPotencia {
                 background-color: transparent;
                 color: white;
                 font-weight: bold;
-                min-width: 200px;
-                max-width: 300px;
-                min-height: 32px;
-                max-height: 32px;
+                min-width: 260px;
+                max-width: 360px;
+                min-height: 40px;
+                max-height: 40px;
             }
         """)
         self.ui.estadoPotencia.setText("0% · 0 mW (consigna)")
 
         # Slot de interlock — permanece en gris fijo mientras
         # config.LASER_INTERLOCK_AVAILABLE sea False (directriz 2.2)
-        self.ui.labelInterlock.setFont(QFont("Sitka Small", 9))
+        self.ui.labelInterlock.setFont(QFont("Sitka Small", 10))
         self.ui.labelInterlock.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         interlock_tooltip = "Interlock del láser" if config.LASER_INTERLOCK_AVAILABLE else "Interlock no disponible todavía"
-        self._led_interlock = self._make_led(LED_COLOR_INACTIVE, size=16, tooltip=interlock_tooltip)
+        self._led_interlock = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip=interlock_tooltip)
         self.ui.horizontalLayout_laserInterlock.insertWidget(0, self._led_interlock)
+        self.ui.horizontalLayout_laserInterlock.setSpacing(10)
         self.ui.labelInterlock.setText("Interlock: N/D")
 
         # Aplicar sombra a la tarjeta

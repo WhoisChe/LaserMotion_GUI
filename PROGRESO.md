@@ -9,7 +9,7 @@
 El proyecto es una aplicación de escritorio (GUI) que sirve de panel de control para una estación de posicionamiento láser de precisión. Permite:
 
 - Ver en tiempo real la posición de los ejes X, Y, Z, el estado de seguridad (STO), la salud de cada eje (habilitado/homed/sin error/límites libres) y la consigna de salida del láser (página **Home**).
-- Mover los ejes manualmente, paso a paso, con escala/velocidad/aceleración configurables (página **Manual**).
+- Mover los ejes manualmente, paso a paso, con escala/velocidad/aceleración configurables, habilitación/homing independiente por eje y control continuo de potencia del láser (página **Manual**).
 - Mover los ejes a una posición absoluta y programar el tiempo de apertura del *shutter* (página **Auto**).
 - Cargar, editar y ejecutar programas G-Code (página **G-Code**).
 - Configurar la conexión serie con el controlador (página **Connection**).
@@ -107,12 +107,12 @@ PyQt6_CodeOnly/
 
 | Fichero | Líneas | Rol |
 |---|---:|---|
-| `src/ui_interface.py` | 2009 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
+| `src/ui_interface.py` | 2232 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
+| `src/ui_extensions_manual.py` | 490 | Página Manual (jog manual, control por eje, láser continuo) |
 | `src/ui_extensions_gcode.py` | 451 | Página G-Code + diálogo de edición + intérprete G-Code |
 | `src/ui_extensions_auto.py` | 334 | Página Auto (movimiento absoluto + shutter temporizado) |
-| `src/ui_extensions_manual.py` | 279 | Página Manual (jog manual + shutter) |
 | `src/ui_extensions_connection.py` | 239 | Página Connection (puerto serie + conexión Aerotech) |
-| `src/ui_extensions_home.py` | 296 | Página Home (banner conexión/STO, LEDs por eje, tarjeta de salida láser) |
+| `src/ui_extensions_home.py` | 330 | Página Home (banner conexión/STO, matriz de LEDs por eje, tarjeta de salida láser) |
 | `src/aerotech_controller.py` | 337 | Envoltorio de la API automation1 (conexión, movimiento, E/S digital, fallos/homing/STO, potencia láser) |
 | `src/ui_extensions_calibration.py` | 204 | Página Calibration |
 | `src/Functions.py` | 103 | Fuentes, temas, señales de menú |
@@ -219,15 +219,22 @@ Clase `UIExtensions`: orquestador central descrito en el punto 5.2. Crea la úni
 
 ### 6.5. `src/ui_extensions_home.py`
 Página de estado general, rediseñada en agosto de 2026 (ver sección 9). Muestra:
-- Un **banner superior** de conexión (IP del host) y de STO (Safe Torque Off), que pasa a rojo de alerta fijo cuando el STO está activo.
+- Un **banner superior**, grande y centrado, de conexión (IP del host) y de STO (Safe Torque Off), que pasa a rojo de alerta fijo cuando el STO está activo.
 - Posición X/Y/Z, mostrando "—" en gris atenuado en vez de "0.000" cuando no hay conexión (para no confundir "en el origen" con "desconectado").
-- 4 LEDs por eje (Habilitado, Homed, Sin error de posición, Límites libres), construidos con el helper único `_make_led()`.
+- Una tarjeta intermedia **`axisStatusCard`** con una matriz LED (filas Límite CW / Límite CCW / Fallo / Referenciado × columnas X/Y/Z), construida con el helper único `_make_led()`.
 - Una tarjeta **"Salida Láser"** (`laserOutputCard`, fusión de las antiguas `shutterStatus`/`powerStatus`) con LED ON/OFF, consigna de potencia (`estadoPotencia`, siempre con el sufijo "(consigna)" para dejar claro que no es una medida real) y un slot de interlock (gris fijo mientras `config.LASER_INTERLOCK_AVAILABLE` sea `False`).
 
-Un `QTimer` de 100 ms refresca todo el estado llamando a `controller.get_axis_positions()`, `get_axes_enabled()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
+Un `QTimer` de 100 ms refresca todo el estado llamando a `controller.get_axis_positions()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
 
 ### 6.6. `src/ui_extensions_manual.py`
-Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`) con selector de escala (nm/μm/mm/cm), velocidad y aceleración configurables, y control del *shutter* (abrir/cerrar, mutuamente excluyentes, vía `controller.set_digital_output`).
+Rediseñada en agosto de 2026 (ver sección 10). Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`), con:
+- **Control independiente por eje**: cada eje (X/Y/Z) tiene su propio botón conmutable Enable/Disable (`toggleXBtn`/`toggleYBtn`/`toggleZBtn`, mismo patrón que `connectBtn`), su botón `home<Axis>Btn` y sus 4 LEDs de estado (Habilitado, Homed, Sin error de posición, Límites libres), reutilizando `HomePageExtensions._make_led()` sin duplicar su lógica.
+- **Posición en vivo** X/Y/Z junto al D-pad, mismo formato que Home (incluye el `"—"` cuando no hay conexión).
+- **Paso de jog** = escala del `scaleList` × `scaleMultiplier` (spinbox 1-999, nuevo).
+- **Compuerta de confirmación real** en Velocity/Acceleration: los spinbox muestran borde naranja mientras el valor en pantalla no coincide con `self._applied_velocity`/`self._applied_acceleration` (los que de verdad usan los movimientos), y `confirmBtn` cambia de texto a "Aplicar cambios pendientes" hasta que se confirman.
+- **Control de potencia del láser continuo**: `laserPowerSlider` (0-100%) sustituye a los antiguos `openShutterBtn`/`closeShutterBtn`; llama a `controller.set_laser_power_percent()` en vivo (cada cambio de valor, no solo al soltar) y colorea `laserOC` por interpolación continua de gris a rojo. `laserOffBtn` pone el slider a 0.
+
+Un `QTimer` propio de 100 ms (independiente del de Home) refresca posición y LEDs por eje vía `get_axis_positions()`, `get_axes_enabled()`, `get_axes_homed()` y `get_axis_faults()`.
 
 ### 6.7. `src/ui_extensions_auto.py`
 Movimiento a posición absoluta (X/Y/Z en mm, vía `controller.move_absolute`) con los mismos parámetros de velocidad/aceleración que la página Manual, sincronizados bidireccionalmente entre ambas páginas. El botón Reset manda los tres ejes a *home* (`controller.home_axes`). Incluye la configuración del tiempo de apertura del *shutter* con selector de unidad temporal (ns/μs/ms/s) — guardado para un futuro disparo temporizado por software (ver limitaciones en 5.5).
@@ -305,3 +312,48 @@ Ver detalle en las secciones 5.5, 6.11 y 7. Resumen: se añadieron `get_axis_fau
 - Confirmar el canal PWM/TTL físico del láser NEJE B30635 contra el documento *620D1426-10-01 System Interconnect* y conectar `set_laser_power_percent()` a la salida real.
 - Confirmar la señal de interlock en el interconnect y activar `config.LASER_INTERLOCK_AVAILABLE`.
 - Migración de las páginas Manual/Auto/G-Code del antiguo `set_digital_output` del shutter al nuevo esquema de PWM/láser (fuera de alcance de este cambio).
+
+### 9.6. Ajuste visual posterior: tamaños y tarjeta intermedia de estado por eje
+
+Segunda pasada, solo de maquetación, sobre la misma página Home:
+
+- **Banner** (`statusBanner`): altura mínima/máxima subida de 40-48 px a 64-90 px, márgenes internos de 24×8 px, fuentes de `labelConexion`/`labelSTO` a 13 pt negrita, LEDs de 16→20 px. El grupo conexión+STO ya no queda anclado a los bordes: se centra como bloque en medio del banner (spacers `Expanding` a ambos lados + separador fijo de 60 px entre los dos grupos), en vez del reparto "conexión a la izquierda / STO a la derecha" original.
+- **Nueva tarjeta intermedia `axisStatusCard`**, insertada entre `positionStatus` (imagen + X/Y/Z) y `cardsFrame` (tarjeta de láser). Sustituye a las filas de 4 LEDs que antes colgaban debajo de cada eje (`Habilitado`/`Homed`/`Sin error de posición`/`Límites libres`, eliminadas). En su lugar, una matriz (`QGridLayout` `gridLayout_axisStatus`) con:
+  - Columnas: **X**, **Y**, **Z**.
+  - Filas: **Límite CW**, **Límite CCW**, **Fallo**, **Referenciado** — un LED de 16 px por celda.
+  - El indicador "Habilitado" (que dependía de `get_axes_enabled()`, booleano combinado para los 3 ejes sin desglose real por eje) se retiró de la matriz junto con el resto del rediseño; `update_position_display()` ya no llama a `get_axes_enabled()` en absoluto, lo que además resuelve de raíz la limitación apuntada en la sección 9.3 sobre ese valor combinado.
+  - Mismo patrón visual que las otras dos tarjetas (icono `activity.png`, título, sombra vía `apply_card_shadow()`, fondo de tarjeta vía el selector SCSS compartido `QFrame#laserOutputCard, #axisStatusCard`).
+- **Tarjeta `laserOutputCard`**: ancho máximo subido de 250 a 340 px, icono de 50→64 px, márgenes internos 24×20 px y espaciado 14 px entre elementos, fuentes del título/estado subidas (11→13 pt / 10→12 pt), LEDs de 16→20 px, campo `estadoPotencia` agrandado (200-300×32 px → 260-360×40 px, fuente 9→11 pt).
+- **Posición X/Y/Z**: etiquetas de eje a 13 pt negrita (antes 11), valores a 15 pt con ancho mínimo de 110 px (antes 11 pt sin mínimo), más espaciado vertical entre las 3 líneas (`verticalLayout_20.setSpacing(16)`).
+- `homePage` pasó de tener `horizontalLayout_18` como único layout (`QHBoxLayout(self.homePage)`) a un `verticalLayout_home` que apila banner + fila horizontal (posición / estado de ejes / láser) — ya introducido en la sección 9.2, ahora con la tarjeta de ejes como tercer elemento de esa fila.
+
+---
+
+## 10. Rediseño de la página Manual (2026-08-14)
+
+Cambio de alcance acotado a la página **Manual** (`src/ui_interface.py`, `src/ui_extensions_manual.py`), reutilizando sin modificarlos los métodos que la fase de Home (sección 9) ya había añadido a `src/aerotech_controller.py` (`get_axis_faults()`, `get_axes_homed()`, `get_sto_status()`, `set_laser_power_percent()`, `get_laser_output_state()`, `NEJE_B30635_MAX_POWER_MW`). No se ha tocado Home, Auto, G-Code, Connection ni Calibration.
+
+### 10.1. Cambios de interfaz (`src/ui_interface.py`)
+
+- **Control por eje** (`axisControlManual`, encima de la sección de movimiento XYZ): tres bloques idénticos (`axisControlX/Y/Z`), cada uno con un botón conmutable `toggle<Axis>Btn` (mismo patrón que `connectBtn`: `setCheckable(True)`, cambia de texto/color según estado), un botón `home<Axis>Btn` y una fila `ledRowManual<Axis>` para los 4 LEDs de estado del eje.
+- **Posición en vivo** (`positionManual`, junto al D-pad dentro de `widget_8`): tres pares etiqueta/valor (`labelPosManualX/Y/Z` + `valorXManual/YManual/ZManual`), mismo formato que Home.
+- **Multiplicador de escala**: `scaleList` se envolvió en un `scaleRow` (`QFrame`+`QHBoxLayout`) junto con el nuevo `scaleMultiplier` (`QSpinBox`, rango 1-999, valor por defecto 1), ocupando la misma celda de `gridLayout_4` que antes ocupaba `scaleList` solo — no se tocó la disposición de `velocity`/`acceleration`.
+- **Sección de láser**: `openShutterBtn`/`closeShutterBtn` eliminados. En su lugar, dentro de `frame_7`: `laserPowerRow` (`QFrame`+`QHBoxLayout`) con `laserPowerSlider` (`QSlider` horizontal, 0-100) y `labelLaserPowerManual` (`QLineEdit` de solo lectura), y debajo `laserOffBtn` (tamaño mínimo 150×60 px). `laserOC` se mantiene tal cual (imagen base `images/laserOC4.png`), solo cambia cómo se colorea (ver 10.2).
+- Import añadidos: `QSlider`, `QSpinBox` (no estaban en uso en este fichero hasta ahora).
+
+### 10.2. Cambios de lógica (`src/ui_extensions_manual.py`)
+
+- **Reutilización de `_make_led()`/`_set_led_color()` de `HomePageExtensions` sin duplicarlos ni modificar `ui_extensions_home.py`**: ambos métodos no usan ningún atributo de instancia (`self.ui`/`self.controller`), así que `ManualPageExtensions` los invoca pasándose a sí misma como `self` (`HomePageExtensions._make_led(self, ...)`). Es una reutilización deliberada de la implementación exacta, no una copia — si `_make_led()` cambiara alguna vez a depender de `self.ui`, esta llamada dejaría de ser válida y habría que revisarla.
+- **Control por eje**: `toggle<Axis>Btn` llama a `controller.enable_axes([AXIS_<X|Y|Z>])`/`disable_axes([...])` según su estado `isChecked()`; `home<Axis>Btn` llama a `controller.home_axes([AXIS_<X|Y|Z>])`. No se ha modificado la firma de estos tres métodos en `aerotech_controller.py` — ya aceptaban una lista de ejes.
+- **`update_status_display()`** (nuevo, en un `QTimer` propio de 100 ms, independiente del de Home): misma secuencia que `HomePageExtensions.update_position_display()` — sin conexión, todo a "—"/gris; con conexión, posición + `get_axes_enabled()` + `get_axes_homed()` + `get_axis_faults()`. Nota de implementación (igual que en Home, sección 9.3): `get_axes_enabled()` es un booleano combinado para los 3 ejes, así que el LED "Habilitado" de X/Y/Z muestra ese mismo valor en los tres.
+- **Compuerta de confirmación real en Velocity/Acceleration**: `self._applied_velocity`/`self._applied_acceleration` (inicializados a 10.0/100.0) son los únicos valores que usan `_move_relative()` y `move_xy_zero()` — ya no leen `self.ui.velocity.value()`/`self.ui.acceleration.value()` directamente. `velocity.valueChanged`/`acceleration.valueChanged` disparan `_check_pending_changes()`, que aplica un borde naranja (`#FFA726`) al spinbox que difiera de su valor aplicado y cambia el texto de `confirmBtn` a "Aplicar cambios pendientes". `confirm_values()` (mismo nombre que antes, lógica reescrita) copia los valores, quita el borde y muestra el mismo `QMessageBox` que ya existía.
+- **Paso de jog = escala × multiplicador**: `get_current_scale()` multiplica la conversión de unidad (nm/μm/mm/cm) por `scaleMultiplier.value()`.
+- **Control de potencia del láser en vivo**: `laserPowerSlider.valueChanged` (no solo al soltar) llama a `controller.set_laser_power_percent(value)`, actualiza `labelLaserPowerManual` con `"{duty:.0f}% · {mw:.0f} mW"` (el aviso de "consigna, no medida" queda en el `toolTip` del widget, no repetido en el texto) y recalcula el color de `laserOC` con `_laser_color_for_percent()`, que interpola linealmente de gris (`#808080`, 0%) a rojo saturado (`#F44336`, 100%) sin saltos de dos colores. `laserOffBtn.clicked` simplemente hace `laserPowerSlider.setValue(0)`; el resto de la cadena (controlador + color de `laserOC`) se actualiza sola porque el slider ya dispara `valueChanged`. No pasa por ninguna compuerta de confirmación — es intencionalmente en vivo.
+- Eliminados: `handle_shutter_button_click()`, `update_laser_icon_color()` (verde/rojo fijo) y las constantes `SHUTTER_OUTPUT_AXIS`/`SHUTTER_OUTPUT_NUM` (no se usaban desde ningún otro fichero — `ui_extensions_auto.py` tiene su propia copia independiente de esas constantes para su propio shutter, sin cambios).
+
+### 10.3. Pendiente / no implementado en esta fase
+
+- `home_axes()` sigue siendo una llamada bloqueante ejecutada en el hilo de la UI (ya documentado desde antes de esta fase) — no se ha movido a `QThread`.
+- Dos `QTimer` de 100 ms corriendo en paralelo (Home + Manual), cada uno pidiendo estado al controlador por su cuenta — funcionalmente correcto y consistente con el patrón actual (cada `XxxPageExtensions` gestiona sus propias señales), pero si más adelante se detecta demasiada carga de refresco con hardware real conectado, se podría centralizar en un único servicio de estado compartido.
+- `set_laser_power_percent()` sigue en modo simulado (ver sección 9.4/9.5): el slider de Manual ya llama a esta función en vivo, pero mientras no se confirme el canal PWM/TTL real, no hay salida física.
+- No se ha añadido jog continuo (mantener pulsado) — se mantiene solo clic a paso, según lo decidido.

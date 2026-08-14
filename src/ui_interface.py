@@ -13,8 +13,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFrame,
     QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWidget)
+    QMainWindow, QPushButton, QSizePolicy, QSlider, QSpacerItem,
+    QSpinBox, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQStackedWidget import QCustomQStackedWidget
 from Custom_Widgets.QCustomSlideMenu import QCustomSlideMenu
@@ -455,12 +455,17 @@ class Ui_MainWindow(object):
         # ── Banner superior de conexión + STO ──────────────────────────
         self.statusBanner = QFrame(self.homePage)
         self.statusBanner.setObjectName(u"statusBanner")
-        self.statusBanner.setMinimumSize(QSize(0, 40))
-        self.statusBanner.setMaximumSize(QSize(16777215, 48))
+        self.statusBanner.setMinimumSize(QSize(0, 64))
+        self.statusBanner.setMaximumSize(QSize(16777215, 90))
         self.statusBanner.setFrameShape(QFrame.StyledPanel)
         self.statusBanner.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_banner = QHBoxLayout(self.statusBanner)
         self.horizontalLayout_banner.setObjectName(u"horizontalLayout_banner")
+        self.horizontalLayout_banner.setContentsMargins(24, 8, 24, 8)
+
+        self.horizontalSpacer_bannerLeft = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerLeft)
 
         self.connectionRow = QFrame(self.statusBanner)
         self.connectionRow.setObjectName(u"connectionRow")
@@ -470,11 +475,11 @@ class Ui_MainWindow(object):
         self.labelConexion.setObjectName(u"labelConexion")
         self.horizontalLayout_connectionRow.addWidget(self.labelConexion)
 
-        self.horizontalLayout_banner.addWidget(self.connectionRow, 0, Qt.AlignLeft|Qt.AlignVCenter)
+        self.horizontalLayout_banner.addWidget(self.connectionRow, 0, Qt.AlignCenter)
 
-        self.horizontalSpacer_banner = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.horizontalSpacer_bannerMid = QSpacerItem(60, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
-        self.horizontalLayout_banner.addItem(self.horizontalSpacer_banner)
+        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerMid)
 
         self.stoRow = QFrame(self.statusBanner)
         self.stoRow.setObjectName(u"stoRow")
@@ -484,7 +489,11 @@ class Ui_MainWindow(object):
         self.labelSTO.setObjectName(u"labelSTO")
         self.horizontalLayout_stoRow.addWidget(self.labelSTO)
 
-        self.horizontalLayout_banner.addWidget(self.stoRow, 0, Qt.AlignRight|Qt.AlignVCenter)
+        self.horizontalLayout_banner.addWidget(self.stoRow, 0, Qt.AlignCenter)
+
+        self.horizontalSpacer_bannerRight = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerRight)
 
         self.verticalLayout_home.addWidget(self.statusBanner)
 
@@ -517,13 +526,6 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_20.addWidget(self.posicionZ, 0, Qt.AlignLeft|Qt.AlignVCenter)
-
-        self.ledRowZ = QFrame(self.positionStatus)
-        self.ledRowZ.setObjectName(u"ledRowZ")
-        self.horizontalLayout_ledRowZ = QHBoxLayout(self.ledRowZ)
-        self.horizontalLayout_ledRowZ.setObjectName(u"horizontalLayout_ledRowZ")
-
-        self.verticalLayout_20.addWidget(self.ledRowZ, 0, Qt.AlignHCenter)
 
         self.posicionY = QFrame(self.positionStatus)
         self.posicionY.setObjectName(u"posicionY")
@@ -560,13 +562,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_20.addWidget(self.posicionY, 0, Qt.AlignHCenter|Qt.AlignVCenter)
 
-        self.ledRowY = QFrame(self.positionStatus)
-        self.ledRowY.setObjectName(u"ledRowY")
-        self.horizontalLayout_ledRowY = QHBoxLayout(self.ledRowY)
-        self.horizontalLayout_ledRowY.setObjectName(u"horizontalLayout_ledRowY")
-
-        self.verticalLayout_20.addWidget(self.ledRowY, 0, Qt.AlignHCenter)
-
         self.posicionX = QFrame(self.positionStatus)
         self.posicionX.setObjectName(u"posicionX")
         self.posicionX.setFrameShape(QFrame.StyledPanel)
@@ -587,19 +582,60 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_20.addWidget(self.posicionX, 0, Qt.AlignLeft|Qt.AlignVCenter)
 
-        self.ledRowX = QFrame(self.positionStatus)
-        self.ledRowX.setObjectName(u"ledRowX")
-        self.horizontalLayout_ledRowX = QHBoxLayout(self.ledRowX)
-        self.horizontalLayout_ledRowX.setObjectName(u"horizontalLayout_ledRowX")
-
-        self.verticalLayout_20.addWidget(self.ledRowX, 0, Qt.AlignHCenter)
-
 
         self.horizontalLayout_18.addWidget(self.positionStatus, 0, Qt.AlignHCenter)
 
         self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_18.addItem(self.horizontalSpacer_6)
+
+        # ── Tarjeta intermedia: matriz de estado por eje (límites/fault/home) ──
+        self.axisStatusCard = QFrame(self.homePage)
+        self.axisStatusCard.setObjectName(u"axisStatusCard")
+        self.axisStatusCard.setStyleSheet(u"")
+        self.axisStatusCard.setFrameShape(QFrame.StyledPanel)
+        self.axisStatusCard.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_axisStatus = QVBoxLayout(self.axisStatusCard)
+        self.verticalLayout_axisStatus.setObjectName(u"verticalLayout_axisStatus")
+        self.verticalLayout_axisStatus.setContentsMargins(24, 20, 24, 20)
+        self.verticalLayout_axisStatus.setSpacing(14)
+
+        self.axisStatusIcon = QLabel(self.axisStatusCard)
+        self.axisStatusIcon.setObjectName(u"axisStatusIcon")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.axisStatusIcon.sizePolicy().hasHeightForWidth())
+        self.axisStatusIcon.setSizePolicy(sizePolicy5)
+        self.axisStatusIcon.setMinimumSize(QSize(50, 50))
+        self.axisStatusIcon.setMaximumSize(QSize(50, 50))
+        self.axisStatusIcon.setPixmap(QPixmap(_icon_path(u":/feather/icons/feather/activity.png")))
+        self.axisStatusIcon.setScaledContents(True)
+
+        self.verticalLayout_axisStatus.addWidget(self.axisStatusIcon, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+
+        self.axisStatusTitle = QLabel(self.axisStatusCard)
+        self.axisStatusTitle.setObjectName(u"axisStatusTitle")
+        font2 = QFont()
+        font2.setPointSize(11)
+        font2.setBold(True)
+        self.axisStatusTitle.setFont(font2)
+
+        self.verticalLayout_axisStatus.addWidget(self.axisStatusTitle, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+
+        self.gridLayout_axisStatus = QGridLayout()
+        self.gridLayout_axisStatus.setObjectName(u"gridLayout_axisStatus")
+        self.gridLayout_axisStatus.setHorizontalSpacing(18)
+        self.gridLayout_axisStatus.setVerticalSpacing(12)
+
+        self.verticalLayout_axisStatus.addLayout(self.gridLayout_axisStatus)
+
+
+        self.horizontalLayout_18.addWidget(self.axisStatusCard, 0, Qt.AlignHCenter)
+
+        self.horizontalSpacer_axisCards = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_18.addItem(self.horizontalSpacer_axisCards)
 
         self.cardsFrame = QWidget(self.homePage)
         self.cardsFrame.setObjectName(u"cardsFrame")
@@ -616,6 +652,8 @@ class Ui_MainWindow(object):
         self.laserOutputCard.setFrameShadow(QFrame.Raised)
         self.verticalLayout_laser = QVBoxLayout(self.laserOutputCard)
         self.verticalLayout_laser.setObjectName(u"verticalLayout_laser")
+        self.verticalLayout_laser.setContentsMargins(24, 20, 24, 20)
+        self.verticalLayout_laser.setSpacing(14)
         self.laserIcon = QLabel(self.laserOutputCard)
         self.laserIcon.setObjectName(u"laserIcon")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
@@ -623,8 +661,8 @@ class Ui_MainWindow(object):
         sizePolicy5.setVerticalStretch(0)
         sizePolicy5.setHeightForWidth(self.laserIcon.sizePolicy().hasHeightForWidth())
         self.laserIcon.setSizePolicy(sizePolicy5)
-        self.laserIcon.setMinimumSize(QSize(50, 50))
-        self.laserIcon.setMaximumSize(QSize(50, 50))
+        self.laserIcon.setMinimumSize(QSize(64, 64))
+        self.laserIcon.setMaximumSize(QSize(64, 64))
         self.laserIcon.setPixmap(QPixmap(_icon_path(u":/feather/icons/feather/zap.png")))
         self.laserIcon.setScaledContents(True)
 
@@ -632,9 +670,6 @@ class Ui_MainWindow(object):
 
         self.laserTitleLabel = QLabel(self.laserOutputCard)
         self.laserTitleLabel.setObjectName(u"laserTitleLabel")
-        font2 = QFont()
-        font2.setPointSize(11)
-        font2.setBold(True)
         self.laserTitleLabel.setFont(font2)
 
         self.verticalLayout_laser.addWidget(self.laserTitleLabel, 0, Qt.AlignHCenter|Qt.AlignVCenter)
@@ -655,9 +690,9 @@ class Ui_MainWindow(object):
         self.estadoPotencia.setObjectName(u"estadoPotencia")
         self.estadoPotencia.setReadOnly(True)
         self.estadoPotencia.setAlignment(Qt.AlignCenter)
-        self.estadoPotencia.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
-        self.estadoPotencia.setMinimumSize(QSize(200, 32))
-        self.estadoPotencia.setMaximumSize(QSize(300, 32))
+        self.estadoPotencia.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
+        self.estadoPotencia.setMinimumSize(QSize(260, 40))
+        self.estadoPotencia.setMaximumSize(QSize(360, 40))
         self.estadoPotencia.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self.verticalLayout_laser.addWidget(self.estadoPotencia, 0, Qt.AlignHCenter|Qt.AlignVCenter)
@@ -703,6 +738,93 @@ class Ui_MainWindow(object):
         self.verticalLayout_22 = QVBoxLayout(self.movementManual)
         self.verticalLayout_22.setObjectName(u"verticalLayout_22")
         self.verticalLayout_22.setContentsMargins(30, -1, 25, -1)
+
+        # ── Control por eje: Enable/Disable + Home + LEDs de estado ─────
+        self.axisControlManual = QFrame(self.movementManual)
+        self.axisControlManual.setObjectName(u"axisControlManual")
+        self.axisControlManual.setFrameShape(QFrame.StyledPanel)
+        self.axisControlManual.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_axisControl = QHBoxLayout(self.axisControlManual)
+        self.horizontalLayout_axisControl.setObjectName(u"horizontalLayout_axisControl")
+
+        self.axisControlX = QFrame(self.axisControlManual)
+        self.axisControlX.setObjectName(u"axisControlX")
+        self.axisControlX.setFrameShape(QFrame.StyledPanel)
+        self.axisControlX.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_axisControlX = QVBoxLayout(self.axisControlX)
+        self.verticalLayout_axisControlX.setObjectName(u"verticalLayout_axisControlX")
+        self.labelAxisX = QLabel(self.axisControlX)
+        self.labelAxisX.setObjectName(u"labelAxisX")
+        self.labelAxisX.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlX.addWidget(self.labelAxisX, 0, Qt.AlignHCenter)
+        self.toggleXBtn = QPushButton(self.axisControlX)
+        self.toggleXBtn.setObjectName(u"toggleXBtn")
+        self.toggleXBtn.setCheckable(True)
+        self.verticalLayout_axisControlX.addWidget(self.toggleXBtn)
+        self.homeXBtn = QPushButton(self.axisControlX)
+        self.homeXBtn.setObjectName(u"homeXBtn")
+        self.verticalLayout_axisControlX.addWidget(self.homeXBtn)
+        self.ledRowManualX = QFrame(self.axisControlX)
+        self.ledRowManualX.setObjectName(u"ledRowManualX")
+        self.horizontalLayout_ledManualX = QHBoxLayout(self.ledRowManualX)
+        self.horizontalLayout_ledManualX.setObjectName(u"horizontalLayout_ledManualX")
+        self.verticalLayout_axisControlX.addWidget(self.ledRowManualX, 0, Qt.AlignHCenter)
+        self.horizontalLayout_axisControl.addWidget(self.axisControlX)
+
+        self.axisControlY = QFrame(self.axisControlManual)
+        self.axisControlY.setObjectName(u"axisControlY")
+        self.axisControlY.setFrameShape(QFrame.StyledPanel)
+        self.axisControlY.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_axisControlY = QVBoxLayout(self.axisControlY)
+        self.verticalLayout_axisControlY.setObjectName(u"verticalLayout_axisControlY")
+        self.labelAxisY = QLabel(self.axisControlY)
+        self.labelAxisY.setObjectName(u"labelAxisY")
+        self.labelAxisY.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlY.addWidget(self.labelAxisY, 0, Qt.AlignHCenter)
+        self.toggleYBtn = QPushButton(self.axisControlY)
+        self.toggleYBtn.setObjectName(u"toggleYBtn")
+        self.toggleYBtn.setCheckable(True)
+        self.verticalLayout_axisControlY.addWidget(self.toggleYBtn)
+        self.homeYBtn = QPushButton(self.axisControlY)
+        self.homeYBtn.setObjectName(u"homeYBtn")
+        self.verticalLayout_axisControlY.addWidget(self.homeYBtn)
+        self.ledRowManualY = QFrame(self.axisControlY)
+        self.ledRowManualY.setObjectName(u"ledRowManualY")
+        self.horizontalLayout_ledManualY = QHBoxLayout(self.ledRowManualY)
+        self.horizontalLayout_ledManualY.setObjectName(u"horizontalLayout_ledManualY")
+        self.verticalLayout_axisControlY.addWidget(self.ledRowManualY, 0, Qt.AlignHCenter)
+        self.horizontalLayout_axisControl.addWidget(self.axisControlY)
+
+        self.axisControlZ = QFrame(self.axisControlManual)
+        self.axisControlZ.setObjectName(u"axisControlZ")
+        self.axisControlZ.setFrameShape(QFrame.StyledPanel)
+        self.axisControlZ.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_axisControlZ = QVBoxLayout(self.axisControlZ)
+        self.verticalLayout_axisControlZ.setObjectName(u"verticalLayout_axisControlZ")
+        self.labelAxisZ = QLabel(self.axisControlZ)
+        self.labelAxisZ.setObjectName(u"labelAxisZ")
+        self.labelAxisZ.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlZ.addWidget(self.labelAxisZ, 0, Qt.AlignHCenter)
+        self.toggleZBtn = QPushButton(self.axisControlZ)
+        self.toggleZBtn.setObjectName(u"toggleZBtn")
+        self.toggleZBtn.setCheckable(True)
+        self.verticalLayout_axisControlZ.addWidget(self.toggleZBtn)
+        self.homeZBtn = QPushButton(self.axisControlZ)
+        self.homeZBtn.setObjectName(u"homeZBtn")
+        self.verticalLayout_axisControlZ.addWidget(self.homeZBtn)
+        self.ledRowManualZ = QFrame(self.axisControlZ)
+        self.ledRowManualZ.setObjectName(u"ledRowManualZ")
+        self.horizontalLayout_ledManualZ = QHBoxLayout(self.ledRowManualZ)
+        self.horizontalLayout_ledManualZ.setObjectName(u"horizontalLayout_ledManualZ")
+        self.verticalLayout_axisControlZ.addWidget(self.ledRowManualZ, 0, Qt.AlignHCenter)
+        self.horizontalLayout_axisControl.addWidget(self.axisControlZ)
+
+        self.verticalLayout_22.addWidget(self.axisControlManual)
+
+        self.verticalSpacer_axisControl = QSpacerItem(20, 16, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout_22.addItem(self.verticalSpacer_axisControl)
+
         self.frame_19 = QFrame(self.movementManual)
         self.frame_19.setObjectName(u"frame_19")
         self.frame_19.setFrameShape(QFrame.StyledPanel)
@@ -759,7 +881,13 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.label_33, 0, 4, 1, 1)
 
-        self.scaleList = QComboBox(self.frame_4)
+        self.scaleRow = QFrame(self.frame_4)
+        self.scaleRow.setObjectName(u"scaleRow")
+        self.horizontalLayout_scaleRow = QHBoxLayout(self.scaleRow)
+        self.horizontalLayout_scaleRow.setObjectName(u"horizontalLayout_scaleRow")
+        self.horizontalLayout_scaleRow.setContentsMargins(0, 0, 0, 0)
+
+        self.scaleList = QComboBox(self.scaleRow)
         self.scaleList.setObjectName(u"scaleList")
         sizePolicy1.setHeightForWidth(self.scaleList.sizePolicy().hasHeightForWidth())
         self.scaleList.setSizePolicy(sizePolicy1)
@@ -767,7 +895,18 @@ class Ui_MainWindow(object):
         self.scaleList.setMaximumSize(QSize(16777215, 16777215))
         self.scaleList.setStyleSheet(u"outline: none")
 
-        self.gridLayout_4.addWidget(self.scaleList, 1, 0, 1, 1)
+        self.horizontalLayout_scaleRow.addWidget(self.scaleList)
+
+        self.scaleMultiplier = QSpinBox(self.scaleRow)
+        self.scaleMultiplier.setObjectName(u"scaleMultiplier")
+        self.scaleMultiplier.setMinimum(1)
+        self.scaleMultiplier.setMaximum(999)
+        self.scaleMultiplier.setValue(1)
+        self.scaleMultiplier.setPrefix(u"×")
+
+        self.horizontalLayout_scaleRow.addWidget(self.scaleMultiplier)
+
+        self.gridLayout_4.addWidget(self.scaleRow, 1, 0, 1, 1)
 
         self.acceleration = QDoubleSpinBox(self.frame_4)
         self.acceleration.setObjectName(u"acceleration")
@@ -1039,6 +1178,56 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_16.addWidget(self.frameRectangular)
 
+        self.horizontalSpacer_posManual = QSpacerItem(20, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_16.addItem(self.horizontalSpacer_posManual)
+
+        # ── Posición en vivo X/Y/Z, junto al D-pad de jog ───────────────
+        self.positionManual = QFrame(self.widget_8)
+        self.positionManual.setObjectName(u"positionManual")
+        self.positionManual.setFrameShape(QFrame.StyledPanel)
+        self.positionManual.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_positionManual = QVBoxLayout(self.positionManual)
+        self.verticalLayout_positionManual.setObjectName(u"verticalLayout_positionManual")
+
+        self.frame_posManualX = QFrame(self.positionManual)
+        self.frame_posManualX.setObjectName(u"frame_posManualX")
+        self.horizontalLayout_posManualX = QHBoxLayout(self.frame_posManualX)
+        self.horizontalLayout_posManualX.setObjectName(u"horizontalLayout_posManualX")
+        self.labelPosManualX = QLabel(self.frame_posManualX)
+        self.labelPosManualX.setObjectName(u"labelPosManualX")
+        self.horizontalLayout_posManualX.addWidget(self.labelPosManualX)
+        self.valorXManual = QLabel(self.frame_posManualX)
+        self.valorXManual.setObjectName(u"valorXManual")
+        self.horizontalLayout_posManualX.addWidget(self.valorXManual)
+        self.verticalLayout_positionManual.addWidget(self.frame_posManualX)
+
+        self.frame_posManualY = QFrame(self.positionManual)
+        self.frame_posManualY.setObjectName(u"frame_posManualY")
+        self.horizontalLayout_posManualY = QHBoxLayout(self.frame_posManualY)
+        self.horizontalLayout_posManualY.setObjectName(u"horizontalLayout_posManualY")
+        self.labelPosManualY = QLabel(self.frame_posManualY)
+        self.labelPosManualY.setObjectName(u"labelPosManualY")
+        self.horizontalLayout_posManualY.addWidget(self.labelPosManualY)
+        self.valorYManual = QLabel(self.frame_posManualY)
+        self.valorYManual.setObjectName(u"valorYManual")
+        self.horizontalLayout_posManualY.addWidget(self.valorYManual)
+        self.verticalLayout_positionManual.addWidget(self.frame_posManualY)
+
+        self.frame_posManualZ = QFrame(self.positionManual)
+        self.frame_posManualZ.setObjectName(u"frame_posManualZ")
+        self.horizontalLayout_posManualZ = QHBoxLayout(self.frame_posManualZ)
+        self.horizontalLayout_posManualZ.setObjectName(u"horizontalLayout_posManualZ")
+        self.labelPosManualZ = QLabel(self.frame_posManualZ)
+        self.labelPosManualZ.setObjectName(u"labelPosManualZ")
+        self.horizontalLayout_posManualZ.addWidget(self.labelPosManualZ)
+        self.valorZManual = QLabel(self.frame_posManualZ)
+        self.valorZManual.setObjectName(u"valorZManual")
+        self.horizontalLayout_posManualZ.addWidget(self.valorZManual)
+        self.verticalLayout_positionManual.addWidget(self.frame_posManualZ)
+
+        self.horizontalLayout_16.addWidget(self.positionManual)
+
 
         self.verticalLayout_22.addWidget(self.widget_8, 0, Qt.AlignHCenter)
 
@@ -1120,21 +1309,38 @@ class Ui_MainWindow(object):
         self.frame_7.setFrameShadow(QFrame.Raised)
         self.verticalLayout_34 = QVBoxLayout(self.frame_7)
         self.verticalLayout_34.setObjectName(u"verticalLayout_34")
-        self.openShutterBtn = QPushButton(self.frame_7)
-        self.openShutterBtn.setObjectName(u"openShutterBtn")
-        self.openShutterBtn.setFont(font1)
-        self.openShutterBtn.setCheckable(False)
-        self.openShutterBtn.setAutoExclusive(False)
 
-        self.verticalLayout_34.addWidget(self.openShutterBtn)
+        self.laserPowerRow = QFrame(self.frame_7)
+        self.laserPowerRow.setObjectName(u"laserPowerRow")
+        self.horizontalLayout_laserPowerRow = QHBoxLayout(self.laserPowerRow)
+        self.horizontalLayout_laserPowerRow.setObjectName(u"horizontalLayout_laserPowerRow")
 
-        self.closeShutterBtn = QPushButton(self.frame_7)
-        self.closeShutterBtn.setObjectName(u"closeShutterBtn")
-        self.closeShutterBtn.setFont(font1)
-        self.closeShutterBtn.setCheckable(False)
-        self.closeShutterBtn.setAutoExclusive(False)
+        self.laserPowerSlider = QSlider(self.laserPowerRow)
+        self.laserPowerSlider.setObjectName(u"laserPowerSlider")
+        self.laserPowerSlider.setOrientation(Qt.Horizontal)
+        self.laserPowerSlider.setMinimum(0)
+        self.laserPowerSlider.setMaximum(100)
+        self.laserPowerSlider.setValue(0)
 
-        self.verticalLayout_34.addWidget(self.closeShutterBtn)
+        self.horizontalLayout_laserPowerRow.addWidget(self.laserPowerSlider)
+
+        self.labelLaserPowerManual = QLineEdit(self.laserPowerRow)
+        self.labelLaserPowerManual.setObjectName(u"labelLaserPowerManual")
+        self.labelLaserPowerManual.setReadOnly(True)
+        self.labelLaserPowerManual.setAlignment(Qt.AlignCenter)
+
+        self.horizontalLayout_laserPowerRow.addWidget(self.labelLaserPowerManual)
+
+        self.verticalLayout_34.addWidget(self.laserPowerRow)
+
+        self.laserOffBtn = QPushButton(self.frame_7)
+        self.laserOffBtn.setObjectName(u"laserOffBtn")
+        self.laserOffBtn.setFont(font1)
+        self.laserOffBtn.setCheckable(False)
+        self.laserOffBtn.setAutoExclusive(False)
+        self.laserOffBtn.setMinimumSize(QSize(150, 60))
+
+        self.verticalLayout_34.addWidget(self.laserOffBtn)
 
 
         self.verticalLayout_21.addWidget(self.frame_7, 0, Qt.AlignVCenter)
@@ -1935,12 +2141,23 @@ class Ui_MainWindow(object):
         self.valorY.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"X (mm):", None))
         self.valorX.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.axisStatusIcon.setText("")
+        self.axisStatusTitle.setText(QCoreApplication.translate("MainWindow", u"Estado de Ejes:", None))
         self.laserIcon.setText("")
         self.laserTitleLabel.setText(QCoreApplication.translate("MainWindow", u"Salida Láser:", None))
         self.labelLaserState.setText(QCoreApplication.translate("MainWindow", u"OFF", None))
         self.estadoPotencia.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW (consigna)", None))
         self.labelInterlock.setText(QCoreApplication.translate("MainWindow", u"Interlock: N/D", None))
         self.label_36.setText("")
+        self.labelAxisX.setText(QCoreApplication.translate("MainWindow", u"X", None))
+        self.toggleXBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeXBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
+        self.labelAxisY.setText(QCoreApplication.translate("MainWindow", u"Y", None))
+        self.toggleYBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeYBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
+        self.labelAxisZ.setText(QCoreApplication.translate("MainWindow", u"Z", None))
+        self.toggleZBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeZBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Movement XYZ", None))
         self.label_31.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
         self.label_32.setText(QCoreApplication.translate("MainWindow", u"Velocity", None))
@@ -1960,11 +2177,17 @@ class Ui_MainWindow(object):
         self.label_35.setText(QCoreApplication.translate("MainWindow", u"|", None))
         self.zDownBtn.setText("")
         self.labelZMinus.setText(QCoreApplication.translate("MainWindow", u"Z-", None))
+        self.labelPosManualX.setText(QCoreApplication.translate("MainWindow", u"X (mm):", None))
+        self.valorXManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.labelPosManualY.setText(QCoreApplication.translate("MainWindow", u"Y (mm):", None))
+        self.valorYManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.labelPosManualZ.setText(QCoreApplication.translate("MainWindow", u"Z (mm):", None))
+        self.valorZManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.label_8.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Shutter", None))
         self.laserOC.setText("")
-        self.openShutterBtn.setText(QCoreApplication.translate("MainWindow", u"OPEN", None))
-        self.closeShutterBtn.setText(QCoreApplication.translate("MainWindow", u"CLOSE", None))
+        self.labelLaserPowerManual.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW", None))
+        self.laserOffBtn.setText(QCoreApplication.translate("MainWindow", u"LÁSER OFF", None))
         self.label_37.setText("")
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"Movement XYZ", None))
         self.label_38.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
