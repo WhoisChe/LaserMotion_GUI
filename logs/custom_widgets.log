@@ -178,3 +178,8 @@
 2026-08-14 12:48:12,523 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
 2026-08-14 12:48:12,524 - INFO - Generating icons for your theme, please wait. This may take long
 2026-08-14 12:48:13,689 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-18 01:18:28,318 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-18 01:18:28,328 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-18 01:18:29,601 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-18 01:18:30,814 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-18 01:18:31,894 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B

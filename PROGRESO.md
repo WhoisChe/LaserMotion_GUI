@@ -62,7 +62,7 @@ El entorno tiene instaladas **ambas** familias de bindings de Qt (`PySide6` y `P
 | `pyserial` | 3.5 | Comunicación serie de bajo nivel (no se usa directamente; la página Connection usa `QtSerialPort`) |
 | `pyusb` | 1.3.1 | Comunicación USB de bajo nivel (no se usa actualmente) |
 
-`automation1` es la única de estas cuatro que el código propio importa y utiliza (ver secciones 5.5 y 6.11). Las otras tres siguen instaladas en el entorno como posibles vías alternativas de comunicación con hardware, sin uso actual.
+`automation1` es la única de estas cuatro que el código propio importa y utiliza (ver secciones 5.5 y 6.9). Las otras tres siguen instaladas en el entorno como posibles vías alternativas de comunicación con hardware, sin uso actual.
 
 ### 3.3. Dependencias indirectas relevantes
 
@@ -76,14 +76,12 @@ El entorno tiene instaladas **ambas** familias de bindings de Qt (`PySide6` y `P
 
 ```
 PyQt6_CodeOnly/
-├── main.py                        # Punto de entrada de la aplicación
+├── main.py                        # Punto de entrada: MainWindow + UIExtensions + GuiFunctions (ver sección 11)
 ├── config.py                      # Flags de configuración globales (p. ej. LASER_INTERLOCK_AVAILABLE)
 ├── json-styles/
 │   └── style.json                 # Configuración declarativa de la UI (temas, menús, botones...)
 ├── src/
 │   ├── ui_interface.py            # Definición de TODOS los widgets (equivalente a un .ui "compilado" a mano)
-│   ├── Functions.py               # Lógica transversal: fuentes, temas, conexión de botones de menú
-│   ├── ui_extensions.py           # Orquestador de las extensiones de cada página
 │   ├── aerotech_controller.py     # Gestor centralizado de la conexión con Aerotech Automation1-iSMC
 │   ├── ui_extensions_home.py      # Lógica de la página Home
 │   ├── ui_extensions_manual.py    # Lógica de la página Manual
@@ -115,11 +113,9 @@ PyQt6_CodeOnly/
 | `src/ui_extensions_home.py` | 330 | Página Home (banner conexión/STO, matriz de LEDs por eje, tarjeta de salida láser) |
 | `src/aerotech_controller.py` | 337 | Envoltorio de la API automation1 (conexión, movimiento, E/S digital, fallos/homing/STO, potencia láser) |
 | `src/ui_extensions_calibration.py` | 204 | Página Calibration |
-| `src/Functions.py` | 103 | Fuentes, temas, señales de menú |
-| `src/ui_extensions.py` | 90 | Orquestador de páginas + instancia compartida del controlador |
-| `main.py` | 50 | Arranque de la aplicación |
+| `main.py` | 273 | Arranque de la app + orquestador de páginas (`UIExtensions`) + fuentes/temas/menú (`GuiFunctions`) |
 | `config.py` | 12 | Flags de configuración globales |
-| **Total** | **~4 404** | |
+| **Total** | **~4 442** | |
 
 (No se cuentan los miles de ficheros `.png`/`.svg` de iconos ni las imágenes, que son binarios/recursos, no código.)
 
@@ -145,6 +141,8 @@ Dentro de `MainWindow.__init__`:
 5. **`QAppSettings.updateAppSettings(self)`** — aplica el tema visual activo (compila el SCSS a QSS, aplica la paleta de colores, genera los iconos coloreados que falten).
 6. **`GuiFunctions(self)`** — carga la tipografía de la app y rellena el selector de temas.
 
+Desde agosto de 2026 (ver sección 11), `UIExtensions` y `GuiFunctions` viven en el propio `main.py`, debajo de `MainWindow` — antes vivían en `src/ui_extensions.py` y `src/Functions.py` respectivamente.
+
 ### 5.2. Patrón de organización: una clase "Extensions" por página
 
 Cada página del `QStackedWidget` principal tiene su propia clase (`HomePageExtensions`, `ManualPageExtensions`, `AutoPageExtensions`, `GCodePageExtensions`, `ConnectionPageExtensions`, `CalibrationPageExtensions`), todas con la misma interfaz:
@@ -156,14 +154,14 @@ class XxxPageExtensions:
     def connect_signals(self):       # conexión de señales Qt (clics, cambios de valor...)
 ```
 
-`UIExtensions` (en `ui_extensions.py`) instancia las seis clases y expone dos métodos de fachada (`apply_all_modifications`, `connect_all_signals`) que `main.py` invoca una sola vez. Esto separa **la interfaz generada** (`ui_interface.py`, no debería tocarse a mano salvo para regenerar) de **la lógica de cada pantalla** (los ficheros `ui_extensions_*.py`, donde se añade funcionalidad nueva).
+`UIExtensions` (en `main.py`) instancia las seis clases y expone dos métodos de fachada (`apply_all_modifications`, `connect_all_signals`) que `MainWindow.__init__` invoca una sola vez. Esto separa **la interfaz generada** (`ui_interface.py`, no debería tocarse a mano salvo para regenerar) de **la lógica de cada pantalla** (los ficheros `ui_extensions_*.py`, donde se añade funcionalidad nueva) y del **arranque/orquestación** (`main.py`).
 
 ### 5.3. Sistema de temas y estilos
 
 - Los colores de cada tema (fondo, texto, acento, color de iconos) se definen declarativamente en `json-styles/style.json`, dentro de `QSettings → ThemeSettings → CustomTheme`. Actualmente hay 3 temas personalizados: **TIDE** (por defecto), **NEON** y **EMBER**, además de los temas `DARK`/`LIGHT` que añade la propia librería.
 - `Custom_Widgets` traduce esas variables a un fichero `Qss/scss/_variables.scss`, que junto con `Qss/scss/_styles.scss` se compila a `generated-files/css/main.css` (el QSS real que se aplica a la aplicación) mediante `qtsass`.
 - Con `"LiveCompileQss": true` en `style.json`, un `watchdog` vigila los `.scss` y recompila en caliente al guardarlos — útil durante el desarrollo del estilo visual.
-- El cambio de tema en caliente lo gestiona `GuiFunctions.changeAppTheme()` (`src/Functions.py`), que guarda el tema elegido en `QSettings` y vuelve a aplicar el JSON.
+- El cambio de tema en caliente lo gestiona `GuiFunctions.changeAppTheme()` (clase definida en `main.py`), que guarda el tema elegido en `QSettings` y vuelve a aplicar el JSON.
 
 ### 5.4. Sistema de iconos
 
@@ -176,7 +174,7 @@ Como la interfaz de este proyecto está escrita **a mano** (no generada desde Qt
 
 ### 5.5. Integración con hardware: Aerotech Automation1
 
-El control real del sistema se hace a través del SDK oficial `automation1`, envuelto en una única clase, `AerotechController` (`src/aerotech_controller.py`), que **todas** las páginas comparten (`UIExtensions` la crea una vez y la pasa por constructor a cada `XxxPageExtensions`, en vez de que cada página abra su propia conexión o intente adivinar la de otra).
+El control real del sistema se hace a través del SDK oficial `automation1`, envuelto en una única clase, `AerotechController` (`src/aerotech_controller.py`), que **todas** las páginas comparten (`UIExtensions`, en `main.py`, la crea una vez y la pasa por constructor a cada `XxxPageExtensions`, en vez de que cada página abra su propia conexión o intente adivinar la de otra).
 
 `AerotechController` expone:
 
@@ -202,22 +200,15 @@ El control real del sistema se hace a través del SDK oficial `automation1`, env
 ## 6. Descripción módulo por módulo
 
 ### 6.1. `main.py`
-Punto de entrada. Crea la `QApplication`, instancia `MainWindow` y arranca el bucle de eventos de Qt. La inicialización del controlador Aerotech ya no vive aquí: la gestiona `UIExtensions` (ver 6.4 y 6.11).
+Punto de entrada, y desde agosto de 2026 (sección 11) también el archivo que reúne el arranque y las dos clases de orquestación que antes vivían en ficheros aparte:
+- **`MainWindow`** — crea la `QApplication`, instancia la ventana y arranca el bucle de eventos de Qt.
+- **`UIExtensions`** (antes `src/ui_extensions.py`) — orquestador central descrito en el punto 5.2. Crea la única instancia de `AerotechController` y la reparte por constructor a las seis páginas. También aplica la fuente global (`Sitka Small`) a toda la ventana y la fuente de título en negrita a los encabezados de cada sección.
+- **`GuiFunctions`** (antes `src/Functions.py`) — carga la tipografía personalizada de la app (`ProductSans-Regular.ttf`), inicializa y puebla el selector de temas (excluyendo los temas internos `DARK`/`LIGHT`), conecta los botones que abren/cierran los menús deslizantes central y derecho (Settings/Help/Connection/Calibration), y cambia el tema activo cuando el usuario elige uno distinto en el desplegable.
 
 ### 6.2. `src/ui_interface.py`
 Clase `Ui_MainWindow`, con un único método `setupUi()` que crea y posiciona **todos** los widgets de la aplicación: cabecera personalizada (sin barra de título nativa — ventana *frameless*), menú lateral, menús deslizantes central/derecho, y el `QStackedWidget` principal con las 6 páginas funcionales (`homePage`, `manualPage`, `autoPage`, `gcodePage`, `connectionPage`, `calibrationPage`) más las páginas de ajustes (`settingsPage`, `helpPage`). Incluye también la función auxiliar `_icon_path()` descrita en el punto 5.4.
 
-### 6.3. `src/Functions.py`
-Clase `GuiFunctions`. Se encarga de:
-- Cargar la tipografía personalizada de la app (`ProductSans-Regular.ttf`).
-- Inicializar y poblar el selector de temas (excluyendo los temas internos `DARK`/`LIGHT`).
-- Conectar los botones que abren/cierran los menús deslizantes central y derecho (Settings/Help/Connection/Calibration).
-- Cambiar el tema activo cuando el usuario elige uno distinto en el desplegable.
-
-### 6.4. `src/ui_extensions.py`
-Clase `UIExtensions`: orquestador central descrito en el punto 5.2. Crea la única instancia de `AerotechController` y la reparte por constructor a las seis páginas. También aplica la fuente global (`Sitka Small`) a toda la ventana y la fuente de título en negrita a los encabezados de cada sección.
-
-### 6.5. `src/ui_extensions_home.py`
+### 6.3. `src/ui_extensions_home.py`
 Página de estado general, rediseñada en agosto de 2026 (ver sección 9). Muestra:
 - Un **banner superior**, grande y centrado, de conexión (IP del host) y de STO (Safe Torque Off), que pasa a rojo de alerta fijo cuando el STO está activo.
 - Posición X/Y/Z, mostrando "—" en gris atenuado en vez de "0.000" cuando no hay conexión (para no confundir "en el origen" con "desconectado").
@@ -226,7 +217,7 @@ Página de estado general, rediseñada en agosto de 2026 (ver sección 9). Muest
 
 Un `QTimer` de 100 ms refresca todo el estado llamando a `controller.get_axis_positions()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
 
-### 6.6. `src/ui_extensions_manual.py`
+### 6.4. `src/ui_extensions_manual.py`
 Rediseñada en agosto de 2026 (ver sección 10). Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`), con:
 - **Control independiente por eje**: cada eje (X/Y/Z) tiene su propio botón conmutable Enable/Disable (`toggleXBtn`/`toggleYBtn`/`toggleZBtn`, mismo patrón que `connectBtn`), su botón `home<Axis>Btn` y sus 4 LEDs de estado (Habilitado, Homed, Sin error de posición, Límites libres), reutilizando `HomePageExtensions._make_led()` sin duplicar su lógica.
 - **Posición en vivo** X/Y/Z junto al D-pad, mismo formato que Home (incluye el `"—"` cuando no hay conexión).
@@ -236,19 +227,19 @@ Rediseñada en agosto de 2026 (ver sección 10). Movimiento manual paso a paso e
 
 Un `QTimer` propio de 100 ms (independiente del de Home) refresca posición y LEDs por eje vía `get_axis_positions()`, `get_axes_enabled()`, `get_axes_homed()` y `get_axis_faults()`.
 
-### 6.7. `src/ui_extensions_auto.py`
+### 6.5. `src/ui_extensions_auto.py`
 Movimiento a posición absoluta (X/Y/Z en mm, vía `controller.move_absolute`) con los mismos parámetros de velocidad/aceleración que la página Manual, sincronizados bidireccionalmente entre ambas páginas. El botón Reset manda los tres ejes a *home* (`controller.home_axes`). Incluye la configuración del tiempo de apertura del *shutter* con selector de unidad temporal (ns/μs/ms/s) — guardado para un futuro disparo temporizado por software (ver limitaciones en 5.5).
 
-### 6.8. `src/ui_extensions_gcode.py`
+### 6.6. `src/ui_extensions_gcode.py`
 Carga de ficheros G-Code por diálogo o arrastrar-y-soltar (*drag & drop*), editor de texto integrado (`GCodeEditorDialog`) y un intérprete línea a línea que soporta `G0`/`G1` (movimiento, absoluto o relativo según `G90`/`G91`), `G28` (home) y `M0` (pausa: deshabilita los ejes), traduciendo cada línea a llamadas de `AerotechController`.
 
-### 6.9. `src/ui_extensions_connection.py`
+### 6.7. `src/ui_extensions_connection.py`
 Selector de puerto serie (usa `QSerialPortInfo` de `PySide6.QtSerialPort` para listar los puertos disponibles del sistema) y de *baud rate*, pensado para un posible dispositivo serie auxiliar (el iSMC de Aerotech no se conecta por COM/baudios). El botón "Connect" lanza `AerotechController.connect()` en un `QThread` (clase interna `_ConnectWorker`) para no bloquear la interfaz mientras se resuelve la conexión.
 
-### 6.10. `src/ui_extensions_calibration.py`
+### 6.8. `src/ui_extensions_calibration.py`
 Calibración de enfoque en Z (subir/bajar en pasos de `FOCUS_STEP_MM` vía `controller.move_relative`, confirmar con `controller.zero_axis`) y puesta a cero de las posiciones X e Y (`controller.zero_axis`).
 
-### 6.11. `src/aerotech_controller.py`
+### 6.9. `src/aerotech_controller.py`
 Clase `AerotechController`: envoltorio único sobre el SDK `automation1`, descrito en detalle en el punto 5.5. Es el único módulo que importa `automation1` directamente; el resto de páginas solo llaman a sus métodos.
 
 ---
@@ -261,7 +252,7 @@ Clase `AerotechController`: envoltorio único sobre el SDK `automation1`, descri
 - **Salida digital del shutter sin calibrar**: `SHUTTER_OUTPUT_AXIS`/`SHUTTER_OUTPUT_NUM` (en `ui_extensions_manual.py` y `ui_extensions_auto.py`) son valores por defecto (`AXIS_X`, `0`) que hay que ajustar al cableado real de la estación.
 - **Sin control de versiones**: el directorio de trabajo no es (todavía) un repositorio Git.
 - **Sin fichero de dependencias**: falta un `requirements.txt`/`pyproject.toml` para fijar versiones y facilitar la reproducibilidad del entorno.
-- **Ruta de fuente tipográfica**: `Functions.py` carga la fuente desde `.fonts/google-sans-cufonfonts/ProductSans-Regular.ttf`, carpeta que no existe actualmente en el proyecto (falla de forma silenciosa y Qt usa una fuente de reemplazo).
+- **Ruta de fuente tipográfica**: `GuiFunctions.loadFont()` (en `main.py`) carga la fuente desde `.fonts/google-sans-cufonfonts/ProductSans-Regular.ttf`, carpeta que no existe actualmente en el proyecto (falla de forma silenciosa y Qt usa una fuente de reemplazo).
 - **Bits de estado sin verificar**: `get_axis_faults()`, `get_axes_homed()` y `get_sto_status()` (nuevos, ver sección 9) asumen nombres de bit de `a1.AxisFault`/`a1.DriveStatus` que no se han contrastado todavía contra la instalación real del SDK — marcado con `# TODO` en `aerotech_controller.py`.
 - **Interlock del láser**: el LED de interlock de la tarjeta "Salida Láser" existe en la interfaz pero se mantiene en gris fijo (`config.LASER_INTERLOCK_AVAILABLE = False`) hasta confirmar la señal en el interconnect real.
 - **Canal PWM del láser**: `set_laser_power_percent()` guarda la consigna en memoria pero no escribe sobre ninguna salida física; falta el documento de interconexión para saber a qué eje/salida está cableado el pin TTL/PWM del NEJE B30635.
@@ -304,7 +295,7 @@ La página Home mezclaba dos problemas: (1) el estado del *shutter* se inferían
 
 ### 9.4. Cambios en `src/aerotech_controller.py` y `config.py`
 
-Ver detalle en las secciones 5.5, 6.11 y 7. Resumen: se añadieron `get_axis_faults()`, `get_axes_homed()`, `get_sto_status(axis=None)`, `set_laser_power_percent(duty_percent)`, `get_laser_output_state()` y la constante `NEJE_B30635_MAX_POWER_MW`, sin eliminar ni modificar el comportamiento de ningún método existente. Se creó `config.py` con el flag `LASER_INTERLOCK_AVAILABLE = False`.
+Ver detalle en las secciones 5.5, 6.9 y 7. Resumen: se añadieron `get_axis_faults()`, `get_axes_homed()`, `get_sto_status(axis=None)`, `set_laser_power_percent(duty_percent)`, `get_laser_output_state()` y la constante `NEJE_B30635_MAX_POWER_MW`, sin eliminar ni modificar el comportamiento de ningún método existente. Se creó `config.py` con el flag `LASER_INTERLOCK_AVAILABLE = False`.
 
 ### 9.5. Pendiente / no implementado en esta fase
 
@@ -357,3 +348,23 @@ Cambio de alcance acotado a la página **Manual** (`src/ui_interface.py`, `src/u
 - Dos `QTimer` de 100 ms corriendo en paralelo (Home + Manual), cada uno pidiendo estado al controlador por su cuenta — funcionalmente correcto y consistente con el patrón actual (cada `XxxPageExtensions` gestiona sus propias señales), pero si más adelante se detecta demasiada carga de refresco con hardware real conectado, se podría centralizar en un único servicio de estado compartido.
 - `set_laser_power_percent()` sigue en modo simulado (ver sección 9.4/9.5): el slider de Manual ya llama a esta función en vivo, pero mientras no se confirme el canal PWM/TTL real, no hay salida física.
 - No se ha añadido jog continuo (mantener pulsado) — se mantiene solo clic a paso, según lo decidido.
+
+---
+
+## 11. Consolidación de archivos de arranque (2026-08-14)
+
+Cambio puramente organizativo, sin tocar ningún comportamiento: reducir el número de ficheros de nivel superior fusionando los dos que solo contenían lógica de arranque/orquestación (ejecutados una única vez, ya acoplados entre sí) dentro de `main.py`.
+
+### 11.1. Qué se fusionó y por qué
+
+- **`src/Functions.py`** (clase `GuiFunctions`: fuente, tema visual, señales de menú) y **`src/ui_extensions.py`** (clase `UIExtensions`: orquestador de las 6 páginas + instancia compartida de `AerotechController`) se movieron íntegros a `main.py`, debajo de `MainWindow`. Ambos ficheros originales se eliminaron.
+- **Qué NO se tocó**: `src/ui_interface.py` (construcción de widgets) y `src/aerotech_controller.py` (envoltorio del SDK) se mantuvieron como ficheros aparte — son las dos piezas con una identidad propia clara (una es boilerplate mecánico de ~2200 líneas, la otra es la única capa sin dependencia de Qt) y mezclarlas con el resto habría diluido una separación que hoy es fácil de explicar en la memoria del TFG. Los 6 `ui_extensions_*.py` (uno por página) tampoco se tocaron.
+- **Criterio usado**: solo se fusionaron ficheros que (a) se ejecutan una única vez al arrancar, (b) ya estaban acoplados entre sí (`main.py` los importaba y llamaba a ambos directamente) y (c) eran pequeños (103 y 90 líneas). `ui_interface.py`/`aerotech_controller.py` no cumplían (a) por tamaño/naturaleza distinta, así que se descartó fusionarlos pese a que el usuario lo planteó como alternativa más agresiva.
+
+### 11.2. Resultado
+
+De 12 ficheros de código propio (`main.py`, `config.py`, `src/Functions.py`, `src/ui_extensions.py`, `src/ui_interface.py`, `src/aerotech_controller.py` + 6 `ui_extensions_*.py`) se pasó a **10**: `main.py` (ahora con `MainWindow` + `UIExtensions` + `GuiFunctions`, ~273 líneas, organizado con comentarios de sección), `config.py`, `src/ui_interface.py`, `src/aerotech_controller.py` y los 6 `ui_extensions_*.py`, sin cambios de comportamiento — verificado arrancando la app en modo simulado tras el cambio.
+
+### 11.3. Cómo importar ahora
+
+Cualquier código nuevo que necesitase antes `from src.Functions import GuiFunctions` o `from src.ui_extensions import UIExtensions` ya no debe hacerlo — ambas clases están en el propio `main.py`. Ningún fichero de `src/ui_extensions_*.py` importaba de estos dos módulos (se comprobó antes de eliminarlos), así que no hizo falta tocar ninguna página.
