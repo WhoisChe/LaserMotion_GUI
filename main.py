@@ -15,7 +15,7 @@ from PySide6.QtCore import QSettings, QTimer, Signal
 from PySide6.QtGui import QFont, QFontDatabase
 
 # Gestor centralizado de la conexión con el controlador Aerotech Automation1-iSMC
-from src.aerotech_controller import AerotechController, AXIS_X
+from src.aerotech_controller import AerotechController
 
 # Extensiones de cada página
 from src.ui_extensions_home import HomePageExtensions
@@ -203,7 +203,7 @@ class GlobalStatusPanel(QFrame):
         return column
 
     def _handle_laser_stop(self):
-        self.controller.pso_output_off(AXIS_X)
+        self.controller.stop_laser(cut_power=True)
         self.laser_emergency_stop.emit()
 
     # ── Refresco periódico (QTimer de 100 ms, propiedad de MainWindow) ──

@@ -1045,6 +1045,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_34 = QVBoxLayout(self.frame_7)
         self.verticalLayout_34.setObjectName(u"verticalLayout_34")
 
+        self.laserBoardPowerBtn = QPushButton(self.frame_7)
+        self.laserBoardPowerBtn.setObjectName(u"laserBoardPowerBtn")
+        self.laserBoardPowerBtn.setFont(font1)
+        self.laserBoardPowerBtn.setCheckable(True)
+        self.laserBoardPowerBtn.setChecked(False)
+        self.laserBoardPowerBtn.setMinimumSize(QSize(150, 40))
+
+        self.verticalLayout_34.addWidget(self.laserBoardPowerBtn)
+
         self.laserPowerRow = QFrame(self.frame_7)
         self.laserPowerRow.setObjectName(u"laserPowerRow")
         self.horizontalLayout_laserPowerRow = QHBoxLayout(self.laserPowerRow)
@@ -2106,6 +2115,7 @@ class Ui_MainWindow(object):
         self.label_8.setText("")
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Laser", None))
         self.laserOC.setText("")
+        self.laserBoardPowerBtn.setText(QCoreApplication.translate("MainWindow", u"Laser board power: OFF", None))
         self.labelLaserPowerManual.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW", None))
         self.laserFireBtn.setText(QCoreApplication.translate("MainWindow", u"Laser ON", None))
         self.labelAxisAutoX.setText(QCoreApplication.translate("MainWindow", u"X", None))

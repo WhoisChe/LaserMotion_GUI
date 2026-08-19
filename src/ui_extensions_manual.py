@@ -49,6 +49,11 @@ class ManualPageExtensions:
         self._laser_axis = AXIS_X
         self._firing = False
 
+        # Relé que alimenta la placa adaptadora del NEJE (Digital Output
+        # [-EB1] Output 2, ver 07_laser_hardware_integration.md) — apagado
+        # por defecto al arrancar.
+        self._board_power = False
+
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página Manual"""
         self.setup_axis_control_section()
@@ -86,6 +91,10 @@ class ManualPageExtensions:
         # Consigna de potencia del láser (solo fija el valor mostrado/color;
         # NO dispara nada por sí sola — ver 02_manual.md §1.4)
         self.ui.laserPowerSlider.valueChanged.connect(self.handle_laser_power_changed)
+
+        # Relé de alimentación de la placa adaptadora del NEJE (ver
+        # 07_laser_hardware_integration.md §2)
+        self.ui.laserBoardPowerBtn.toggled.connect(self.handle_laser_board_power_toggled)
 
         # Disparo por mantener pulsado, sobre PSO real
         self.ui.laserFireBtn.pressed.connect(self._start_firing)
@@ -337,6 +346,24 @@ class ManualPageExtensions:
     # ─────────────────────────────────────────────────────────────────────
     def setup_laser_power_section(self):
         """Configura el slider de consigna, el indicador y el botón de disparo"""
+        self.ui.laserBoardPowerBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.laserBoardPowerBtn.setStyleSheet("""
+            QPushButton {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
+                border-radius: 8px;
+                padding: 6px;
+            }
+            QPushButton:checked {
+                background-color: #4CAF50;
+                color: white;
+                border: 2px solid #45a049;
+            }
+        """)
+        self.ui.laserBoardPowerBtn.setChecked(False)
+        self.ui.laserBoardPowerBtn.setText("Laser board power: OFF")
+
         self.ui.laserPowerSlider.setMinimumWidth(160)
 
         self.ui.labelLaserPowerManual.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
@@ -383,20 +410,40 @@ class ManualPageExtensions:
         """
         power_mw = value / 100 * NEJE_B30635_MAX_POWER_MW
         self.ui.labelLaserPowerManual.setText(f"{value:.0f}% · {power_mw:.0f} mW")
-        self._apply_laser_icon_color(value if self._firing else 0)
+        self._apply_laser_icon_color(value if (self._firing and self._board_power) else 0)
+
+    def handle_laser_board_power_toggled(self, checked):
+        """laserBoardPowerBtn.toggled — abre/cierra el relé que alimenta la
+        placa adaptadora del NEJE (ver 07_laser_hardware_integration.md §2)."""
+        self._board_power = checked
+        self.controller.set_laser_board_power(checked)
+        self.ui.laserBoardPowerBtn.setText(f"Laser board power: {'ON' if checked else 'OFF'}")
+        # Si el relé se abre mientras se mantenía pulsado el disparo, laserOC
+        # no debe seguir sugiriendo que hay emisión real.
+        if not checked:
+            self._apply_laser_icon_color(0)
+        elif self._firing:
+            self._apply_laser_icon_color(self.ui.laserPowerSlider.value())
 
     def _start_firing(self):
-        """laserFireBtn.pressed — dispara mientras se mantiene pulsado."""
+        """laserFireBtn.pressed — dispara mientras se mantiene pulsado.
+        fire_laser() garantiza que el relé quede cerrado, así que el toggle
+        laserBoardPowerBtn se sincroniza con ese estado real (si estaba
+        apagado, pasa a encendido) en vez de dejar la interfaz mintiendo
+        sobre si hay alimentación real en la placa."""
         power_percent = self.ui.laserPowerSlider.value()
         self._firing = True
-        self.controller.pso_configure_waveform(self._laser_axis, power_percent)
-        self.controller.pso_output_on(self._laser_axis)
+        self.controller.fire_laser(power_percent)
+        if not self.ui.laserBoardPowerBtn.isChecked():
+            self.ui.laserBoardPowerBtn.setChecked(True)
         self._apply_laser_icon_color(power_percent)
 
     def _stop_firing(self):
-        """laserFireBtn.released — corta el disparo."""
+        """laserFireBtn.released — corta el disparo por PSO, sin abrir el
+        relé (eso es acción explícita del toggle laserBoardPowerBtn o de
+        'Laser stop')."""
         self._firing = False
-        self.controller.pso_output_off(self._laser_axis)
+        self.controller.stop_laser(cut_power=False)
         self._apply_laser_icon_color(0)
 
     def handle_emergency_stop(self):

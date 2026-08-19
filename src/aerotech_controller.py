@@ -22,6 +22,15 @@ AXES = (AXIS_X, AXIS_Y, AXIS_Z)
 # duty cycle (%) de la consigna a una potencia estimada en mW.
 NEJE_B30635_MAX_POWER_MW = 500.0
 
+# Cableado físico confirmado (ver 07_laser_hardware_integration.md):
+# - PSO pin 3/4 (TTL/PWM + GND) del drive 1/iXC2e va al pin TTL de la placa
+#   adaptadora del NEJE B30635 -> eje X.
+# - Digital Output [-EB1] "Output 2" del mismo drive controla el relé (activo
+#   en alto) que alimenta esa placa adaptadora (Input B, PWR/GND/TTL).
+PSO_LASER_AXIS = AXIS_X
+RELAY_CONTROL_AXIS = AXIS_X
+RELAY_OUTPUT_NUM = 2
+
 
 class AerotechController:
     """Envoltorio fino sobre la API automation1 para el controlador iSMC."""
@@ -289,6 +298,18 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error escribiendo salida digital: {e}")
 
+    def set_laser_board_power(self, enabled: bool):
+        """
+        Cierra/abre el relé que alimenta la placa adaptadora del NEJE B30635
+        (Digital Output [-EB1], Output 2). Con el relé abierto, el láser no
+        puede emitir aunque se le mande PWM por PSO.
+
+        Polaridad verificada en el laboratorio: el módulo de relé es activo en
+        alto (IN a 5V cierra el contacto NO y alimenta la placa adaptadora),
+        así que value=True -> relé cerrado es correcto tal cual, sin invertir.
+        """
+        self.set_digital_output(RELAY_CONTROL_AXIS, RELAY_OUTPUT_NUM, enabled)
+
     # ─────────────────────────────────────────────────────────────────
     # Salida de potencia del láser (PWM) — ver NEJE_B30635_MAX_POWER_MW
     # ─────────────────────────────────────────────────────────────────
@@ -324,7 +345,7 @@ class AerotechController:
 
     # ─────────────────────────────────────────────────────────────────
     # PSO (Position Synchronized Output) — salida dedicada del láser NEJE
-    # B30635, cableada a la salida PSO del drive 1 / eje X.
+    # B30635, cableada a la salida PSO del drive 1 / eje X (PSO_LASER_AXIS).
     # ─────────────────────────────────────────────────────────────────
     # TODO: namespace y nombres de método SIN CONFIRMAR contra la API
     # instalada. El namespace probable es runtime.commands.pso.*, pero los
@@ -332,7 +353,7 @@ class AerotechController:
     # que no son necesariamente literales en XC2e/iXC2e — verificar contra
     # dir(self._controller.runtime.commands.pso) en la instalación real
     # antes de confiar en estas llamadas con hardware conectado.
-    def pso_reset(self, axis):
+    def pso_reset(self, axis=PSO_LASER_AXIS):
         """Reinicia la configuración PSO del eje antes de reconfigurarla."""
         if not self.is_connected:
             return
@@ -342,7 +363,7 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error en pso_reset({axis}): {e}")
 
-    def pso_configure_fixed_distance(self, axis, distance_mm):
+    def pso_configure_fixed_distance(self, axis=PSO_LASER_AXIS, distance_mm=0.0):
         """Configura un evento PSO cada distance_mm recorridos por el eje."""
         if not self.is_connected:
             return
@@ -352,17 +373,18 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_fixed_distance({axis}): {e}")
 
-    def pso_configure_array_distances(self, axis, distances_mm: list):
+    def pso_configure_array_distances(self, axis=PSO_LASER_AXIS, distances_mm: list = None):
         """Configura un array de eventos PSO en distancias irregulares/no uniformes."""
         if not self.is_connected:
             return
+        distances_mm = distances_mm or []
         try:
             self._controller.runtime.commands.pso.array_configure(axis, list(distances_mm))
             print(f"[Aerotech] PSO array -> eje {axis}, {len(distances_mm)} distancias")
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_array_distances({axis}): {e}")
 
-    def pso_configure_waveform(self, axis, power_percent, total_time_us=20000, pulse_count=1):
+    def pso_configure_waveform(self, axis=PSO_LASER_AXIS, power_percent=0.0, total_time_us=20000, pulse_count=1):
         """
         Configura el pulso PSO por evento cuyo ancho codifica la potencia
         (0-100%) del láser: on_time_us = total_time_us * power_percent / 100.
@@ -383,7 +405,7 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_waveform({axis}): {e}")
 
-    def pso_configure_window(self, axis, window_number, min_mm, max_mm, as_mask: bool):
+    def pso_configure_window(self, axis=PSO_LASER_AXIS, window_number=1, min_mm=0.0, max_mm=0.0, as_mask: bool = False):
         """Configura una ventana PSO (rango de posición en el que puede disparar)."""
         if not self.is_connected:
             return
@@ -393,17 +415,18 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_window({axis}): {e}")
 
-    def pso_configure_bitmap(self, axis, bits: list):
+    def pso_configure_bitmap(self, axis=PSO_LASER_AXIS, bits: list = None):
         """Configura un patrón de bits (binary pattern) para disparo PSO."""
         if not self.is_connected:
             return
+        bits = bits or []
         try:
             self._controller.runtime.commands.pso.bitmap_configure(axis, list(bits))
             print(f"[Aerotech] PSO bitmap -> eje {axis}, {len(bits)} bits")
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_bitmap({axis}): {e}")
 
-    def pso_output_on(self, axis):
+    def pso_output_on(self, axis=PSO_LASER_AXIS):
         """
         Activa la salida PSO directamente (sin pasar por Waveform/Distance) —
         es lo que usan el disparo de mantener-pulsado de Manual y el modo de
@@ -418,7 +441,7 @@ class AerotechController:
         except Exception as e:
             print(f"[Aerotech] Error en pso_output_on({axis}): {e}")
 
-    def pso_output_off(self, axis):
+    def pso_output_off(self, axis=PSO_LASER_AXIS):
         """Corta la salida PSO directamente — usado por el botón 'Laser stop'."""
         if not self.is_connected:
             return
@@ -427,3 +450,18 @@ class AerotechController:
             print(f"[Aerotech] PSO output OFF -> eje {axis}")
         except Exception as e:
             print(f"[Aerotech] Error en pso_output_off({axis}): {e}")
+
+    # ─────────────────────────────────────────────────────────────────
+    # Secuencia de disparo — el relé debe estar cerrado antes de PSO
+    # ─────────────────────────────────────────────────────────────────
+    def fire_laser(self, power_percent: float):
+        """Cierra el relé (si no lo estaba ya) y arma+dispara el PSO."""
+        self.set_laser_board_power(True)
+        self.pso_configure_waveform(power_percent=power_percent)
+        self.pso_output_on()
+
+    def stop_laser(self, cut_power: bool = False):
+        """Corta el disparo PSO. Si cut_power=True, también abre el relé."""
+        self.pso_output_off()
+        if cut_power:
+            self.set_laser_board_power(False)
