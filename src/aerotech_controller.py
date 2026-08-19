@@ -25,11 +25,13 @@ NEJE_B30635_MAX_POWER_MW = 500.0
 # Cableado físico confirmado (ver 07_laser_hardware_integration.md):
 # - PSO pin 3/4 (TTL/PWM + GND) del drive 1/iXC2e va al pin TTL de la placa
 #   adaptadora del NEJE B30635 -> eje X.
-# - Digital Output [-EB1] "Output 2" del mismo drive controla el relé (activo
+# - Digital Output [-EB1] "Output 1" del mismo drive controla el relé (activo
 #   en alto) que alimenta esa placa adaptadora (Input B, PWR/GND/TTL).
+#   Verificado en el laboratorio: con el eje habilitado, DigitalOutputSet(X,
+#   1, 1) + PsoOutputOn(X) es la secuencia que realmente dispara el láser.
 PSO_LASER_AXIS = AXIS_X
 RELAY_CONTROL_AXIS = AXIS_X
-RELAY_OUTPUT_NUM = 2
+RELAY_OUTPUT_NUM = 1
 
 
 class AerotechController:
@@ -301,7 +303,7 @@ class AerotechController:
     def set_laser_board_power(self, enabled: bool):
         """
         Cierra/abre el relé que alimenta la placa adaptadora del NEJE B30635
-        (Digital Output [-EB1], Output 2). Con el relé abierto, el láser no
+        (Digital Output [-EB1], Output 1). Con el relé abierto, el láser no
         puede emitir aunque se le mande PWM por PSO.
 
         Polaridad verificada en el laboratorio: el módulo de relé es activo en
@@ -455,7 +457,12 @@ class AerotechController:
     # Secuencia de disparo — el relé debe estar cerrado antes de PSO
     # ─────────────────────────────────────────────────────────────────
     def fire_laser(self, power_percent: float):
-        """Cierra el relé (si no lo estaba ya) y arma+dispara el PSO."""
+        """
+        Habilita el eje del láser, cierra el relé (si no lo estaba ya) y
+        arma+dispara el PSO. Orden verificado en el laboratorio: sin el eje
+        habilitado, DigitalOutputSet + PsoOutputOn no llegan a disparar.
+        """
+        self.enable_axes([PSO_LASER_AXIS])
         self.set_laser_board_power(True)
         self.pso_configure_waveform(power_percent=power_percent)
         self.pso_output_on()

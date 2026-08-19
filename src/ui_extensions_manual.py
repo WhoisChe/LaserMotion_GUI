@@ -50,7 +50,7 @@ class ManualPageExtensions:
         self._firing = False
 
         # Relé que alimenta la placa adaptadora del NEJE (Digital Output
-        # [-EB1] Output 2, ver 07_laser_hardware_integration.md) — apagado
+        # [-EB1] Output 1, ver 07_laser_hardware_integration.md) — apagado
         # por defecto al arrancar.
         self._board_power = False
 
