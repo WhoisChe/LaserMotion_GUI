@@ -2,6 +2,8 @@
 ## GCODE PAGE EXTENSIONS
 ########################################################################
 
+import time
+
 from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QFont, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (QSizePolicy, QPushButton, QFileDialog,
@@ -11,13 +13,18 @@ from PySide6.QtWidgets import (QSizePolicy, QPushButton, QFileDialog,
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
 
 # Comandos G-Code soportados por el intérprete: G0/G1 (movimiento lineal),
-# G28 (home), G90/G91 (absoluto/relativo), M0 (pausa: deshabilita los ejes)
-GCODE_SUPPORTED = {"G0", "G1", "G28", "G90", "G91", "M0"}
+# G4 (dwell), G28 (home), G90/G91 (absoluto/relativo), M0 (pausa: deshabilita
+# los ejes), M3/M5 (PSO on/off), M900 (distancia fija PSO), M901 (ventana PSO)
+GCODE_SUPPORTED = {"G0", "G1", "G4", "G28", "G90", "G91", "M0", "M3", "M5", "M900", "M901"}
 
 # Velocidad usada cuando la línea G-Code no especifica F (mm/s), y
 # aceleración fija aplicada a los movimientos (mm/s²)
 DEFAULT_FEED_MM_S = 50.0
 DEFAULT_ACCEL_MM_S2 = 100.0
+
+# Eje al que está cableada la salida PSO del NEJE B30635 (ver
+# 00_global_architecture.md — drive 1 / eje X).
+PSO_AXIS = AXIS_X
 
 
 class GCodePageExtensions:
@@ -30,16 +37,58 @@ class GCodePageExtensions:
         self.gcode_content = ""
         self.gcode_saved = False            # Controla si el G-Code ha sido guardado
         self.remove_file_btn = None         # Botón para eliminar archivo cargado
-        # Instancia compartida de AerotechController (ver src/ui_extensions.py)
+        # Instancia compartida de AerotechController (ver main.py)
         self.controller = controller
         self._absolute_mode = True          # Modo de coordenadas (True = absoluto, False = relativo)
+        self._pending_pulse_count = 1       # Fijado por M900, consumido por el siguiente M3
 
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página G-Code"""
         self.setup_title()
         self.setup_drag_drop_area()
+        self.setup_preview()
         self.setup_buttons()
-        
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Vista previa de solo lectura (04_gcode.md §1) + carga directa desde
+    # texto (usada por Auto: "Open in G-Code")
+    # ─────────────────────────────────────────────────────────────────────
+    def setup_preview(self):
+        self.ui.gcodePreview.setStyleSheet("""
+            QTextEdit {
+                background-color: #2B2B2B;
+                color: #F0F0F0;
+                border: 2px solid #555;
+                border-radius: 5px;
+                padding: 8px;
+            }
+        """)
+        self.update_preview()
+
+    def update_preview(self):
+        self.ui.gcodePreview.setPlainText(self.gcode_content)
+
+    def load_gcode_text(self, text: str):
+        """
+        Carga G-Code directamente desde texto, sin pasar por fichero — usado
+        por el botón "Open in G-Code" de Auto. Actualiza tanto el panel de
+        vista previa como el editor interno (self.gcode_content, lo que lee
+        GCodeEditorDialog si se reabre con "Edit").
+        """
+        self.gcode_content = text
+        self.current_file_path = self.current_file_path or "from_auto.gcode"
+        self.gcode_saved = True
+
+        self.ui.label_6.setText("G-Code loaded from Auto")
+        self.ui.label_6.setStyleSheet("color: #769947; font-weight: bold;")
+        self.ui.startBtn.setEnabled(True)
+        self.ui.editBtn.setEnabled(True)
+        if self.remove_file_btn:
+            self.position_remove_button()
+            self.remove_file_btn.show()
+
+        self.update_preview()
+
     def connect_signals(self):
         """Conecta las señales especí­ficas de la página G-Code"""
         # Conectar el botón Start
@@ -80,15 +129,16 @@ class GCodePageExtensions:
     def _execute_gcode_line(self, lineno, line):
         """
         Interpreta y ejecuta una línea G-Code.
-        Extrae el comando (G0, G1, G28…) y los parámetros X, Y, Z, F.
+        Extrae el comando (G0, G1, G28…) y los parámetros X, Y, Z, F, P, S, D.
         """
         tokens = line.upper().split()
         cmd = tokens[0] if tokens else ""
 
-        # Extraer parámetros X, Y, Z, F de la línea
+        # Extraer parámetros X, Y, Z, F, P, S, D de la línea (valor único por
+        # letra — M901 se re-parsea aparte porque repite X e Y en la misma línea)
         params = {}
         for token in tokens[1:]:
-            if token[0] in ("X", "Y", "Z", "F") and len(token) > 1:
+            if token[0] in ("X", "Y", "Z", "F", "P", "S", "D") and len(token) > 1:
                 try:
                     params[token[0]] = float(token[1:])
                 except ValueError:
@@ -116,6 +166,13 @@ class GCodePageExtensions:
                         self.controller.move_incremental(axes, deltas, feed, DEFAULT_ACCEL_MM_S2)
                     print(f"[L{lineno}] {cmd} -> axes={axes} valores={deltas}")
 
+            elif cmd == "G4":
+                # Dwell — bloquea el hilo de la UI como el resto del
+                # intérprete (ver limitación ya documentada en execute_gcode()).
+                delay_ms = params.get("P", 0.0)
+                print(f"[L{lineno}] G4 -> dwell {delay_ms:.0f} ms")
+                time.sleep(delay_ms / 1000.0)
+
             elif cmd == "G28":
                 self.controller.home_axes([AXIS_X, AXIS_Y, AXIS_Z])
                 print(f"[L{lineno}] G28 -> homing X, Y, Z")
@@ -133,8 +190,77 @@ class GCodePageExtensions:
                 self.controller.disable_axes([AXIS_X, AXIS_Y, AXIS_Z])
                 print(f"[L{lineno}] M0 -> pausa (ejes deshabilitados)")
 
+            elif cmd == "M3":
+                power = params.get("S", 0.0)
+                self.controller.pso_configure_waveform(PSO_AXIS, power, pulse_count=self._pending_pulse_count)
+                self.controller.pso_output_on(PSO_AXIS)
+                print(f"[L{lineno}] M3 -> PSO ON eje {PSO_AXIS} @ {power:.0f}% ({self._pending_pulse_count} pulso(s))")
+
+            elif cmd == "M5":
+                self.controller.pso_output_off(PSO_AXIS)
+                print(f"[L{lineno}] M5 -> PSO OFF eje {PSO_AXIS}")
+
+            elif cmd == "M900":
+                # TODO: pso_configure_fixed_distance() solo fija la distancia
+                # — el número de pulsos por evento (P) se guarda aquí y se
+                # aplica al pulse_count del siguiente M3, ya que
+                # pso_configure_waveform() es quien acepta ese parámetro.
+                distance_mm = params.get("D", 0.0)
+                self._pending_pulse_count = int(params.get("P", 1))
+                self.controller.pso_configure_fixed_distance(PSO_AXIS, distance_mm)
+                print(f"[L{lineno}] M900 -> distancia fija {distance_mm} mm, "
+                      f"{self._pending_pulse_count} pulsos/evento (eje {PSO_AXIS})")
+
+            elif cmd == "M901":
+                window = self._parse_m901_window(line)
+                if window is None:
+                    print(f"[L{lineno}] M901 mal formado (se esperan 2 valores X y 2 valores Y), omitido")
+                else:
+                    master = self._get_master_window()
+                    if master and not self._window_within(window, master):
+                        print(f"[L{lineno}] M901 fuera de la ventana maestra de Calibration, omitido")
+                    else:
+                        self.controller.pso_configure_window(
+                            PSO_AXIS, 1, window["x_min"], window["x_max"], False
+                        )
+                        print(f"[L{lineno}] M901 -> ventana PSO X[{window['x_min']}, {window['x_max']}] "
+                              f"Y[{window['y_min']}, {window['y_max']}]")
+
         except Exception as e:
             print(f"[Aerotech] Error ejecutando línea {lineno} '{line}': {e}")
+
+    def _parse_m901_window(self, line):
+        """M901 repite X e Y (min y max) en la misma línea — se re-tokeniza
+        aparte porque el diccionario de parámetros genérico solo guarda un
+        valor por letra."""
+        xs, ys = [], []
+        for token in line.upper().split()[1:]:
+            if len(token) < 2:
+                continue
+            try:
+                value = float(token[1:])
+            except ValueError:
+                continue
+            if token[0] == "X":
+                xs.append(value)
+            elif token[0] == "Y":
+                ys.append(value)
+        if len(xs) < 2 or len(ys) < 2:
+            return None
+        return {
+            "x_min": min(xs[0], xs[1]), "x_max": max(xs[0], xs[1]),
+            "y_min": min(ys[0], ys[1]), "y_max": max(ys[0], ys[1]),
+        }
+
+    def _get_master_window(self):
+        try:
+            return self.main.ui_ext.calibration_ext.get_safety_window()
+        except Exception:
+            return None
+
+    def _window_within(self, window, master):
+        return (master["x_min"] <= window["x_min"] and window["x_max"] <= master["x_max"] and
+                master["y_min"] <= window["y_min"] and window["y_max"] <= master["y_max"])
 
 
     # ─────────────────────────────────────────────────────────────────────
@@ -293,9 +419,12 @@ class GCodePageExtensions:
                 self.position_remove_button()
                 self.remove_file_btn.show()
             
+            # Actualizar vista previa
+            self.update_preview()
+
             # Mostrar editor de G-Code
             self.show_gcode_editor()
-            
+
         except Exception as e:
             self.ui.label_6.setText(f"Error loading file: {str(e)}")
             self.ui.label_6.setStyleSheet("color: #F44336; font-weight: bold;")
@@ -336,10 +465,13 @@ class GCodePageExtensions:
                 file.write(new_content)
             self.gcode_content = new_content
             self.gcode_saved = True
-            
+
             # Habilitar botón Start después de guardar
             self.ui.startBtn.setEnabled(True)
-            
+
+            # Actualizar vista previa
+            self.update_preview()
+
             print(f"G-Code file updated: {self.current_file_path}")
         except Exception as e:
             print(f"Error saving G-Code file: {str(e)}")
@@ -371,7 +503,10 @@ class GCodePageExtensions:
         # Ocultar botón de eliminar
         if self.remove_file_btn:
             self.remove_file_btn.hide()
-        
+
+        # Vaciar vista previa
+        self.update_preview()
+
         print("File load cancelled")
     
     def remove_loaded_file(self):

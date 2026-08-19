@@ -3,10 +3,11 @@
 ## Modificaciones de diseño para la página de calibración
 ########################################################################
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QSizePolicy
+from PySide6.QtWidgets import QSizePolicy, QMessageBox
 
+import config
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
 
 # Paso, velocidad y aceleración usados para el ajuste fino de enfoque en Z.
@@ -16,6 +17,10 @@ FOCUS_STEP_MM = 0.001        # 1 µm por pulsación
 FOCUS_VELOCITY_MM_S = 0.5
 FOCUS_ACCEL_MM_S2 = 5.0
 
+# Eje al que está cableada la salida PSO del NEJE B30635 (ver
+# 00_global_architecture.md — drive 1 / eje X).
+PSO_AXIS = AXIS_X
+
 
 class CalibrationPageExtensions:
     """Extensiones de UI para la página de calibración"""
@@ -23,32 +28,58 @@ class CalibrationPageExtensions:
     def __init__(self, ui, main_window, controller):
         self.ui = ui
         self.main = main_window
-        # Instancia compartida de AerotechController (ver src/ui_extensions.py)
+        # Instancia compartida de AerotechController (ver main.py)
         self.controller = controller
+
+        # Master safety window (05_calibration.md §1.2): dos esquinas
+        # capturadas por movimiento real (jog de Manual), no por texto.
+        self._corner1 = None   # (x, y) mm
+        self._corner2 = None   # (x, y) mm
+
+        self._firing_alignment = False
 
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página de calibración"""
         self.setup_title()
         self.setup_focusing_section()
         self.setup_calibration_xy_section()
-        
+        self.setup_safety_window_section()
+        self.setup_alignment_mode_section()
+
     def connect_signals(self):
         """Conecta las señales específicas de la página de calibración"""
-        # Las señales ya están conectadas en setup_focusing_section()
-        # y setup_calibration_xy_section()
-        pass
-        
+        # El resto de señales ya están conectadas en los setup_*() de arriba
+
+        # Lectura de posición Z en vivo, ligera (no hay QTimer global para
+        # páginas fuera de Home/Manual/Auto — GlobalStatusPanel solo se
+        # muestra en esas tres).
+        self.z_focus_timer = QTimer()
+        self.z_focus_timer.timeout.connect(self.update_z_focus_display)
+        self.z_focus_timer.start(100)
+
+    def update_z_focus_display(self):
+        if not self.controller.is_connected:
+            self.ui.labelZFocusStatus.setText("Current Z: —")
+            return
+        _, _, z = self.controller.get_axis_positions()
+        self.ui.labelZFocusStatus.setText(f"Current Z: {z:.3f} mm")
+
     def setup_title(self):
         """Configura el título de la página"""
         self.ui.label_10.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.ui.label_10.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
+
     def setup_focusing_section(self):
         """Configura la sección de enfoque Z"""
         # Título de la sección
         self.ui.label_23.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.label_23.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
+
+        # Lectura de posición Z en vivo
+        self.ui.labelZFocusStatus.setFont(QFont("Sitka Small", 10))
+        self.ui.labelZFocusStatus.setStyleSheet("color: THEME.COLOR_ACCENT_3;")
+        self.ui.labelZFocusStatus.setText("Current Z: —")
+
         # Estilo común para botones de enfoque
         focus_button_style = """
             QPushButton {
@@ -68,20 +99,23 @@ class CalibrationPageExtensions:
                 background-color: THEME.COLOR_ACCENT_1;
             }
         """
-        
+
         # Botón Z Up
         self.ui.zUpFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zUpFocusing.setStyleSheet(focus_button_style)
         self.ui.zUpFocusing.setIconSize(QSize(20, 20))
         self.ui.zUpFocusing.setText("Move Up")
-        
+
         # Botón Z Down
         self.ui.zDownFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zDownFocusing.setStyleSheet(focus_button_style)
         self.ui.zDownFocusing.setIconSize(QSize(20, 20))
         self.ui.zDownFocusing.setText("Move Down")
-        
-        # Botón Calibrated
+
+        # Botón "Confirm focus" — visualmente separado de subir/bajar (ya
+        # está en su propia fila, debajo del par Up/Down). Pulsación manual
+        # explícita del usuario tras ajustar Z a ojo — no se infiere de
+        # ninguna lectura automática.
         self.ui.calibratedBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.calibratedBtn.setStyleSheet("""
             QPushButton {
@@ -91,6 +125,7 @@ class CalibrationPageExtensions:
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 40px;
+                margin-top: 10px;
             }
             QPushButton:hover {
                 background-color: #4CAF50;
@@ -101,19 +136,19 @@ class CalibrationPageExtensions:
                 background-color: #45a049;
             }
         """)
-        self.ui.calibratedBtn.setText("Confirm")
-        
+        self.ui.calibratedBtn.setText("Confirm focus")
+
         # Conectar señales
         self.ui.zUpFocusing.clicked.connect(self.handle_z_up_focusing)
         self.ui.zDownFocusing.clicked.connect(self.handle_z_down_focusing)
-        self.ui.calibratedBtn.clicked.connect(self.handle_calibrated)
-        
+        self.ui.calibratedBtn.clicked.connect(self.confirm_focus)
+
     def setup_calibration_xy_section(self):
         """Configura la sección de calibración X-Y"""
         # Título de la sección
         self.ui.label_24.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.label_24.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
+
         # Estilo común para botones de calibración
         calibration_button_style = """
             QPushButton {
@@ -133,21 +168,194 @@ class CalibrationPageExtensions:
                 background-color: #F57C00;
             }
         """
-        
+
         # Botón Zero X
         self.ui.zeroXBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroXBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroXBtn.setText("Zero X Position")
-        
+
         # Botón Zero Y
         self.ui.zeroYBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroYBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroYBtn.setText("Zero Y Position")
-        
+
         # Conectar señales
         self.ui.zeroXBtn.clicked.connect(self.handle_zero_x)
         self.ui.zeroYBtn.clicked.connect(self.handle_zero_y)
-        
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Master safety window (directriz 1.2 / 2.1 de 05_calibration.md)
+    # ─────────────────────────────────────────────────────────────────────
+    def setup_safety_window_section(self):
+        self.ui.label_safetyWindowTitle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.label_safetyWindowTitle.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+
+        for label in (self.ui.label_xMinField, self.ui.label_xMaxField,
+                      self.ui.label_yMinField, self.ui.label_yMaxField):
+            label.setFont(QFont("Sitka Small", 9))
+            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+
+        for field in (self.ui.xMinField, self.ui.xMaxField, self.ui.yMinField, self.ui.yMaxField):
+            field.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+            field.setStyleSheet("""
+                QLineEdit {
+                    background-color: THEME.COLOR_BACKGROUND_2;
+                    color: THEME.COLOR_TEXT_1;
+                    border: 2px solid THEME.COLOR_ACCENT_3;
+                    border-radius: 5px;
+                }
+            """)
+
+        corner_button_style = """
+            QPushButton {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
+                border-radius: 8px;
+                padding: 8px;
+                min-height: 32px;
+            }
+            QPushButton:hover {
+                background-color: THEME.COLOR_ACCENT_2;
+                color: white;
+                border: 2px solid THEME.COLOR_ACCENT_1;
+            }
+        """
+        self.ui.setCorner1Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.setCorner1Btn.setStyleSheet(corner_button_style)
+        self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.setCorner2Btn.setStyleSheet(corner_button_style)
+
+        self.ui.setCorner1Btn.clicked.connect(self.capture_corner_1)
+        self.ui.setCorner2Btn.clicked.connect(self.capture_corner_2)
+
+    def capture_corner_1(self):
+        """Captura la posición X/Y actual como primera esquina de la ventana
+        maestra (mover primero con el jog de Manual hasta la esquina real)."""
+        if not self._confirm_redefine_if_needed():
+            return
+        x, y, _ = self.controller.get_axis_positions()
+        self._corner1 = (x, y)
+        print(f"[Calibration] Corner 1 set at X={x:.3f} Y={y:.3f}")
+        self._recompute_safety_window()
+
+    def capture_corner_2(self):
+        """Captura la posición X/Y actual como segunda esquina de la ventana
+        maestra."""
+        if not self._confirm_redefine_if_needed():
+            return
+        x, y, _ = self.controller.get_axis_positions()
+        self._corner2 = (x, y)
+        print(f"[Calibration] Corner 2 set at X={x:.3f} Y={y:.3f}")
+        self._recompute_safety_window()
+
+    def _confirm_redefine_if_needed(self):
+        """Redefinir una ventana ya calibrada (las dos esquinas ya
+        capturadas) exige confirmación explícita del usuario."""
+        if self._corner1 is None or self._corner2 is None:
+            return True
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Redefine safety window?")
+        msg.setText("The safety window is already calibrated. Redefining a corner will change it.")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+        return msg.exec() == QMessageBox.StandardButton.Yes
+
+    def _recompute_safety_window(self):
+        if self._corner1 is None or self._corner2 is None:
+            return
+        window = self.get_safety_window()
+        self.ui.xMinField.setText(f"{window['x_min']:.3f}")
+        self.ui.xMaxField.setText(f"{window['x_max']:.3f}")
+        self.ui.yMinField.setText(f"{window['y_min']:.3f}")
+        self.ui.yMaxField.setText(f"{window['y_max']:.3f}")
+
+    def get_safety_window(self):
+        """
+        Expone la ventana maestra de posición a Auto y G-Code (M901).
+        Devuelve {"x_min", "x_max", "y_min", "y_max"} o None si todavía no
+        se han capturado las dos esquinas.
+        """
+        if self._corner1 is None or self._corner2 is None:
+            return None
+        x1, y1 = self._corner1
+        x2, y2 = self._corner2
+        return {
+            "x_min": min(x1, x2), "x_max": max(x1, x2),
+            "y_min": min(y1, y2), "y_max": max(y1, y2),
+        }
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Laser alignment mode (directriz 1.3 / 2.1 de 05_calibration.md)
+    # ─────────────────────────────────────────────────────────────────────
+    def setup_alignment_mode_section(self):
+        self.ui.alignmentModeToggle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.alignmentModeToggle.setMinimumHeight(40)
+        self.ui.alignmentModeToggle.setStyleSheet("""
+            QPushButton {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
+                border-radius: 8px;
+            }
+            QPushButton:checked {
+                background-color: #FFA726;
+                color: white;
+                border: 2px solid #FB8C00;
+            }
+        """)
+
+        self.ui.label_alignmentPower.setFont(QFont("Sitka Small", 9))
+        self.ui.label_alignmentPower.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_alignmentPower.setText(f"Capped at {config.ALIGNMENT_MODE_MAX_POWER_PERCENT}%")
+
+        self.ui.alignmentFireBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.alignmentFireBtn.setMinimumHeight(40)
+        self.ui.alignmentFireBtn.setEnabled(False)
+        self.ui.alignmentFireBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #F44336;
+                color: white;
+                border: 2px solid #DA190B;
+                border-radius: 8px;
+            }
+            QPushButton:disabled {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
+            }
+            QPushButton:hover:!disabled {
+                background-color: #DA190B;
+            }
+        """)
+
+        self.ui.alignmentModeToggle.clicked.connect(self.handle_alignment_mode_toggle)
+        self.ui.alignmentFireBtn.pressed.connect(self._start_alignment_firing)
+        self.ui.alignmentFireBtn.released.connect(self._stop_alignment_firing)
+
+    def handle_alignment_mode_toggle(self):
+        active = self.ui.alignmentModeToggle.isChecked()
+        self.ui.alignmentFireBtn.setEnabled(active)
+        if not active:
+            # Al desactivarse, fuerza pso_output_off (directriz 2.1)
+            self.controller.pso_output_off(PSO_AXIS)
+            self._firing_alignment = False
+
+    def _start_alignment_firing(self):
+        if not self.ui.alignmentModeToggle.isChecked():
+            return
+        self._firing_alignment = True
+        self.controller.pso_configure_waveform(PSO_AXIS, config.ALIGNMENT_MODE_MAX_POWER_PERCENT)
+        self.controller.pso_output_on(PSO_AXIS)
+
+    def _stop_alignment_firing(self):
+        self._firing_alignment = False
+        self.controller.pso_output_off(PSO_AXIS)
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Enfoque Z / Zero X / Zero Y
+    # ─────────────────────────────────────────────────────────────────────
     def handle_z_up_focusing(self):
         """Maneja el movimiento Z hacia arriba para enfoque"""
         print("Calibration: Moving Z up for focusing...")
@@ -158,13 +366,18 @@ class CalibrationPageExtensions:
         print("Calibration: Moving Z down for focusing...")
         self.controller.move_relative(AXIS_Z, -FOCUS_STEP_MM, FOCUS_VELOCITY_MM_S, FOCUS_ACCEL_MM_S2)
 
-    def handle_calibrated(self):
-        """Maneja la confirmación de calibración Z"""
-        print("Calibration: Z position set as calibrated")
+    def confirm_focus(self):
+        """
+        Confirma manualmente el enfoque Z tras ajustarlo a ojo (con Move
+        Up/Down o con el jog de Manual). Reutiliza zero_axis(Z, ...), el
+        mismo mecanismo que ya usaba el antiguo calibratedBtn — no se crea
+        una función paralela.
+        """
+        print("Calibration: Z position confirmed as focus (zeroed)")
         self.controller.zero_axis(AXIS_Z)
 
         # Feedback visual
-        self.ui.calibratedBtn.setText("✓ Calibrated!")
+        self.ui.calibratedBtn.setText("✓ Focus confirmed!")
         self.ui.calibratedBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
@@ -174,9 +387,10 @@ class CalibrationPageExtensions:
                 padding: 10px;
                 min-height: 40px;
                 font-weight: bold;
+                margin-top: 10px;
             }
         """)
-        
+
     def handle_zero_x(self):
         """Maneja la configuración de X = 0"""
         print("Calibration: Setting X position to zero")
@@ -195,7 +409,7 @@ class CalibrationPageExtensions:
                 font-weight: bold;
             }
         """)
-        
+
     def handle_zero_y(self):
         """Maneja la configuración de Y = 0"""
         print("Calibration: Setting Y position to zero")

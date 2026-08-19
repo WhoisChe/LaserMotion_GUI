@@ -101,66 +101,44 @@ class AerotechController:
             print(f"[Aerotech] Error leyendo posiciones: {e}")
             return 0.0, 0.0, 0.0
 
-    def get_axes_enabled(self):
-        """True si los tres ejes (X, Y, Z) están habilitados (drives activos)."""
-        if not self.is_connected:
-            return False
-        try:
-            results = self._controller.runtime.status.get_status_items(self._status_config)
-            enabled_bit = int(a1.DriveStatus.Enabled)
-            for axis in AXES:
-                drive_status = int(results.axis.get(a1.AxisStatusItem.DriveStatus, axis).value)
-                if not (drive_status & enabled_bit):
-                    return False
-            return True
-        except Exception as e:
-            print(f"[Aerotech] Error comprobando estado de los drives: {e}")
-            return False
-
-    def get_axis_faults(self):
+    def get_axis_indicators(self, axis):
         """
-        Descompone el bitmask de AxisFault de cada eje en banderas legibles.
-        Devuelve {axis: {"position_error": bool, "limit_cw": bool, "limit_ccw": bool}}.
-        Si no hay conexión, todas las banderas vuelven False para los 3 ejes.
+        Estado combinado de un único eje para los 4 LEDs del panel global
+        (ENA/HMD/INP/LIM). Devuelve {"enabled": bool, "homed": bool,
+        "in_position": bool, "no_limit_active": bool}; todo False si no hay
+        conexión. Sustituye a las antiguas get_axes_enabled()/
+        get_axes_homed()/get_axis_faults(), que devolvían un booleano
+        combinado para los 3 ejes en el caso de "enabled" — aquí cada eje se
+        lee de forma independiente.
         """
-        # TODO: verificar nombres exactos de los bits contra a1.AxisFault en
-        # la instalación real (dir(a1.AxisFault)) — no asumir nombres de bit
-        # sin esa verificación.
-        empty = {"position_error": False, "limit_cw": False, "limit_ccw": False}
+        # TODO: verificar nombres exactos de cada bit contra
+        # dir(a1.AxisStatus) / dir(a1.DriveStatus) / dir(a1.AxisFault) en la
+        # instalación real. "in_position" en concreto no se ha usado hasta
+        # ahora en el proyecto — no dar por sentado el nombre del bit ni si
+        # vive en AxisStatus o en DriveStatus.
+        empty = {"enabled": False, "homed": False, "in_position": False, "no_limit_active": False}
         if not self.is_connected:
-            return {axis: dict(empty) for axis in AXES}
+            return dict(empty)
         try:
             results = self._controller.runtime.status.get_status_items(self._status_config)
-            faults = {}
-            for axis in AXES:
-                fault_bits = int(results.axis.get(a1.AxisStatusItem.AxisFault, axis).value)
-                faults[axis] = {
-                    "position_error": bool(fault_bits & int(a1.AxisFault.PositionErrorFault)),
-                    "limit_cw": bool(fault_bits & int(a1.AxisFault.CwEndOfTravelLimitFault)),
-                    "limit_ccw": bool(fault_bits & int(a1.AxisFault.CcwEndOfTravelLimitFault)),
-                }
-            return faults
-        except Exception as e:
-            print(f"[Aerotech] Error leyendo fallos de eje: {e}")
-            return {axis: dict(empty) for axis in AXES}
+            drive_status = int(results.axis.get(a1.AxisStatusItem.DriveStatus, axis).value)
+            fault_bits = int(results.axis.get(a1.AxisStatusItem.AxisFault, axis).value)
 
-    def get_axes_homed(self):
-        """True/False por eje según el bit de homed dentro de DriveStatus."""
-        # TODO: verificar el nombre exacto del bit de homed contra
-        # a1.DriveStatus en la instalación real (dir(a1.DriveStatus)).
-        if not self.is_connected:
-            return {axis: False for axis in AXES}
-        try:
-            results = self._controller.runtime.status.get_status_items(self._status_config)
-            homed_bit = int(a1.DriveStatus.Homed)
-            homed = {}
-            for axis in AXES:
-                drive_status = int(results.axis.get(a1.AxisStatusItem.DriveStatus, axis).value)
-                homed[axis] = bool(drive_status & homed_bit)
-            return homed
+            enabled = bool(drive_status & int(a1.DriveStatus.Enabled))
+            homed = bool(drive_status & int(a1.DriveStatus.Homed))
+            in_position = bool(drive_status & int(a1.DriveStatus.InPosition)) if hasattr(a1.DriveStatus, "InPosition") else False
+            limit_active = bool(fault_bits & int(a1.AxisFault.CwEndOfTravelLimitFault)) or \
+                bool(fault_bits & int(a1.AxisFault.CcwEndOfTravelLimitFault))
+
+            return {
+                "enabled": enabled,
+                "homed": homed,
+                "in_position": in_position,
+                "no_limit_active": not limit_active,
+            }
         except Exception as e:
-            print(f"[Aerotech] Error comprobando estado de homing: {e}")
-            return {axis: False for axis in AXES}
+            print(f"[Aerotech] Error leyendo indicadores del eje {axis}: {e}")
+            return dict(empty)
 
     def get_sto_status(self, axis=None):
         """
@@ -330,8 +308,122 @@ class AerotechController:
               f"— canal PWM real aún no confirmado, no se escribe salida física")
 
     def get_laser_output_state(self):
-        """Devuelve (is_on, duty_percent, power_mw) según la última consigna guardada."""
+        """
+        Devuelve (is_on, duty_percent, power_mw, is_measured) según la última
+        consigna guardada (self._laser_duty_cycle, actualizada tanto por
+        set_laser_power_percent() como por pso_configure_waveform()).
+        """
+        # TODO: intentar leer el bit OutputActive real del estado de PSO
+        # cuando se confirme el status item correspondiente; hasta entonces
+        # is_measured siempre cae al fallback (False).
+        is_measured = False
         duty_percent = self._laser_duty_cycle
         power_mw = duty_percent / 100 * NEJE_B30635_MAX_POWER_MW
         is_on = duty_percent > 0
-        return is_on, duty_percent, power_mw
+        return is_on, duty_percent, power_mw, is_measured
+
+    # ─────────────────────────────────────────────────────────────────
+    # PSO (Position Synchronized Output) — salida dedicada del láser NEJE
+    # B30635, cableada a la salida PSO del drive 1 / eje X.
+    # ─────────────────────────────────────────────────────────────────
+    # TODO: namespace y nombres de método SIN CONFIRMAR contra la API
+    # instalada. El namespace probable es runtime.commands.pso.*, pero los
+    # ejemplos oficiales de Aerotech para la familia XC4 usan nombres/enums
+    # que no son necesariamente literales en XC2e/iXC2e — verificar contra
+    # dir(self._controller.runtime.commands.pso) en la instalación real
+    # antes de confiar en estas llamadas con hardware conectado.
+    def pso_reset(self, axis):
+        """Reinicia la configuración PSO del eje antes de reconfigurarla."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.reset(axis)
+            print(f"[Aerotech] PSO reset -> eje {axis}")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_reset({axis}): {e}")
+
+    def pso_configure_fixed_distance(self, axis, distance_mm):
+        """Configura un evento PSO cada distance_mm recorridos por el eje."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.distance_events_configure(axis, distance_mm)
+            print(f"[Aerotech] PSO distancia fija -> eje {axis}, {distance_mm} mm")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_configure_fixed_distance({axis}): {e}")
+
+    def pso_configure_array_distances(self, axis, distances_mm: list):
+        """Configura un array de eventos PSO en distancias irregulares/no uniformes."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.array_configure(axis, list(distances_mm))
+            print(f"[Aerotech] PSO array -> eje {axis}, {len(distances_mm)} distancias")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_configure_array_distances({axis}): {e}")
+
+    def pso_configure_waveform(self, axis, power_percent, total_time_us=20000, pulse_count=1):
+        """
+        Configura el pulso PSO por evento cuyo ancho codifica la potencia
+        (0-100%) del láser: on_time_us = total_time_us * power_percent / 100.
+        También actualiza self._laser_duty_cycle, para que
+        get_laser_output_state() refleje esta consigna (mismo almacén que
+        usaba set_laser_power_percent(), ahora ya no llamado desde Manual).
+        """
+        if not self.is_connected:
+            return
+        on_time_us = total_time_us * power_percent / 100
+        try:
+            self._controller.runtime.commands.pso.waveform_configure(
+                axis, on_time_us, total_time_us, pulse_count
+            )
+            print(f"[Aerotech] PSO waveform -> eje {axis}, {power_percent:.0f}% "
+                  f"({on_time_us:.0f}/{total_time_us} µs, {pulse_count} pulso(s))")
+            self._laser_duty_cycle = power_percent
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_configure_waveform({axis}): {e}")
+
+    def pso_configure_window(self, axis, window_number, min_mm, max_mm, as_mask: bool):
+        """Configura una ventana PSO (rango de posición en el que puede disparar)."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.window_configure(axis, window_number, min_mm, max_mm, as_mask)
+            print(f"[Aerotech] PSO ventana {window_number} -> eje {axis}, [{min_mm}, {max_mm}] mm, mask={as_mask}")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_configure_window({axis}): {e}")
+
+    def pso_configure_bitmap(self, axis, bits: list):
+        """Configura un patrón de bits (binary pattern) para disparo PSO."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.bitmap_configure(axis, list(bits))
+            print(f"[Aerotech] PSO bitmap -> eje {axis}, {len(bits)} bits")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_configure_bitmap({axis}): {e}")
+
+    def pso_output_on(self, axis):
+        """
+        Activa la salida PSO directamente (sin pasar por Waveform/Distance) —
+        es lo que usan el disparo de mantener-pulsado de Manual y el modo de
+        alineación de Calibration.
+        """
+        if not self.is_connected:
+            print("[Aerotech] Sin conexión — PSO output on ignorado")
+            return
+        try:
+            self._controller.runtime.commands.pso.output_on(axis)
+            print(f"[Aerotech] PSO output ON -> eje {axis}")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_output_on({axis}): {e}")
+
+    def pso_output_off(self, axis):
+        """Corta la salida PSO directamente — usado por el botón 'Laser stop'."""
+        if not self.is_connected:
+            return
+        try:
+            self._controller.runtime.commands.pso.output_off(axis)
+            print(f"[Aerotech] PSO output OFF -> eje {axis}")
+        except Exception as e:
+            print(f"[Aerotech] Error en pso_output_off({axis}): {e}")

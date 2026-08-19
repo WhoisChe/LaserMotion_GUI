@@ -8,15 +8,16 @@
 
 El proyecto es una aplicación de escritorio (GUI) que sirve de panel de control para una estación de posicionamiento láser de precisión. Permite:
 
-- Ver en tiempo real la posición de los ejes X, Y, Z, el estado de seguridad (STO), la salud de cada eje (habilitado/homed/sin error/límites libres) y la consigna de salida del láser (página **Home**).
-- Mover los ejes manualmente, paso a paso, con escala/velocidad/aceleración configurables, habilitación/homing independiente por eje y control continuo de potencia del láser (página **Manual**).
-- Mover los ejes a una posición absoluta y programar el tiempo de apertura del *shutter* (página **Auto**).
-- Cargar, editar y ejecutar programas G-Code (página **G-Code**).
-- Configurar la conexión serie con el controlador (página **Connection**).
-- Calibrar el enfoque en Z y poner a cero los ejes X/Y (página **Calibration**).
+- Ver en tiempo real, desde un **panel de estado global** visible en Home/Manual/Auto, la conexión con el iSMC, el estado de seguridad (STO), la posición X/Y/Z y la salud de cada eje (Enabled/Homed/In Position/No limit active).
+- Ver el estado de la salida del láser (ON/OFF, consigna de potencia) junto a la imagen de la estación (página **Home**).
+- Mover los ejes manualmente, paso a paso, con escala/velocidad configurables, habilitación/homing independiente por eje, y disparar el láser en PSO real mientras se mantiene pulsado "Laser ON" (página **Manual**).
+- Generar G-Code automáticamente en 5 modos (Single point, Fixed-distance firing, Point array, Power gradient, Binary pattern), con vista previa en vivo y exportación a la página G-Code o a fichero (página **Auto**).
+- Cargar, editar y ejecutar programas G-Code — dialecto ampliado con `G4`/`M3`/`M5`/`M900`/`M901` para disparo PSO — con vista previa de solo lectura (página **G-Code**).
+- Configurar la conexión por IP con el controlador, con validación de formato y persistencia local de la última IP exitosa (página **Connection**).
+- Calibrar el enfoque en Z (con lectura en vivo y confirmación manual), definir una ventana maestra de seguridad X/Y por dos esquinas, y alinear el láser en un modo de potencia limitada (página **Calibration**).
 - Cambiar entre varios temas visuales (claro/oscuro/personalizados) desde un menú de ajustes.
 
-El control real del hardware se hace a través de la API oficial **Aerotech Automation1** (paquete `automation1`), centralizada en `src/aerotech_controller.py`. Si no hay controlador físico disponible (p. ej. durante el desarrollo o la defensa del TFG sin la estación conectada), cada operación falla de forma controlada y se registra por consola, y la interfaz sigue funcionando con normalidad en modo simulado.
+El control real del hardware se hace a través de la API oficial **Aerotech Automation1** (paquete `automation1`), centralizada en `src/aerotech_controller.py`, incluyendo una capa PSO (Position Synchronized Output) dedicada al láser NEJE B30635. Si no hay controlador físico disponible (p. ej. durante el desarrollo o la defensa del TFG sin la estación conectada), cada operación falla de forma controlada y se registra por consola, y la interfaz sigue funcionando con normalidad en modo simulado.
 
 ---
 
@@ -105,17 +106,17 @@ PyQt6_CodeOnly/
 
 | Fichero | Líneas | Rol |
 |---|---:|---|
-| `src/ui_interface.py` | 2232 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
-| `src/ui_extensions_manual.py` | 490 | Página Manual (jog manual, control por eje, láser continuo) |
-| `src/ui_extensions_gcode.py` | 451 | Página G-Code + diálogo de edición + intérprete G-Code |
-| `src/ui_extensions_auto.py` | 334 | Página Auto (movimiento absoluto + shutter temporizado) |
-| `src/ui_extensions_connection.py` | 239 | Página Connection (puerto serie + conexión Aerotech) |
-| `src/ui_extensions_home.py` | 330 | Página Home (banner conexión/STO, matriz de LEDs por eje, tarjeta de salida láser) |
-| `src/aerotech_controller.py` | 337 | Envoltorio de la API automation1 (conexión, movimiento, E/S digital, fallos/homing/STO, potencia láser) |
-| `src/ui_extensions_calibration.py` | 204 | Página Calibration |
-| `main.py` | 273 | Arranque de la app + orquestador de páginas (`UIExtensions`) + fuentes/temas/menú (`GuiFunctions`) |
-| `config.py` | 12 | Flags de configuración globales |
-| **Total** | **~4 442** | |
+| `src/ui_interface.py` | 2201 | Construcción de la interfaz (widgets, layouts, iconos, textos) |
+| `main.py` | 490 | Arranque + `GlobalStatusPanel` + orquestador de páginas (`UIExtensions`) + fuentes/temas/menú (`GuiFunctions`) |
+| `src/ui_extensions_gcode.py` | 613 | Página G-Code + diálogo de edición + intérprete G-Code (G0/G1/G4/G28/G90/G91/M0/M3/M5/M900/M901) |
+| `src/ui_extensions_auto.py` | 482 | Página Auto — generador de G-Code en 5 modos |
+| `src/ui_extensions_manual.py` | 425 | Página Manual (jog manual, control por eje, láser en PSO por mantener-pulsado) |
+| `src/aerotech_controller.py` | 429 | Envoltorio de la API automation1 (conexión, movimiento, indicadores por eje, STO, capa PSO) |
+| `src/ui_extensions_calibration.py` | 430 | Página Calibration (foco Z, ventana maestra de seguridad, modo de alineación láser) |
+| `src/ui_extensions_connection.py` | 223 | Página Connection (IP del iSMC, validación, persistencia local) |
+| `src/ui_extensions_home.py` | 150 | Página Home (tarjeta de salida láser + imagen de la estación) |
+| `config.py` | 29 | Flags de configuración globales |
+| **Total** | **~5 472** | |
 
 (No se cuentan los miles de ficheros `.png`/`.svg` de iconos ni las imágenes, que son binarios/recursos, no código.)
 
@@ -136,12 +137,14 @@ Dentro de `MainWindow.__init__`:
 
 1. **`Ui_MainWindow().setupUi(self)`** — construye todos los widgets de la ventana (definidos a mano en `ui_interface.py`, imitando lo que generaría Qt Designer + `pyside6-uic`).
 2. **`loadJsonStyle(...)`** — lee `json-styles/style.json` y aplica: título/icono de ventana, temas disponibles, comportamiento de los menús deslizantes, grupos de botones, animaciones de los `QStackedWidget`, etc. (lo interpreta la librería `Custom_Widgets`).
-3. **`UIExtensions(ui, self).apply_all_modifications()`** — aplica estilos y comportamiento específico de cada página (fuentes, tamaños, `QSS` en línea) que no cubre el JSON declarativo.
-4. **`connect_all_signals()`** — conecta las señales (clics de botones, cambios de valores) a los métodos de cada página.
-5. **`QAppSettings.updateAppSettings(self)`** — aplica el tema visual activo (compila el SCSS a QSS, aplica la paleta de colores, genera los iconos coloreados que falten).
-6. **`GuiFunctions(self)`** — carga la tipografía de la app y rellena el selector de temas.
+3. **`self.controller = AerotechController()`** — única instancia, creada aquí (no dentro de `UIExtensions`) para poder compartirla también con `GlobalStatusPanel`.
+4. **`GlobalStatusPanel(self.controller, self)`** — se construye e inserta encima de `mainPages`; se conecta su visibilidad a `mainPages.currentChanged` y arranca el `QTimer` de 100 ms que lo refresca (ver sección 12).
+5. **`UIExtensions(ui, self, self.controller).apply_all_modifications()`** — aplica estilos y comportamiento específico de cada página (fuentes, tamaños, `QSS` en línea) que no cubre el JSON declarativo.
+6. **`connect_all_signals()`** — conecta las señales (clics de botones, cambios de valores) a los métodos de cada página, y conecta `GlobalStatusPanel.laser_emergency_stop` al slot de parada de Manual.
+7. **`QAppSettings.updateAppSettings(self)`** — aplica el tema visual activo (compila el SCSS a QSS, aplica la paleta de colores, genera los iconos coloreados que falten).
+8. **`GuiFunctions(self)`** — carga la tipografía de la app y rellena el selector de temas.
 
-Desde agosto de 2026 (ver sección 11), `UIExtensions` y `GuiFunctions` viven en el propio `main.py`, debajo de `MainWindow` — antes vivían en `src/ui_extensions.py` y `src/Functions.py` respectivamente.
+`UIExtensions` y `GuiFunctions` viven en el propio `main.py`, debajo de `MainWindow` (consolidación de agosto de 2026, sección 11) — igual que `GlobalStatusPanel` (sección 12), añadida ahí mismo por instrucción explícita de las directrices de migración ("construido en `main.py`, junto al resto de widgets raíz").
 
 ### 5.2. Patrón de organización: una clase "Extensions" por página
 
@@ -149,12 +152,12 @@ Cada página del `QStackedWidget` principal tiene su propia clase (`HomePageExte
 
 ```python
 class XxxPageExtensions:
-    def __init__(self, ui, main_window): ...
+    def __init__(self, ui, main_window, controller): ...
     def apply_modifications(self):   # estilos, tamaños, textos iniciales
     def connect_signals(self):       # conexión de señales Qt (clics, cambios de valor...)
 ```
 
-`UIExtensions` (en `main.py`) instancia las seis clases y expone dos métodos de fachada (`apply_all_modifications`, `connect_all_signals`) que `MainWindow.__init__` invoca una sola vez. Esto separa **la interfaz generada** (`ui_interface.py`, no debería tocarse a mano salvo para regenerar) de **la lógica de cada pantalla** (los ficheros `ui_extensions_*.py`, donde se añade funcionalidad nueva) y del **arranque/orquestación** (`main.py`).
+`UIExtensions` (en `main.py`) instancia las seis clases — pasándoles el `AerotechController` que ya crea `MainWindow`, no uno propio — y expone dos métodos de fachada (`apply_all_modifications`, `connect_all_signals`) que `MainWindow.__init__` invoca una sola vez. Esto separa **la interfaz generada** (`ui_interface.py`, no debería tocarse a mano salvo para regenerar) de **la lógica de cada pantalla** (los ficheros `ui_extensions_*.py`, donde se añade funcionalidad nueva), del **estado compartido entre páginas** (`GlobalStatusPanel`, en `main.py`) y del **arranque/orquestación** (`main.py`).
 
 ### 5.3. Sistema de temas y estilos
 
@@ -178,84 +181,81 @@ El control real del sistema se hace a través del SDK oficial `automation1`, env
 
 `AerotechController` expone:
 
-- `connect(host)` / `disconnect()` / `is_connected` — conexión y arranque del controlador (`a1.Controller.connect(host).start()`). Por defecto se conecta a `"::1"` (localhost), el caso normal cuando la app corre en el mismo PC industrial que el iSMC.
-- `get_axis_positions()` / `get_axes_enabled()` — lectura de posición y estado de los drives, vía `StatusItemConfiguration` + `runtime.status.get_status_items(...)` (la API real no expone el estado como atributos directos, hay que pedirlo explícitamente).
+- `connect(host)` / `disconnect()` / `is_connected` — conexión y arranque del controlador (`a1.Controller.connect(host).start()`). El valor por defecto (`"192.168.7.1"`) no se toca; la página Connection ahora lo precarga en `hostAddressInput` en vez de fijarlo aquí (ver 6.7).
+- `get_axis_positions()` — lectura de posición vía `StatusItemConfiguration` + `runtime.status.get_status_items(...)` (la API real no expone el estado como atributos directos, hay que pedirlo explícitamente).
 - `enable_axes()` / `disable_axes()` / `home_axes()` — habilitación y *homing* de los ejes (`runtime.commands.motion.enable/disable/home`).
 - `move_relative(axis, distancia, vel, acc)` / `move_incremental(ejes, ...)` — movimiento relativo, vía `motion.moveincremental` (no `moverelative`, que no existe en la API real).
 - `move_absolute(ejes, posiciones, vel, acc)` — movimiento absoluto, vía `motion.moveabsolute`, aplicando antes la rampa de aceleración con `motion_setup.setupaxisrampvalue(...)`.
-- `zero_axis(axis, valor)` — fija el origen de coordenadas del eje en la posición actual (`motion.positionoffsetset`), usado por Calibration para las funciones "Zero X/Y" y "Set Z as calibrated".
-- `set_digital_output(axis, output_num, valor)` — activa/desactiva una salida digital del drive; es lo que abre/cierra el shutter del láser desde la página Manual (`SHUTTER_OUTPUT_AXIS` / `SHUTTER_OUTPUT_NUM` en `ui_extensions_manual.py`, a ajustar según el cableado real de la estación).
-- `get_axis_faults()` / `get_axes_homed()` / `get_sto_status(axis=None)` — añadidos en el rediseño de la página Home (sección 9) para alimentar los LEDs de estado por eje y el banner de STO. Leen `AxisFault`/`DriveStatus` vía el mismo `StatusItemConfiguration` ya usado para posición y habilitación. **Los nombres exactos de los bits (`AxisFault.PositionErrorFault`, `CwEndOfTravelLimitFault`, `CcwEndOfTravelLimitFault`, `DriveStatus.Homed`, y el bit de STO) están marcados con `# TODO` en el código: no se han verificado todavía contra la instalación real de `automation1` (`dir(a1.AxisFault)` / `dir(a1.DriveStatus)`).**
-- `set_laser_power_percent(duty_percent)` / `get_laser_output_state()` — gestionan la consigna de potencia del láser (0-100% de duty cycle, convertido a mW usando `NEJE_B30635_MAX_POWER_MW = 500.0`). El canal PWM/TTL físico del NEJE **no está confirmado** (falta el documento *620D1426-10-01 System Interconnect*), así que `set_laser_power_percent()` solo guarda el valor en memoria y avisa por consola que corre en modo simulado; no escribe ninguna salida real todavía.
+- `zero_axis(axis, valor)` — fija el origen de coordenadas del eje en la posición actual (`motion.positionoffsetset`), usado por Calibration para "Zero X/Y" y "Confirm focus".
+- `set_digital_output(axis, output_num, valor)` — activa/desactiva una salida digital del drive. Ya **no se usa para el láser** (sustituido por la capa PSO, ver abajo); queda disponible para otras salidas no relacionadas.
+- `get_axis_indicators(axis)` — **añadido en la migración de agosto de 2026** (sección 12), sustituye a las antiguas `get_axes_enabled()`/`get_axes_homed()`/`get_axis_faults()`. Devuelve `{"enabled", "homed", "in_position", "no_limit_active"}` **por eje individual** (la vieja `get_axes_enabled()` devolvía un único booleano combinado para los 3 ejes — esa limitación, señalada en las secciones 9.3/10.2, queda resuelta de raíz). **`# TODO` en el código:** los nombres de bit de `AxisStatus`/`DriveStatus`/`AxisFault` (`in_position` en particular) no se han verificado contra la instalación real.
+- `get_sto_status(axis=None)` — sin cambios desde la fase de Home.
+- **Capa PSO** (Position Synchronized Output), añadida en agosto de 2026 para el láser NEJE B30635 (cableado a la salida PSO dedicada del drive 1 / eje X): `pso_reset(axis)`, `pso_configure_fixed_distance(axis, distance_mm)`, `pso_configure_array_distances(axis, distances_mm)`, `pso_configure_waveform(axis, power_percent, total_time_us=20000, pulse_count=1)` (también actualiza `self._laser_duty_cycle`), `pso_configure_window(axis, window_number, min_mm, max_mm, as_mask)`, `pso_configure_bitmap(axis, bits)`, `pso_output_on(axis)` / `pso_output_off(axis)`. **`# TODO` en el código:** namespace y nombres de método sin confirmar contra la API instalada — `runtime.commands.pso.*` es el namespace probable, pero no verificado (los ejemplos oficiales de Aerotech son para la familia XC4, no necesariamente literales en XC2e/iXC2e).
+- `set_laser_power_percent(duty_percent)` — ya **no se llama desde ninguna página** (Manual y Calibration usan `pso_configure_waveform()` en su lugar), pero se mantiene definida sin cambios.
+- `get_laser_output_state()` — ahora devuelve **4 valores**: `(is_on, duty_percent, power_mw, is_measured)`. `is_measured` cae siempre a `False` (**`# TODO`**: falta leer el bit `OutputActive` real del estado PSO); `is_on`/`duty_percent` siguen derivándose de `self._laser_duty_cycle`.
 
 **Limitaciones conocidas y deliberadas:**
 
 - `home_axes()` es una llamada **bloqueante** de la API (espera a que termine el ciclo de homing) y se ejecuta en el hilo de la interfaz: mientras dura, la ventana no responde. Para producción convendría moverla a un `QThread`.
 - `Controller.connect()` también es bloqueante y, sin hardware escuchando en el host indicado, puede tardar **más de un minuto** en fallar (comprobado empíricamente). Por eso la conexión **no** se intenta automáticamente al arrancar la app: se dispara solo cuando el usuario pulsa "Connect" en la página Connection, y esa pulsación lanza la conexión en un `QThread` aparte (`_ConnectWorker` en `ui_extensions_connection.py`) para no congelar la interfaz mientras se resuelve.
-- El tiempo de apertura del shutter que se guarda en la página Auto (`acceptBtn`) **no** se envía a un temporizador PSO (Position Synchronized Output) del drive: hacerlo correctamente exige configurar una ventana PSO específica del cableado de la estación (eje, salida, modo distancia/tiempo) que no está definida en este proyecto. El valor queda guardado (`_saved_shutter_time_s`) para una futura secuencia automática que abra/cierre el shutter por software combinando `set_digital_output(...)` con un `QTimer`.
-- El intérprete de G-Code (`GCodePageExtensions`) ejecuta cada línea de forma síncrona; un `G28` (home) a mitad de programa congela la UI por el mismo motivo que el punto anterior.
+- El intérprete de G-Code (`GCodePageExtensions`) ejecuta cada línea de forma síncrona, incluyendo el nuevo `G4` (dwell, usa `time.sleep()`); un `G28` o un `G4` largo a mitad de programa congela la UI por el mismo motivo.
+- El generador de G-Code de Auto (`Point array` con espaciado "Irregular", `Binary pattern`) no tiene todavía un M-code propio en el dialecto de G-Code para distancias no uniformes ni patrones de bits — se aproximan con `M900`/comentarios hasta decidir cómo ampliar el dialecto (ver sección 12).
 
 ---
 
 ## 6. Descripción módulo por módulo
 
 ### 6.1. `main.py`
-Punto de entrada, y desde agosto de 2026 (sección 11) también el archivo que reúne el arranque y las dos clases de orquestación que antes vivían en ficheros aparte:
-- **`MainWindow`** — crea la `QApplication`, instancia la ventana y arranca el bucle de eventos de Qt.
-- **`UIExtensions`** (antes `src/ui_extensions.py`) — orquestador central descrito en el punto 5.2. Crea la única instancia de `AerotechController` y la reparte por constructor a las seis páginas. También aplica la fuente global (`Sitka Small`) a toda la ventana y la fuente de título en negrita a los encabezados de cada sección.
-- **`GuiFunctions`** (antes `src/Functions.py`) — carga la tipografía personalizada de la app (`ProductSans-Regular.ttf`), inicializa y puebla el selector de temas (excluyendo los temas internos `DARK`/`LIGHT`), conecta los botones que abren/cierran los menús deslizantes central y derecho (Settings/Help/Connection/Calibration), y cambia el tema activo cuando el usuario elige uno distinto en el desplegable.
+Punto de entrada, y desde agosto de 2026 también el archivo que reúne el arranque, el panel de estado compartido y las clases de orquestación:
+- **`GlobalStatusPanel`** (nuevo, ver sección 12) — `QFrame` construido una vez en `MainWindow.__init__`, insertado fuera del `QStackedWidget` principal (encima de `mainPages`, dentro de `verticalLayout_11`). Muestra el banner de conexión/STO, la posición X/Y/Z en vivo, la matriz de LEDs ENA/HMD/INP/LIM por eje y el botón "LASER STOP". Visible solo en Home/Manual/Auto (`MainWindow._update_global_panel_visibility`, conectado a `mainPages.currentChanged`). Refrescado por un único `QTimer` de 100 ms propiedad de `MainWindow`.
+- **`MainWindow`** — crea la `QApplication`, instancia la ventana, el `AerotechController` compartido y el `GlobalStatusPanel`, y arranca el bucle de eventos de Qt.
+- **`UIExtensions`** — orquestador central descrito en el punto 5.2. Recibe el `AerotechController` ya creado por `MainWindow` (no lo crea) y lo reparte por constructor a las seis páginas.
+- **`GuiFunctions`** — carga la tipografía personalizada de la app, inicializa y puebla el selector de temas, conecta los botones que abren/cierran los menús deslizantes central y derecho.
 
 ### 6.2. `src/ui_interface.py`
 Clase `Ui_MainWindow`, con un único método `setupUi()` que crea y posiciona **todos** los widgets de la aplicación: cabecera personalizada (sin barra de título nativa — ventana *frameless*), menú lateral, menús deslizantes central/derecho, y el `QStackedWidget` principal con las 6 páginas funcionales (`homePage`, `manualPage`, `autoPage`, `gcodePage`, `connectionPage`, `calibrationPage`) más las páginas de ajustes (`settingsPage`, `helpPage`). Incluye también la función auxiliar `_icon_path()` descrita en el punto 5.4.
 
 ### 6.3. `src/ui_extensions_home.py`
-Página de estado general, rediseñada en agosto de 2026 (ver sección 9). Muestra:
-- Un **banner superior**, grande y centrado, de conexión (IP del host) y de STO (Safe Torque Off), que pasa a rojo de alerta fijo cuando el STO está activo.
-- Posición X/Y/Z, mostrando "—" en gris atenuado en vez de "0.000" cuando no hay conexión (para no confundir "en el origen" con "desconectado").
-- Una tarjeta intermedia **`axisStatusCard`** con una matriz LED (filas Límite CW / Límite CCW / Fallo / Referenciado × columnas X/Y/Z), construida con el helper único `_make_led()`.
-- Una tarjeta **"Salida Láser"** (`laserOutputCard`, fusión de las antiguas `shutterStatus`/`powerStatus`) con LED ON/OFF, consigna de potencia (`estadoPotencia`, siempre con el sufijo "(consigna)" para dejar claro que no es una medida real) y un slot de interlock (gris fijo mientras `config.LASER_INTERLOCK_AVAILABLE` sea `False`).
-
-Un `QTimer` de 100 ms refresca todo el estado llamando a `controller.get_axis_positions()`, `get_axes_homed()`, `get_axis_faults()`, `get_sto_status()` y `get_laser_output_state()`.
+Simplificada drásticamente en la migración de agosto de 2026 (sección 12): la mayor parte de lo que tenía (banner, matriz de LEDs, posición) se trasladó a `GlobalStatusPanel`. Lo único que queda es la tarjeta **"Laser Output"** (`laserOutputCard`, LED ON/OFF con borde punteado si el valor no es medido, consigna `"{duty:.0f}% · {mw:.0f} mW (setpoint)"`) junto a la imagen de la estación (`estacionAerotech`), uno al lado del otro. Un `QTimer` propio y ligero (100 ms) refresca solo esta tarjeta vía `controller.get_laser_output_state()` — ya no lee posición, eso lo hace el timer de `GlobalStatusPanel`.
 
 ### 6.4. `src/ui_extensions_manual.py`
-Rediseñada en agosto de 2026 (ver sección 10). Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`), con:
-- **Control independiente por eje**: cada eje (X/Y/Z) tiene su propio botón conmutable Enable/Disable (`toggleXBtn`/`toggleYBtn`/`toggleZBtn`, mismo patrón que `connectBtn`), su botón `home<Axis>Btn` y sus 4 LEDs de estado (Habilitado, Homed, Sin error de posición, Límites libres), reutilizando `HomePageExtensions._make_led()` sin duplicar su lógica.
-- **Posición en vivo** X/Y/Z junto al D-pad, mismo formato que Home (incluye el `"—"` cuando no hay conexión).
-- **Paso de jog** = escala del `scaleList` × `scaleMultiplier` (spinbox 1-999, nuevo).
-- **Compuerta de confirmación real** en Velocity/Acceleration: los spinbox muestran borde naranja mientras el valor en pantalla no coincide con `self._applied_velocity`/`self._applied_acceleration` (los que de verdad usan los movimientos), y `confirmBtn` cambia de texto a "Aplicar cambios pendientes" hasta que se confirman.
-- **Control de potencia del láser continuo**: `laserPowerSlider` (0-100%) sustituye a los antiguos `openShutterBtn`/`closeShutterBtn`; llama a `controller.set_laser_power_percent()` en vivo (cada cambio de valor, no solo al soltar) y colorea `laserOC` por interpolación continua de gris a rojo. `laserOffBtn` pone el slider a 0.
-
-Un `QTimer` propio de 100 ms (independiente del de Home) refresca posición y LEDs por eje vía `get_axis_positions()`, `get_axes_enabled()`, `get_axes_homed()` y `get_axis_faults()`.
+Movimiento manual paso a paso en X/Y/Z (vía `controller.move_relative`), reescrita en la migración de agosto de 2026:
+- **Control por eje** (`axisControlManual`, se mantiene): Enable/Disable/Home por eje — ya no tiene LEDs propios (están en `GlobalStatusPanel`).
+- **Solo velocity** (sin aceleración visible): la aceleración usa `config.DEFAULT_ACCELERATION_MM_S2[axis]`, fija. `velocity` mantiene la compuerta de confirmación (borde naranja + `confirmBtn`).
+- **Láser en PSO real, mantener pulsado**: `laserPowerSlider` solo fija una consigna visual (ya no llama a `set_laser_power_percent()`); `laserFireBtn` ("Laser ON") dispara mientras se mantiene pulsado (`pressed`/`released`) vía `controller.pso_configure_waveform()` + `pso_output_on()`/`pso_output_off()`. `handle_emergency_stop()` está conectado a `GlobalStatusPanel.laser_emergency_stop`.
 
 ### 6.5. `src/ui_extensions_auto.py`
-Movimiento a posición absoluta (X/Y/Z en mm, vía `controller.move_absolute`) con los mismos parámetros de velocidad/aceleración que la página Manual, sincronizados bidireccionalmente entre ambas páginas. El botón Reset manda los tres ejes a *home* (`controller.home_axes`). Incluye la configuración del tiempo de apertura del *shutter* con selector de unidad temporal (ns/μs/ms/s) — guardado para un futuro disparo temporizado por software (ver limitaciones en 5.5).
+Reescrita por completo (antes: movimiento absoluto + *shutter* temporizado — todo eliminado). Ahora es un **generador de G-Code** con 5 modos (`modeSelector` + `modeStack`): Single point, Fixed-distance firing, Point array (con lista de pasadas `Add pass`/`Remove pass`), Power gradient (Linear/Radial, siempre segmentado en G1+M3) y Binary pattern. Cada modo tiene su propio panel de campos; cualquier cambio regenera en vivo la vista previa (`gcodePreviewAuto`), que siempre empieza y termina en `G28`. "Open in G-Code" llama a `gcode_ext.load_gcode_text()`; "Download file" exporta a `.gcode`. Tiene su propio control por eje (`axisControlAuto`, no comparte widgets con Manual).
 
 ### 6.6. `src/ui_extensions_gcode.py`
-Carga de ficheros G-Code por diálogo o arrastrar-y-soltar (*drag & drop*), editor de texto integrado (`GCodeEditorDialog`) y un intérprete línea a línea que soporta `G0`/`G1` (movimiento, absoluto o relativo según `G90`/`G91`), `G28` (home) y `M0` (pausa: deshabilita los ejes), traduciendo cada línea a llamadas de `AerotechController`.
+Carga de ficheros G-Code por diálogo o arrastrar-y-soltar (*drag & drop*), editor de texto integrado (`GCodeEditorDialog`), un panel de vista previa de solo lectura (`gcodePreview`, junto al drag-and-drop) y un intérprete línea a línea. Dialecto ampliado en agosto de 2026: `G0`/`G1` (movimiento), `G4 P<ms>` (dwell, bloqueante), `G28` (home), `G90`/`G91` (absoluto/relativo), `M0` (pausa), `M3 S<0-100>`/`M5` (PSO on/off), `M900 D<mm> P<pulsos>` (distancia fija PSO) y `M901 X<min> X<max> Y<min> Y<max>` (ventana PSO, validada contra la ventana maestra de Calibration). `load_gcode_text(text)` permite cargar G-Code directamente desde Auto sin pasar por fichero.
 
 ### 6.7. `src/ui_extensions_connection.py`
-Selector de puerto serie (usa `QSerialPortInfo` de `PySide6.QtSerialPort` para listar los puertos disponibles del sistema) y de *baud rate*, pensado para un posible dispositivo serie auxiliar (el iSMC de Aerotech no se conecta por COM/baudios). El botón "Connect" lanza `AerotechController.connect()` en un `QThread` (clase interna `_ConnectWorker`) para no bloquear la interfaz mientras se resuelve la conexión.
+Reescrita en agosto de 2026: el selector de puerto serie/baud rate (`QSerialPortInfo`) se eliminó por completo — confirmado que el iSMC no se conecta por COM/baudios. En su lugar, un campo de IP (`hostAddressInput`) validado con regex IPv4/hostname antes de conectar, precargado con la última IP exitosa (persistida en `local_connection_settings.json`, no versionado) o con el valor de fábrica `192.168.7.1`. El botón "Connect" sigue lanzando `AerotechController.connect()` en el mismo `QThread` (`_ConnectWorker`) de siempre.
 
 ### 6.8. `src/ui_extensions_calibration.py`
-Calibración de enfoque en Z (subir/bajar en pasos de `FOCUS_STEP_MM` vía `controller.move_relative`, confirmar con `controller.zero_axis`) y puesta a cero de las posiciones X e Y (`controller.zero_axis`).
+Amplía lo que ya existía (foco Z, Zero X/Y) con tres piezas nuevas en agosto de 2026:
+- **Foco Z**: lectura de `Current Z` en vivo (timer propio de 100 ms) + botón "Confirm focus" (antes `calibratedBtn`, mismo mecanismo `controller.zero_axis(Z)`, ahora con ese texto).
+- **Master safety window**: `setCorner1Btn`/`setCorner2Btn` capturan la posición X/Y actual (tras mover con el jog de Manual) como esquinas; `get_safety_window()` expone `{x_min, x_max, y_min, y_max}` a Auto (`_validate_window`) y G-Code (`M901`). Redefinir una esquina ya capturada exige confirmación explícita (`QMessageBox`).
+- **Laser alignment mode**: `alignmentModeToggle` fuerza un tope de potencia (`config.ALIGNMENT_MODE_MAX_POWER_PERCENT`) y habilita `alignmentFireBtn`, con el mismo patrón de disparo por mantener-pulsado que Manual (`pso_output_on`/`pso_output_off`). Al desactivar el modo, fuerza `pso_output_off()`.
 
 ### 6.9. `src/aerotech_controller.py`
-Clase `AerotechController`: envoltorio único sobre el SDK `automation1`, descrito en detalle en el punto 5.5. Es el único módulo que importa `automation1` directamente; el resto de páginas solo llaman a sus métodos.
+Clase `AerotechController`: envoltorio único sobre el SDK `automation1`, descrito en detalle en el punto 5.5. Es el único módulo que importa `automation1` directamente; el resto de páginas solo llaman a sus métodos. Amplía en agosto de 2026 con `get_axis_indicators(axis)` (sustituye a las antiguas `get_axes_enabled()`/`get_axes_homed()`/`get_axis_faults()`) y toda la capa PSO (`pso_reset`, `pso_configure_fixed_distance`, `pso_configure_array_distances`, `pso_configure_waveform`, `pso_configure_window`, `pso_configure_bitmap`, `pso_output_on`, `pso_output_off`) — ver sección 12.
 
 ---
 
 ## 7. Estado actual y trabajo pendiente
 
-- **Integración de hardware real**: implementada y con la sintaxis verificada contra el SDK `automation1` instalado (`Controller.connect/start`, `StatusItemConfiguration`, `motion.moveincremental/moveabsolute/home`, `motion_setup.setupaxisrampvalue`, `io.digitaloutputset`). Sin la estación física conectada, cada operación se prueba en modo "sin conexión" (falla de forma controlada, registrada por consola); falta la validación final con el iSMC real en el laboratorio.
-- **Shutter temporizado por hardware (PSO)**: no implementado — ver limitación detallada en 5.5. El valor introducido en la página Auto se guarda pero no dispara nada por sí solo todavía.
-- **Llamadas bloqueantes en el hilo de la UI**: `home_axes()` y la ejecución de G-Code síncrona pueden congelar la ventana mientras esperan al controlador. Solo la conexión inicial (`Connect`) se ejecuta ya en un `QThread`; home/G-Code quedarían pendientes de la misma mejora si se usan con hardware real conectado.
-- **Salida digital del shutter sin calibrar**: `SHUTTER_OUTPUT_AXIS`/`SHUTTER_OUTPUT_NUM` (en `ui_extensions_manual.py` y `ui_extensions_auto.py`) son valores por defecto (`AXIS_X`, `0`) que hay que ajustar al cableado real de la estación.
+- **Integración de hardware real**: implementada y con la sintaxis mayormente verificada contra el SDK `automation1` instalado (`Controller.connect/start`, `StatusItemConfiguration`, `motion.moveincremental/moveabsolute/home`, `motion_setup.setupaxisrampvalue`). Sin la estación física conectada, cada operación se prueba en modo "sin conexión" (falla de forma controlada, registrada por consola); falta la validación final con el iSMC real en el laboratorio.
+- **Capa PSO sin confirmar** (nueva, sección 12): namespace y nombres de método de `runtime.commands.pso.*` no verificados contra la API real, ni el número de salida PSO físico conectado al NEJE. Ver `# TODO` en `aerotech_controller.py`.
+- **Bits de estado sin verificar**: `get_axis_indicators()` (sección 12) asume nombres de bit de `a1.AxisStatus`/`a1.DriveStatus`/`a1.AxisFault` — `in_position` en particular no se ha usado hasta ahora en el proyecto — que no se han contrastado todavía contra la instalación real del SDK.
+- **Llamadas bloqueantes en el hilo de la UI**: `home_axes()`, `G4` (dwell, `time.sleep()`) y la ejecución de G-Code síncrona pueden congelar la ventana mientras esperan al controlador. Solo la conexión inicial (`Connect`) se ejecuta ya en un `QThread`.
+- **Dialecto G-Code incompleto para Point array irregular y Binary pattern**: `M900`/`M901` cubren distancia fija y ventana PSO, pero no hay todavía un M-code para arrays de distancias no uniformes ni para patrones de bits — Auto los aproxima o los deja como comentario (ver 6.5/6.6 y sección 12).
+- **Dual-PSO Adapter (ECZ03125-3)**: cableado ya instalado entre Drive 1 y Drive 2; podría habilitar disparo diagonal real en "Point array", pero no está verificado en laboratorio (`config.SYNC_PORTS_AVAILABLE = False`).
 - **Sin control de versiones**: el directorio de trabajo no es (todavía) un repositorio Git.
 - **Sin fichero de dependencias**: falta un `requirements.txt`/`pyproject.toml` para fijar versiones y facilitar la reproducibilidad del entorno.
 - **Ruta de fuente tipográfica**: `GuiFunctions.loadFont()` (en `main.py`) carga la fuente desde `.fonts/google-sans-cufonfonts/ProductSans-Regular.ttf`, carpeta que no existe actualmente en el proyecto (falla de forma silenciosa y Qt usa una fuente de reemplazo).
-- **Bits de estado sin verificar**: `get_axis_faults()`, `get_axes_homed()` y `get_sto_status()` (nuevos, ver sección 9) asumen nombres de bit de `a1.AxisFault`/`a1.DriveStatus` que no se han contrastado todavía contra la instalación real del SDK — marcado con `# TODO` en `aerotech_controller.py`.
-- **Interlock del láser**: el LED de interlock de la tarjeta "Salida Láser" existe en la interfaz pero se mantiene en gris fijo (`config.LASER_INTERLOCK_AVAILABLE = False`) hasta confirmar la señal en el interconnect real.
-- **Canal PWM del láser**: `set_laser_power_percent()` guarda la consigna en memoria pero no escribe sobre ninguna salida física; falta el documento de interconexión para saber a qué eje/salida está cableado el pin TTL/PWM del NEJE B30635.
+- **Interlock del láser**: sigue en gris fijo (`config.LASER_INTERLOCK_AVAILABLE = False`) hasta confirmar la señal en el interconnect real — ya no hay slot de interlock visible en Home (eliminado en la migración de agosto de 2026), pero el flag sigue existiendo por si se usa en otra página en el futuro.
 
 ---
 
@@ -270,6 +270,8 @@ Requiere Python 3.12 y las dependencias listadas en la sección 3 instaladas en 
 ---
 
 ## 9. Rediseño de la página Home (2026-08-14)
+
+> **Parcialmente superseded por la sección 12** (2026-08-19): el banner de conexión/STO y la matriz de LEDs por eje descritos aquí se migraron a `GlobalStatusPanel` (`main.py`), y `get_axis_faults()`/`get_axes_homed()` se sustituyeron por `get_axis_indicators()`. Se conserva este registro como historial — la tarjeta "Salida Láser" descrita abajo sigue siendo la base de lo que hoy queda en `ui_extensions_home.py`.
 
 Cambio de alcance acotado a la página **Home** (`src/ui_interface.py`, `src/ui_extensions_home.py`) y a las adiciones necesarias en `src/aerotech_controller.py` / `config.py` para soportarla. No se ha tocado Manual, Auto, G-Code, Connection ni Calibration.
 
@@ -322,6 +324,8 @@ Segunda pasada, solo de maquetación, sobre la misma página Home:
 
 ## 10. Rediseño de la página Manual (2026-08-14)
 
+> **Parcialmente superseded por la sección 12** (2026-08-19): la copia de posición/LEDs por eje descrita aquí se eliminó (vive en `GlobalStatusPanel`), el control de aceleración desapareció de la interfaz, y el láser pasó de "en vivo" a "mantener pulsado" sobre PSO real — `laserOffBtn` ya no existe, sustituido por `laserFireBtn`. Se conserva este registro como historial.
+
 Cambio de alcance acotado a la página **Manual** (`src/ui_interface.py`, `src/ui_extensions_manual.py`), reutilizando sin modificarlos los métodos que la fase de Home (sección 9) ya había añadido a `src/aerotech_controller.py` (`get_axis_faults()`, `get_axes_homed()`, `get_sto_status()`, `set_laser_power_percent()`, `get_laser_output_state()`, `NEJE_B30635_MAX_POWER_MW`). No se ha tocado Home, Auto, G-Code, Connection ni Calibration.
 
 ### 10.1. Cambios de interfaz (`src/ui_interface.py`)
@@ -368,3 +372,81 @@ De 12 ficheros de código propio (`main.py`, `config.py`, `src/Functions.py`, `s
 ### 11.3. Cómo importar ahora
 
 Cualquier código nuevo que necesitase antes `from src.Functions import GuiFunctions` o `from src.ui_extensions import UIExtensions` ya no debe hacerlo — ambas clases están en el propio `main.py`. Ningún fichero de `src/ui_extensions_*.py` importaba de estos dos módulos (se comprobó antes de eliminarlos), así que no hizo falta tocar ninguna página.
+
+---
+
+## 12. Migración a panel de estado global + generador de G-Code en Auto + capa PSO (2026-08-19)
+
+Migración aplicada en el orden `00_global_architecture.md` → `01_home.md` → `02_manual.md` → `03_auto.md` → `04_gcode.md` → `05_calibration.md` → `06_connection.md`. A diferencia de las fases anteriores (secciones 9-11, solo aditivas), esta es una **migración**: extrae a un panel compartido lo que Home y Manual ya tenían cada uno por su cuenta, sustituye por completo la implementación de Auto, y construye desde cero una capa PSO que no existía. Todo el texto visible nuevo/tocado se redactó en **inglés**, por instrucción explícita del documento `00`.
+
+### 12.1. `GlobalStatusPanel` (`main.py`) — panel de estado compartido
+
+Nuevo `QFrame`, construido una única vez en `MainWindow.__init__` e insertado fuera del `QStackedWidget` principal (`self.ui.verticalLayout_11.insertWidget(0, ...)`, justo encima de `mainPages`). Diseño en dos filas (rediseñado el 2026-08-19 a partir de un mockup del usuario):
+- **Fila superior**: LED + texto de conexión (`"Connected — <host>"` / `"Disconnected"`), LED + texto de STO (`"Safety OK"` / `"STO ACTIVE"`, con el fondo del panel entero en rojo de alerta fijo `#DA190B` cuando está activo), y a la derecha el botón **"LASER STOP"** (llama a `controller.pso_output_off(AXIS_X)` y emite la señal `laser_emergency_stop`).
+- **Fila inferior**: tres tarjetas, una por eje (`_build_axis_card()`), cada una con la letra del eje + su posición en vivo (`"12.400 mm"`) en la cabecera, y debajo una fila de 4 LEDs sin etiqueta visible (Enabled/Homed/In Position/No limit active — el nombre completo queda en el `toolTip` de cada LED, no como texto en pantalla).
+
+Visible solo en Home/Manual/Auto: `MainWindow._update_global_panel_visibility(index)`, conectado a `mainPages.currentChanged`, oculta el panel en G-Code/Connection/Calibration. Un único `QTimer` de 100 ms, propiedad de `MainWindow` (no del panel), llama a `GlobalStatusPanel.update_status()` — sustituye a los dos `QTimer` independientes que antes corrían en paralelo en `HomePageExtensions` y `ManualPageExtensions` (limitación señalada en las secciones 9.3/10.3, resuelta aquí).
+
+`AerotechController` ahora se crea en `MainWindow.__init__` (no dentro de `UIExtensions`) para poder pasarse tanto a `UIExtensions` como a `GlobalStatusPanel`; `UIExtensions.__init__` cambió de firma (`ui, main_window, controller`) para recibirlo en vez de crearlo.
+
+### 12.2. Home (`ui_interface.py`, `ui_extensions_home.py`) — simplificación drástica
+
+Eliminados de `homePage`/`HomePageExtensions`: `statusBanner` y su lógica, `axisStatusCard` (matriz de LEDs), las etiquetas de posición (`valorX`/`valorY`/`valorZ` + `label_16`/`label_14`/`label_12`), y el slot de interlock (`labelInterlock` + su LED — confirmado que esa señal no existe). Lo que queda, en horizontal: la tarjeta `laserOutputCard` (LED ON/OFF con **borde punteado si `is_measured` es `False`**, texto `estadoPotencia` con formato `"{duty:.0f}% · {mw:.0f} mW (setpoint)"`) y `estacionAerotech`, uno al lado del otro. `update_position_display()` se renombró a `update_laser_card()`. El `QTimer` de 100 ms de Home se eliminó del todo — la tarjeta se refresca con un timer propio mucho más ligero (100 ms, solo lee `get_laser_output_state()`, ya no posición).
+
+### 12.3. Manual (`ui_interface.py`, `ui_extensions_manual.py`) — sin posición/LEDs propios, sin aceleración, láser sobre PSO
+
+- `positionManual`, `labelPosManualX/Y/Z`, `valorXManual/YManual/ZManual` y `ledRowManual<Axis>` eliminados por completo (cubiertos por el panel global). `axisControlManual` (los 3 bloques `toggle<Axis>Btn`/`home<Axis>Btn`) se mantiene — son controles activos, no un indicador pasivo — pero pierde su fila de LEDs.
+- El spinbox `acceleration` (y `label_33`) se eliminó de la interfaz; la aceleración pasa a `config.DEFAULT_ACCELERATION_MM_S2[axis]`, fija. Solo `velocity` conserva la compuerta de confirmación (borde naranja + `confirmBtn`).
+- `laserPowerSlider` deja de llamar a `controller.set_laser_power_percent()` en `valueChanged` — ahora solo actualiza el texto/color en vivo. `laserOffBtn` se renombró a **`laserFireBtn`** (texto "Laser ON"), y pasó de `clicked` a `pressed`/`released`: mientras se mantiene pulsado, llama a `pso_configure_waveform(AXIS_X, power)` + `pso_output_on(AXIS_X)`; al soltar, `pso_output_off(AXIS_X)`. `handle_emergency_stop()` (nuevo) está conectado a `GlobalStatusPanel.laser_emergency_stop` desde `MainWindow.__init__`.
+
+### 12.4. Auto (`ui_interface.py`, `ui_extensions_auto.py`) — reescritura completa
+
+Eliminados: `moveBtn`, `velocity_2`, `acceleration_2`, `scaleList_2`, `confirmBtn_2` (y su sincronización bidireccional con Manual), `resetBtn`, todo el bloque de *shutter* temporizado (`scaleListTime`, `timeShutter`, `acceptBtn`, `timeGraph`, `_saved_shutter_time_s`). Auto ya no ejecuta movimiento directamente.
+
+Sustituido por un **generador de G-Code de 5 modos** (`modeSelector` + `modeStack`, cada modo con su propio panel de campos, sin formulario genérico compartido):
+
+| Modo | Campos propios |
+|---|---|
+| Single point | Position X/Y/Z, "Fire at this point", Duration+scale (dispara a 100% fijo — la tabla de campos no incluye un control de potencia para este modo) |
+| Fixed-distance firing | Start/End point, Distance+scale, Pulses/event, Power %, Travel speed, Limit to position window |
+| Point array | Lista de pasadas (`Add pass`/`Remove pass`, cada una alineada a un único eje X o Y), Spacing (Uniform/Irregular), Distance+scale, Pulses/event, Power %, Travel speed, Limit to position window |
+| Power gradient | Gradient type (Linear/Radial, sub-panel propio), Distance+scale, Power start %→end %, Travel speed — **siempre segmentado** (G1 cortos + `M3 S<valor>` escalonado), con el aviso fijo *"Segmented approximation — not a native PSO array."* visible en el panel |
+| Binary pattern | Start/End point, Distance+scale, 8 toggles de bit, Travel speed |
+
+Cada modo genera G-Code siempre envuelto en `G28`…`G28`; cualquier cambio de campo regenera la vista previa (`gcodePreviewAuto`) en vivo. "Open in G-Code" llama a `gcode_ext.load_gcode_text()`; "Download file" exporta a `.gcode` vía `QFileDialog`. `fdLimitWindow`/`paLimitWindow` validan contra `calibration_ext.get_safety_window()`. Auto tiene su propia copia de control por eje (`axisControlAuto`), construida de nuevo porque no comparte esos widgets con Manual.
+
+**Huecos honestos, documentados con `# TODO` en el código**: el dialecto G-Code de `04_gcode.md` no define un M-code para arrays de distancias irregulares ni para patrones de bits, así que `Point array` (Irregular) aproxima con `M900` de distancia fija, y `Binary pattern` deja el patrón como comentario (`; binary pattern ...`) en vez de un comando ejecutable.
+
+### 12.5. G-Code (`ui_interface.py`, `ui_extensions_gcode.py`) — vista previa + dialecto ampliado
+
+Sin tocar la distribución existente (drag-and-drop, "Select file", "Edit", "Start"): se añadió un panel de solo lectura (`gcodePreview`, monoespaciado) al lado del drag-and-drop, en la misma fila (`horizontalLayout_gcodeSplit`). Nuevo método público `load_gcode_text(text)`, usado por el botón "Open in G-Code" de Auto. El intérprete amplió `GCODE_SUPPORTED` con `G4 P<ms>` (dwell), `M3 S<0-100>` (PSO on con potencia), `M5` (PSO off), `M900 D<mm> P<pulsos>` (distancia fija PSO — el número de pulsos se guarda en `_pending_pulse_count` y se aplica al `M3` siguiente, porque `pso_configure_fixed_distance()` no acepta ese parámetro) y `M901 X<min> X<max> Y<min> Y<max>` (ventana PSO, parseada aparte porque repite la letra X/Y en la misma línea, y validada contra `calibration_ext.get_safety_window()`).
+
+### 12.6. Calibration (`ui_interface.py`, `ui_extensions_calibration.py`) — aditivo
+
+- **Foco Z**: lectura `Current Z: {z:.3f} mm` en vivo (timer propio de 100 ms). `calibratedBtn` cambió su texto a **"Confirm focus"**; sigue llamando a `controller.zero_axis(AXIS_Z)` (mismo mecanismo de siempre, no se creó una función paralela).
+- **Master safety window** (nuevo): `xMinField`/`xMaxField`/`yMinField`/`yMaxField` (solo lectura) + `setCorner1Btn`/`setCorner2Btn`, que capturan `controller.get_axis_positions()` tras mover el eje con el jog de Manual hasta la esquina real. `get_safety_window()` expone `{x_min, x_max, y_min, y_max}` (o `None` si faltan esquinas) a Auto y G-Code. Redefinir una esquina ya capturada exige confirmar en un `QMessageBox`.
+- **Laser alignment mode** (nuevo): `alignmentModeToggle` fuerza `config.ALIGNMENT_MODE_MAX_POWER_PERCENT` (8%) y habilita `alignmentFireBtn`, mismo patrón de mantener-pulsado que Manual (`pso_configure_waveform`/`pso_output_on`/`pso_output_off`). Al desactivar el toggle, fuerza `pso_output_off()`.
+
+### 12.7. Connection (`ui_interface.py`, `ui_extensions_connection.py`) — IP en vez de serie
+
+`comPort`/`baudRate` (`QSerialPortInfo`) eliminados por completo. Nuevo `hostAddressInput`, precargado con `controller.host` si ya hubo un intento en la sesión, si no con la última IP guardada en `local_connection_settings.json` (fichero local, no versionado — añadido a `.gitignore`), si no con `192.168.7.1`. `handle_connect_click()` valida el formato (regex IPv4 o hostname RFC 1123 simplificado) antes de lanzar el mismo `QThread`/`_ConnectWorker` de siempre; tras una conexión exitosa con una IP distinta de la de fábrica, se guarda para la próxima vez. No se tocó `_ConnectWorker`, no se añadió reconexión automática, y `AerotechController.connect()` conserva su valor por defecto.
+
+### 12.8. `config.py` — nuevos flags
+
+```python
+SYNC_PORTS_AVAILABLE = False        # Dual-PSO Adapter (ECZ03125-3), sin verificar en laboratorio
+DEFAULT_ACCELERATION_MM_S2 = {"X": 100.0, "Y": 100.0, "Z": 100.0}
+ALIGNMENT_MODE_MAX_POWER_PERCENT = 8
+```
+
+### 12.9. Pendiente de hardware, no de diseño
+
+- Nombres exactos de función/enum de PSO en Python para XC2e/iXC2e (`runtime.commands.pso.*` es un namespace probable, no confirmado).
+- Número de salida PSO real conectado al NEJE (documento de interconexión 620D1426-10-01).
+- Si las distancias del array PSO son relativas o absolutas entre eventos.
+- Si el Dual-PSO Adapter permite disparo diagonal real en "Point array".
+- Bits exactos de `AxisStatus`/`DriveStatus` para `in_position` (nunca usado antes en el proyecto).
+
+### 12.10. Verificación
+
+`python -m py_compile` sobre todos los ficheros tocados, y arranque completo de la app (`python main.py`) sin excepciones en modo simulado tras cada fase (00 → 06) y al final del conjunto completo.

@@ -11,10 +11,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFrame,
-    QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFrame,
+    QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
     QMainWindow, QPushButton, QSizePolicy, QSlider, QSpacerItem,
-    QSpinBox, QVBoxLayout, QWidget)
+    QSpinBox, QStackedWidget, QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQStackedWidget import QCustomQStackedWidget
 from Custom_Widgets.QCustomSlideMenu import QCustomSlideMenu
@@ -449,193 +449,11 @@ class Ui_MainWindow(object):
         sizePolicy4.setVerticalStretch(0)
         sizePolicy4.setHeightForWidth(self.homePage.sizePolicy().hasHeightForWidth())
         self.homePage.setSizePolicy(sizePolicy4)
-        self.verticalLayout_home = QVBoxLayout(self.homePage)
-        self.verticalLayout_home.setObjectName(u"verticalLayout_home")
-
-        # ── Banner superior de conexión + STO ──────────────────────────
-        self.statusBanner = QFrame(self.homePage)
-        self.statusBanner.setObjectName(u"statusBanner")
-        self.statusBanner.setMinimumSize(QSize(0, 64))
-        self.statusBanner.setMaximumSize(QSize(16777215, 90))
-        self.statusBanner.setFrameShape(QFrame.StyledPanel)
-        self.statusBanner.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_banner = QHBoxLayout(self.statusBanner)
-        self.horizontalLayout_banner.setObjectName(u"horizontalLayout_banner")
-        self.horizontalLayout_banner.setContentsMargins(24, 8, 24, 8)
-
-        self.horizontalSpacer_bannerLeft = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerLeft)
-
-        self.connectionRow = QFrame(self.statusBanner)
-        self.connectionRow.setObjectName(u"connectionRow")
-        self.horizontalLayout_connectionRow = QHBoxLayout(self.connectionRow)
-        self.horizontalLayout_connectionRow.setObjectName(u"horizontalLayout_connectionRow")
-        self.labelConexion = QLabel(self.connectionRow)
-        self.labelConexion.setObjectName(u"labelConexion")
-        self.horizontalLayout_connectionRow.addWidget(self.labelConexion)
-
-        self.horizontalLayout_banner.addWidget(self.connectionRow, 0, Qt.AlignCenter)
-
-        self.horizontalSpacer_bannerMid = QSpacerItem(60, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerMid)
-
-        self.stoRow = QFrame(self.statusBanner)
-        self.stoRow.setObjectName(u"stoRow")
-        self.horizontalLayout_stoRow = QHBoxLayout(self.stoRow)
-        self.horizontalLayout_stoRow.setObjectName(u"horizontalLayout_stoRow")
-        self.labelSTO = QLabel(self.stoRow)
-        self.labelSTO.setObjectName(u"labelSTO")
-        self.horizontalLayout_stoRow.addWidget(self.labelSTO)
-
-        self.horizontalLayout_banner.addWidget(self.stoRow, 0, Qt.AlignCenter)
-
-        self.horizontalSpacer_bannerRight = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_banner.addItem(self.horizontalSpacer_bannerRight)
-
-        self.verticalLayout_home.addWidget(self.statusBanner)
-
-        self.horizontalLayout_18 = QHBoxLayout()
+        self.horizontalLayout_18 = QHBoxLayout(self.homePage)
         self.horizontalLayout_18.setObjectName(u"horizontalLayout_18")
         self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_18.addItem(self.horizontalSpacer_7)
-
-        self.positionStatus = QWidget(self.homePage)
-        self.positionStatus.setObjectName(u"positionStatus")
-        self.verticalLayout_20 = QVBoxLayout(self.positionStatus)
-        self.verticalLayout_20.setObjectName(u"verticalLayout_20")
-        self.posicionZ = QFrame(self.positionStatus)
-        self.posicionZ.setObjectName(u"posicionZ")
-        self.posicionZ.setFrameShape(QFrame.StyledPanel)
-        self.posicionZ.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_12 = QHBoxLayout(self.posicionZ)
-        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
-        self.horizontalLayout_12.setContentsMargins(115, -1, -1, -1)
-        self.label_12 = QLabel(self.posicionZ)
-        self.label_12.setObjectName(u"label_12")
-
-        self.horizontalLayout_12.addWidget(self.label_12, 0, Qt.AlignRight|Qt.AlignBottom)
-
-        self.valorZ = QLabel(self.posicionZ)
-        self.valorZ.setObjectName(u"valorZ")
-
-        self.horizontalLayout_12.addWidget(self.valorZ, 0, Qt.AlignLeft|Qt.AlignBottom)
-
-
-        self.verticalLayout_20.addWidget(self.posicionZ, 0, Qt.AlignLeft|Qt.AlignVCenter)
-
-        self.posicionY = QFrame(self.positionStatus)
-        self.posicionY.setObjectName(u"posicionY")
-        self.posicionY.setFrameShape(QFrame.StyledPanel)
-        self.posicionY.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_10 = QHBoxLayout(self.posicionY)
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.estacionAerotech = QLabel(self.posicionY)
-        self.estacionAerotech.setObjectName(u"estacionAerotech")
-        self.estacionAerotech.setPixmap(QPixmap(u"images/Estacion nanoposicionamiento.png"))
-        self.estacionAerotech.setScaledContents(True)
-
-        self.horizontalLayout_10.addWidget(self.estacionAerotech, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
-        self.frame_11 = QFrame(self.posicionY)
-        self.frame_11.setObjectName(u"frame_11")
-        self.frame_11.setFrameShape(QFrame.StyledPanel)
-        self.frame_11.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_14 = QHBoxLayout(self.frame_11)
-        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
-        self.label_14 = QLabel(self.frame_11)
-        self.label_14.setObjectName(u"label_14")
-
-        self.horizontalLayout_14.addWidget(self.label_14)
-
-        self.valorY = QLabel(self.frame_11)
-        self.valorY.setObjectName(u"valorY")
-
-        self.horizontalLayout_14.addWidget(self.valorY)
-
-
-        self.horizontalLayout_10.addWidget(self.frame_11, 0, Qt.AlignLeft|Qt.AlignBottom)
-
-
-        self.verticalLayout_20.addWidget(self.posicionY, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
-        self.posicionX = QFrame(self.positionStatus)
-        self.posicionX.setObjectName(u"posicionX")
-        self.posicionX.setFrameShape(QFrame.StyledPanel)
-        self.posicionX.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_11 = QHBoxLayout(self.posicionX)
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
-        self.horizontalLayout_11.setContentsMargins(50, -1, -1, -1)
-        self.label_16 = QLabel(self.posicionX)
-        self.label_16.setObjectName(u"label_16")
-
-        self.horizontalLayout_11.addWidget(self.label_16, 0, Qt.AlignRight)
-
-        self.valorX = QLabel(self.posicionX)
-        self.valorX.setObjectName(u"valorX")
-
-        self.horizontalLayout_11.addWidget(self.valorX, 0, Qt.AlignLeft|Qt.AlignVCenter)
-
-
-        self.verticalLayout_20.addWidget(self.posicionX, 0, Qt.AlignLeft|Qt.AlignVCenter)
-
-
-        self.horizontalLayout_18.addWidget(self.positionStatus, 0, Qt.AlignHCenter)
-
-        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_18.addItem(self.horizontalSpacer_6)
-
-        # ── Tarjeta intermedia: matriz de estado por eje (límites/fault/home) ──
-        self.axisStatusCard = QFrame(self.homePage)
-        self.axisStatusCard.setObjectName(u"axisStatusCard")
-        self.axisStatusCard.setStyleSheet(u"")
-        self.axisStatusCard.setFrameShape(QFrame.StyledPanel)
-        self.axisStatusCard.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_axisStatus = QVBoxLayout(self.axisStatusCard)
-        self.verticalLayout_axisStatus.setObjectName(u"verticalLayout_axisStatus")
-        self.verticalLayout_axisStatus.setContentsMargins(24, 20, 24, 20)
-        self.verticalLayout_axisStatus.setSpacing(14)
-
-        self.axisStatusIcon = QLabel(self.axisStatusCard)
-        self.axisStatusIcon.setObjectName(u"axisStatusIcon")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.axisStatusIcon.sizePolicy().hasHeightForWidth())
-        self.axisStatusIcon.setSizePolicy(sizePolicy5)
-        self.axisStatusIcon.setMinimumSize(QSize(50, 50))
-        self.axisStatusIcon.setMaximumSize(QSize(50, 50))
-        self.axisStatusIcon.setPixmap(QPixmap(_icon_path(u":/feather/icons/feather/activity.png")))
-        self.axisStatusIcon.setScaledContents(True)
-
-        self.verticalLayout_axisStatus.addWidget(self.axisStatusIcon, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
-        self.axisStatusTitle = QLabel(self.axisStatusCard)
-        self.axisStatusTitle.setObjectName(u"axisStatusTitle")
-        font2 = QFont()
-        font2.setPointSize(11)
-        font2.setBold(True)
-        self.axisStatusTitle.setFont(font2)
-
-        self.verticalLayout_axisStatus.addWidget(self.axisStatusTitle, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
-        self.gridLayout_axisStatus = QGridLayout()
-        self.gridLayout_axisStatus.setObjectName(u"gridLayout_axisStatus")
-        self.gridLayout_axisStatus.setHorizontalSpacing(18)
-        self.gridLayout_axisStatus.setVerticalSpacing(12)
-
-        self.verticalLayout_axisStatus.addLayout(self.gridLayout_axisStatus)
-
-
-        self.horizontalLayout_18.addWidget(self.axisStatusCard, 0, Qt.AlignHCenter)
-
-        self.horizontalSpacer_axisCards = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_18.addItem(self.horizontalSpacer_axisCards)
 
         self.cardsFrame = QWidget(self.homePage)
         self.cardsFrame.setObjectName(u"cardsFrame")
@@ -670,6 +488,9 @@ class Ui_MainWindow(object):
 
         self.laserTitleLabel = QLabel(self.laserOutputCard)
         self.laserTitleLabel.setObjectName(u"laserTitleLabel")
+        font2 = QFont()
+        font2.setPointSize(11)
+        font2.setBold(True)
         self.laserTitleLabel.setFont(font2)
 
         self.verticalLayout_laser.addWidget(self.laserTitleLabel, 0, Qt.AlignHCenter|Qt.AlignVCenter)
@@ -697,18 +518,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_laser.addWidget(self.estadoPotencia, 0, Qt.AlignHCenter|Qt.AlignVCenter)
 
-        self.laserInterlockRow = QFrame(self.laserOutputCard)
-        self.laserInterlockRow.setObjectName(u"laserInterlockRow")
-        self.laserInterlockRow.setFrameShape(QFrame.StyledPanel)
-        self.laserInterlockRow.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_laserInterlock = QHBoxLayout(self.laserInterlockRow)
-        self.horizontalLayout_laserInterlock.setObjectName(u"horizontalLayout_laserInterlock")
-        self.labelInterlock = QLabel(self.laserInterlockRow)
-        self.labelInterlock.setObjectName(u"labelInterlock")
-        self.horizontalLayout_laserInterlock.addWidget(self.labelInterlock)
-
-        self.verticalLayout_laser.addWidget(self.laserInterlockRow, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
 
         self.verticalLayout_10.addWidget(self.laserOutputCard)
 
@@ -719,12 +528,21 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_18.addWidget(self.cardsFrame, 0, Qt.AlignHCenter)
 
+        self.horizontalSpacer_6 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_18.addItem(self.horizontalSpacer_6)
+
+        # ── Imagen de la estación (a la derecha de la tarjeta de láser) ──
+        self.estacionAerotech = QLabel(self.homePage)
+        self.estacionAerotech.setObjectName(u"estacionAerotech")
+        self.estacionAerotech.setPixmap(QPixmap(u"images/Estacion nanoposicionamiento.png"))
+        self.estacionAerotech.setScaledContents(True)
+
+        self.horizontalLayout_18.addWidget(self.estacionAerotech, 0, Qt.AlignHCenter|Qt.AlignVCenter)
+
         self.horizontalSpacer_8 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_18.addItem(self.horizontalSpacer_8)
-
-        self.verticalLayout_home.addLayout(self.horizontalLayout_18)
-
 
         self.mainPages.addWidget(self.homePage)
         self.manualPage = QWidget()
@@ -764,11 +582,6 @@ class Ui_MainWindow(object):
         self.homeXBtn = QPushButton(self.axisControlX)
         self.homeXBtn.setObjectName(u"homeXBtn")
         self.verticalLayout_axisControlX.addWidget(self.homeXBtn)
-        self.ledRowManualX = QFrame(self.axisControlX)
-        self.ledRowManualX.setObjectName(u"ledRowManualX")
-        self.horizontalLayout_ledManualX = QHBoxLayout(self.ledRowManualX)
-        self.horizontalLayout_ledManualX.setObjectName(u"horizontalLayout_ledManualX")
-        self.verticalLayout_axisControlX.addWidget(self.ledRowManualX, 0, Qt.AlignHCenter)
         self.horizontalLayout_axisControl.addWidget(self.axisControlX)
 
         self.axisControlY = QFrame(self.axisControlManual)
@@ -788,11 +601,6 @@ class Ui_MainWindow(object):
         self.homeYBtn = QPushButton(self.axisControlY)
         self.homeYBtn.setObjectName(u"homeYBtn")
         self.verticalLayout_axisControlY.addWidget(self.homeYBtn)
-        self.ledRowManualY = QFrame(self.axisControlY)
-        self.ledRowManualY.setObjectName(u"ledRowManualY")
-        self.horizontalLayout_ledManualY = QHBoxLayout(self.ledRowManualY)
-        self.horizontalLayout_ledManualY.setObjectName(u"horizontalLayout_ledManualY")
-        self.verticalLayout_axisControlY.addWidget(self.ledRowManualY, 0, Qt.AlignHCenter)
         self.horizontalLayout_axisControl.addWidget(self.axisControlY)
 
         self.axisControlZ = QFrame(self.axisControlManual)
@@ -812,11 +620,6 @@ class Ui_MainWindow(object):
         self.homeZBtn = QPushButton(self.axisControlZ)
         self.homeZBtn.setObjectName(u"homeZBtn")
         self.verticalLayout_axisControlZ.addWidget(self.homeZBtn)
-        self.ledRowManualZ = QFrame(self.axisControlZ)
-        self.ledRowManualZ.setObjectName(u"ledRowManualZ")
-        self.horizontalLayout_ledManualZ = QHBoxLayout(self.ledRowManualZ)
-        self.horizontalLayout_ledManualZ.setObjectName(u"horizontalLayout_ledManualZ")
-        self.verticalLayout_axisControlZ.addWidget(self.ledRowManualZ, 0, Qt.AlignHCenter)
         self.horizontalLayout_axisControl.addWidget(self.axisControlZ)
 
         self.verticalLayout_22.addWidget(self.axisControlManual)
@@ -876,11 +679,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.label_32, 0, 2, 1, 1)
 
-        self.label_33 = QLabel(self.frame_4)
-        self.label_33.setObjectName(u"label_33")
-
-        self.gridLayout_4.addWidget(self.label_33, 0, 4, 1, 1)
-
         self.scaleRow = QFrame(self.frame_4)
         self.scaleRow.setObjectName(u"scaleRow")
         self.horizontalLayout_scaleRow = QHBoxLayout(self.scaleRow)
@@ -908,15 +706,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.scaleRow, 1, 0, 1, 1)
 
-        self.acceleration = QDoubleSpinBox(self.frame_4)
-        self.acceleration.setObjectName(u"acceleration")
-        sizePolicy1.setHeightForWidth(self.acceleration.sizePolicy().hasHeightForWidth())
-        self.acceleration.setSizePolicy(sizePolicy1)
-        self.acceleration.setMinimumSize(QSize(0, 0))
-        self.acceleration.setMaximumSize(QSize(16777215, 16777215))
-
-        self.gridLayout_4.addWidget(self.acceleration, 1, 4, 1, 1)
-
         self.velocity = QDoubleSpinBox(self.frame_4)
         self.velocity.setObjectName(u"velocity")
         sizePolicy1.setHeightForWidth(self.velocity.sizePolicy().hasHeightForWidth())
@@ -930,13 +719,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addItem(self.horizontalSpacer_2, 1, 1, 1, 1)
 
-        self.horizontalSpacer_11 = QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout_4.addItem(self.horizontalSpacer_11, 1, 3, 1, 1)
-
         self.horizontalSpacer_5 = QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.gridLayout_4.addItem(self.horizontalSpacer_5, 1, 5, 1, 1)
+        self.gridLayout_4.addItem(self.horizontalSpacer_5, 1, 3, 1, 1)
 
 
         self.horizontalLayout_19.addWidget(self.frame_4)
@@ -1178,56 +963,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_16.addWidget(self.frameRectangular)
 
-        self.horizontalSpacer_posManual = QSpacerItem(20, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_16.addItem(self.horizontalSpacer_posManual)
-
-        # ── Posición en vivo X/Y/Z, junto al D-pad de jog ───────────────
-        self.positionManual = QFrame(self.widget_8)
-        self.positionManual.setObjectName(u"positionManual")
-        self.positionManual.setFrameShape(QFrame.StyledPanel)
-        self.positionManual.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_positionManual = QVBoxLayout(self.positionManual)
-        self.verticalLayout_positionManual.setObjectName(u"verticalLayout_positionManual")
-
-        self.frame_posManualX = QFrame(self.positionManual)
-        self.frame_posManualX.setObjectName(u"frame_posManualX")
-        self.horizontalLayout_posManualX = QHBoxLayout(self.frame_posManualX)
-        self.horizontalLayout_posManualX.setObjectName(u"horizontalLayout_posManualX")
-        self.labelPosManualX = QLabel(self.frame_posManualX)
-        self.labelPosManualX.setObjectName(u"labelPosManualX")
-        self.horizontalLayout_posManualX.addWidget(self.labelPosManualX)
-        self.valorXManual = QLabel(self.frame_posManualX)
-        self.valorXManual.setObjectName(u"valorXManual")
-        self.horizontalLayout_posManualX.addWidget(self.valorXManual)
-        self.verticalLayout_positionManual.addWidget(self.frame_posManualX)
-
-        self.frame_posManualY = QFrame(self.positionManual)
-        self.frame_posManualY.setObjectName(u"frame_posManualY")
-        self.horizontalLayout_posManualY = QHBoxLayout(self.frame_posManualY)
-        self.horizontalLayout_posManualY.setObjectName(u"horizontalLayout_posManualY")
-        self.labelPosManualY = QLabel(self.frame_posManualY)
-        self.labelPosManualY.setObjectName(u"labelPosManualY")
-        self.horizontalLayout_posManualY.addWidget(self.labelPosManualY)
-        self.valorYManual = QLabel(self.frame_posManualY)
-        self.valorYManual.setObjectName(u"valorYManual")
-        self.horizontalLayout_posManualY.addWidget(self.valorYManual)
-        self.verticalLayout_positionManual.addWidget(self.frame_posManualY)
-
-        self.frame_posManualZ = QFrame(self.positionManual)
-        self.frame_posManualZ.setObjectName(u"frame_posManualZ")
-        self.horizontalLayout_posManualZ = QHBoxLayout(self.frame_posManualZ)
-        self.horizontalLayout_posManualZ.setObjectName(u"horizontalLayout_posManualZ")
-        self.labelPosManualZ = QLabel(self.frame_posManualZ)
-        self.labelPosManualZ.setObjectName(u"labelPosManualZ")
-        self.horizontalLayout_posManualZ.addWidget(self.labelPosManualZ)
-        self.valorZManual = QLabel(self.frame_posManualZ)
-        self.valorZManual.setObjectName(u"valorZManual")
-        self.horizontalLayout_posManualZ.addWidget(self.valorZManual)
-        self.verticalLayout_positionManual.addWidget(self.frame_posManualZ)
-
-        self.horizontalLayout_16.addWidget(self.positionManual)
-
 
         self.verticalLayout_22.addWidget(self.widget_8, 0, Qt.AlignHCenter)
 
@@ -1333,14 +1068,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_34.addWidget(self.laserPowerRow)
 
-        self.laserOffBtn = QPushButton(self.frame_7)
-        self.laserOffBtn.setObjectName(u"laserOffBtn")
-        self.laserOffBtn.setFont(font1)
-        self.laserOffBtn.setCheckable(False)
-        self.laserOffBtn.setAutoExclusive(False)
-        self.laserOffBtn.setMinimumSize(QSize(150, 60))
+        self.laserFireBtn = QPushButton(self.frame_7)
+        self.laserFireBtn.setObjectName(u"laserFireBtn")
+        self.laserFireBtn.setFont(font1)
+        self.laserFireBtn.setCheckable(False)
+        self.laserFireBtn.setAutoExclusive(False)
+        self.laserFireBtn.setMinimumSize(QSize(150, 60))
 
-        self.verticalLayout_34.addWidget(self.laserOffBtn)
+        self.verticalLayout_34.addWidget(self.laserFireBtn)
 
 
         self.verticalLayout_21.addWidget(self.frame_7, 0, Qt.AlignVCenter)
@@ -1361,343 +1096,468 @@ class Ui_MainWindow(object):
         self.autoPage.setObjectName(u"autoPage")
         sizePolicy4.setHeightForWidth(self.autoPage.sizePolicy().hasHeightForWidth())
         self.autoPage.setSizePolicy(sizePolicy4)
-        self.horizontalLayout_27 = QHBoxLayout(self.autoPage)
-        self.horizontalLayout_27.setObjectName(u"horizontalLayout_27")
-        self.movementAuto = QFrame(self.autoPage)
-        self.movementAuto.setObjectName(u"movementAuto")
-        self.movementAuto.setFrameShape(QFrame.StyledPanel)
-        self.movementAuto.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_30 = QVBoxLayout(self.movementAuto)
-        self.verticalLayout_30.setObjectName(u"verticalLayout_30")
-        self.verticalLayout_30.setContentsMargins(30, -1, 25, -1)
-        self.frame_12 = QFrame(self.movementAuto)
-        self.frame_12.setObjectName(u"frame_12")
-        self.frame_12.setFrameShape(QFrame.StyledPanel)
-        self.frame_12.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_22 = QHBoxLayout(self.frame_12)
-        self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.label_37 = QLabel(self.frame_12)
-        self.label_37.setObjectName(u"label_37")
-        sizePolicy8.setHeightForWidth(self.label_37.sizePolicy().hasHeightForWidth())
-        self.label_37.setSizePolicy(sizePolicy8)
-        self.label_37.setMinimumSize(QSize(25, 25))
-        self.label_37.setMaximumSize(QSize(25, 25))
-        self.label_37.setPixmap(QPixmap(_icon_path(u":/feather/icons/feather/mouse-pointer.png")))
-        self.label_37.setScaledContents(True)
-        self.label_37.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
-
-        self.horizontalLayout_22.addWidget(self.label_37)
-
-        self.label_15 = QLabel(self.frame_12)
-        self.label_15.setObjectName(u"label_15")
-        self.label_15.setFont(font2)
-
-        self.horizontalLayout_22.addWidget(self.label_15)
-
-
-        self.verticalLayout_30.addWidget(self.frame_12)
-
-        self.frame_18 = QFrame(self.movementAuto)
-        self.frame_18.setObjectName(u"frame_18")
-        self.frame_18.setFrameShape(QFrame.StyledPanel)
-        self.frame_18.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_14 = QVBoxLayout(self.frame_18)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(-1, 0, -1, -1)
-        self.frame_23 = QFrame(self.frame_18)
-        self.frame_23.setObjectName(u"frame_23")
-        self.frame_23.setFrameShape(QFrame.StyledPanel)
-        self.frame_23.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_23 = QHBoxLayout(self.frame_23)
-        self.horizontalLayout_23.setObjectName(u"horizontalLayout_23")
-        self.frame_21 = QFrame(self.frame_23)
-        self.frame_21.setObjectName(u"frame_21")
-        self.frame_21.setFrameShape(QFrame.StyledPanel)
-        self.frame_21.setFrameShadow(QFrame.Raised)
-        self.gridLayout_5 = QGridLayout(self.frame_21)
-        self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.velocity_2 = QDoubleSpinBox(self.frame_21)
-        self.velocity_2.setObjectName(u"velocity_2")
-
-        self.gridLayout_5.addWidget(self.velocity_2, 2, 1, 1, 1)
-
-        self.label_38 = QLabel(self.frame_21)
-        self.label_38.setObjectName(u"label_38")
-
-        self.gridLayout_5.addWidget(self.label_38, 0, 0, 1, 1)
-
-        self.label_40 = QLabel(self.frame_21)
-        self.label_40.setObjectName(u"label_40")
-
-        self.gridLayout_5.addWidget(self.label_40, 2, 0, 1, 1)
-
-        self.label_39 = QLabel(self.frame_21)
-        self.label_39.setObjectName(u"label_39")
-
-        self.gridLayout_5.addWidget(self.label_39, 3, 0, 1, 1)
-
-        self.scaleList_2 = QComboBox(self.frame_21)
-        self.scaleList_2.setObjectName(u"scaleList_2")
-        sizePolicy1.setHeightForWidth(self.scaleList_2.sizePolicy().hasHeightForWidth())
-        self.scaleList_2.setSizePolicy(sizePolicy1)
-
-        self.gridLayout_5.addWidget(self.scaleList_2, 0, 1, 1, 1)
-
-        self.acceleration_2 = QDoubleSpinBox(self.frame_21)
-        self.acceleration_2.setObjectName(u"acceleration_2")
-
-        self.gridLayout_5.addWidget(self.acceleration_2, 3, 1, 1, 1)
-
-
-        self.horizontalLayout_23.addWidget(self.frame_21)
-
-        self.confirmBtn_2 = QPushButton(self.frame_23)
-        self.confirmBtn_2.setObjectName(u"confirmBtn_2")
-        sizePolicy.setHeightForWidth(self.confirmBtn_2.sizePolicy().hasHeightForWidth())
-        self.confirmBtn_2.setSizePolicy(sizePolicy)
-        self.confirmBtn_2.setMinimumSize(QSize(0, 0))
-        self.confirmBtn_2.setMaximumSize(QSize(16777215, 16777215))
-        self.confirmBtn_2.setIcon(icon13)
-
-        self.horizontalLayout_23.addWidget(self.confirmBtn_2)
-
-
-        self.verticalLayout_14.addWidget(self.frame_23, 0, Qt.AlignHCenter)
-
-        self.verticalSpacer_13 = QSpacerItem(20, 50, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_14.addItem(self.verticalSpacer_13)
-
-        self.frame_22 = QFrame(self.frame_18)
-        self.frame_22.setObjectName(u"frame_22")
-        self.frame_22.setFrameShape(QFrame.StyledPanel)
-        self.frame_22.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_35 = QVBoxLayout(self.frame_22)
-        self.verticalLayout_35.setObjectName(u"verticalLayout_35")
-        self.label_13 = QLabel(self.frame_22)
-        self.label_13.setObjectName(u"label_13")
-
-        self.verticalLayout_35.addWidget(self.label_13, 0, Qt.AlignHCenter)
-
-        self.widget_7 = QWidget(self.frame_22)
-        self.widget_7.setObjectName(u"widget_7")
-        sizePolicy.setHeightForWidth(self.widget_7.sizePolicy().hasHeightForWidth())
-        self.widget_7.setSizePolicy(sizePolicy)
-        self.widget_7.setMinimumSize(QSize(0, 0))
-        self.gridLayout = QGridLayout(self.widget_7)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.label_17 = QLabel(self.widget_7)
-        self.label_17.setObjectName(u"label_17")
-
-        self.gridLayout.addWidget(self.label_17, 0, 0, 1, 1, Qt.AlignHCenter)
-
-        self.label_26 = QLabel(self.widget_7)
-        self.label_26.setObjectName(u"label_26")
-
-        self.gridLayout.addWidget(self.label_26, 0, 4, 1, 1, Qt.AlignHCenter)
-
-        self.yPosition = QDoubleSpinBox(self.widget_7)
-        self.yPosition.setObjectName(u"yPosition")
-
-        self.gridLayout.addWidget(self.yPosition, 1, 2, 1, 1)
-
-        self.xPosition = QDoubleSpinBox(self.widget_7)
-        self.xPosition.setObjectName(u"xPosition")
-
-        self.gridLayout.addWidget(self.xPosition, 1, 0, 1, 1)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer, 1, 1, 1, 1)
-
-        self.zPosition = QDoubleSpinBox(self.widget_7)
-        self.zPosition.setObjectName(u"zPosition")
-
-        self.gridLayout.addWidget(self.zPosition, 1, 4, 1, 1)
-
-        self.label_25 = QLabel(self.widget_7)
-        self.label_25.setObjectName(u"label_25")
-
-        self.gridLayout.addWidget(self.label_25, 0, 2, 1, 1, Qt.AlignHCenter)
-
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer_3, 1, 3, 1, 1)
-
-
-        self.verticalLayout_35.addWidget(self.widget_7)
-
-        self.resetBtn = QPushButton(self.frame_22)
-        self.resetBtn.setObjectName(u"resetBtn")
-        icon19 = QIcon()
-        icon19.addFile(_icon_path(u":/material_design/icons/material_design/restart_alt.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.resetBtn.setIcon(icon19)
-
-        self.verticalLayout_35.addWidget(self.resetBtn)
-
-        self.moveBtn = QPushButton(self.frame_22)
-        self.moveBtn.setObjectName(u"moveBtn")
-        icon20 = QIcon()
-        icon20.addFile(_icon_path(u":/feather/icons/feather/move.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.moveBtn.setIcon(icon20)
-
-        self.verticalLayout_35.addWidget(self.moveBtn)
-
-
-        self.verticalLayout_14.addWidget(self.frame_22, 0, Qt.AlignHCenter)
-
-        self.verticalSpacer_14 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_14.addItem(self.verticalSpacer_14)
-
-
-        self.verticalLayout_30.addWidget(self.frame_18, 0, Qt.AlignLeft)
-
-
-        self.horizontalLayout_27.addWidget(self.movementAuto)
-
-        self.horizontalSpacer_17 = QSpacerItem(25, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_27.addItem(self.horizontalSpacer_17)
-
-        self.shutterAuto = QFrame(self.autoPage)
-        self.shutterAuto.setObjectName(u"shutterAuto")
-        self.shutterAuto.setFrameShape(QFrame.StyledPanel)
-        self.shutterAuto.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_31 = QVBoxLayout(self.shutterAuto)
-        self.verticalLayout_31.setObjectName(u"verticalLayout_31")
-        self.verticalLayout_31.setContentsMargins(6, -1, -1, -1)
-        self.frame_24 = QFrame(self.shutterAuto)
-        self.frame_24.setObjectName(u"frame_24")
-        self.frame_24.setFrameShape(QFrame.StyledPanel)
-        self.frame_24.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_24 = QHBoxLayout(self.frame_24)
-        self.horizontalLayout_24.setObjectName(u"horizontalLayout_24")
-        self.horizontalLayout_24.setContentsMargins(-1, 8, -1, -1)
-        self.label_41 = QLabel(self.frame_24)
-        self.label_41.setObjectName(u"label_41")
-        sizePolicy8.setHeightForWidth(self.label_41.sizePolicy().hasHeightForWidth())
-        self.label_41.setSizePolicy(sizePolicy8)
-        self.label_41.setMinimumSize(QSize(25, 25))
-        self.label_41.setMaximumSize(QSize(25, 25))
-        self.label_41.setPixmap(QPixmap(_icon_path(u":/font_awesome_solid/icons/font_awesome/solid/bolt.png")))
-        self.label_41.setScaledContents(True)
-
-        self.horizontalLayout_24.addWidget(self.label_41)
-
-        self.label_27 = QLabel(self.frame_24)
-        self.label_27.setObjectName(u"label_27")
-        self.label_27.setFont(font2)
-
-        self.horizontalLayout_24.addWidget(self.label_27)
-
-
-        self.verticalLayout_31.addWidget(self.frame_24, 0, Qt.AlignHCenter)
-
-        self.frame_25 = QFrame(self.shutterAuto)
-        self.frame_25.setObjectName(u"frame_25")
-        self.frame_25.setFrameShape(QFrame.StyledPanel)
-        self.frame_25.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_25 = QHBoxLayout(self.frame_25)
-        self.horizontalLayout_25.setObjectName(u"horizontalLayout_25")
-        self.horizontalLayout_25.setContentsMargins(20, -1, -1, -1)
-        self.label_42 = QLabel(self.frame_25)
-        self.label_42.setObjectName(u"label_42")
-
-        self.horizontalLayout_25.addWidget(self.label_42)
-
-        self.horizontalSpacer_15 = QSpacerItem(5, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_25.addItem(self.horizontalSpacer_15)
-
-        self.scaleListTime = QComboBox(self.frame_25)
-        self.scaleListTime.setObjectName(u"scaleListTime")
-
-        self.horizontalLayout_25.addWidget(self.scaleListTime)
-
-
-        self.verticalLayout_31.addWidget(self.frame_25, 0, Qt.AlignHCenter)
-
-        self.verticalSpacer_23 = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_31.addItem(self.verticalSpacer_23)
-
-        self.frame_26 = QFrame(self.shutterAuto)
-        self.frame_26.setObjectName(u"frame_26")
-        self.frame_26.setFrameShape(QFrame.StyledPanel)
-        self.frame_26.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_26 = QHBoxLayout(self.frame_26)
-        self.horizontalLayout_26.setObjectName(u"horizontalLayout_26")
-        self.timeGraph = QLabel(self.frame_26)
-        self.timeGraph.setObjectName(u"timeGraph")
-        sizePolicy10 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        sizePolicy10.setHorizontalStretch(0)
-        sizePolicy10.setVerticalStretch(0)
-        sizePolicy10.setHeightForWidth(self.timeGraph.sizePolicy().hasHeightForWidth())
-        self.timeGraph.setSizePolicy(sizePolicy10)
-        self.timeGraph.setPixmap(QPixmap(u"images/time.png"))
-        self.timeGraph.setScaledContents(True)
-
-        self.horizontalLayout_26.addWidget(self.timeGraph)
-
-        self.horizontalSpacer_16 = QSpacerItem(5, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_26.addItem(self.horizontalSpacer_16)
-
-        self.frame_5 = QFrame(self.frame_26)
-        self.frame_5.setObjectName(u"frame_5")
-        self.frame_5.setFrameShape(QFrame.StyledPanel)
-        self.frame_5.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_37 = QVBoxLayout(self.frame_5)
-        self.verticalLayout_37.setObjectName(u"verticalLayout_37")
-        self.label_28 = QLabel(self.frame_5)
-        self.label_28.setObjectName(u"label_28")
-
-        self.verticalLayout_37.addWidget(self.label_28, 0, Qt.AlignHCenter)
-
-        self.label_29 = QLabel(self.frame_5)
-        self.label_29.setObjectName(u"label_29")
-        font6 = QFont()
-        font6.setPointSize(8)
-        font6.setItalic(True)
-        self.label_29.setFont(font6)
-        self.label_29.setWordWrap(True)
-
-        self.verticalLayout_37.addWidget(self.label_29)
-
-        self.verticalSpacer_17 = QSpacerItem(20, 25, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_37.addItem(self.verticalSpacer_17)
-
-        self.timeShutter = QDoubleSpinBox(self.frame_5)
-        self.timeShutter.setObjectName(u"timeShutter")
-
-        self.verticalLayout_37.addWidget(self.timeShutter)
-
-        self.acceptBtn = QPushButton(self.frame_5)
-        self.acceptBtn.setObjectName(u"acceptBtn")
-        icon21 = QIcon()
-        icon21.addFile(_icon_path(u":/feather/icons/feather/checkbox_checked.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.acceptBtn.setIcon(icon21)
-
-        self.verticalLayout_37.addWidget(self.acceptBtn)
-
-
-        self.horizontalLayout_26.addWidget(self.frame_5)
-
-
-        self.verticalLayout_31.addWidget(self.frame_26, 0, Qt.AlignHCenter)
-
-        self.verticalSpacer_21 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_31.addItem(self.verticalSpacer_21)
-
-
-        self.horizontalLayout_27.addWidget(self.shutterAuto)
-
-        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_27.addItem(self.horizontalSpacer_4)
+        self.verticalLayout_autoPage = QVBoxLayout(self.autoPage)
+        self.verticalLayout_autoPage.setObjectName(u"verticalLayout_autoPage")
+        self.verticalLayout_autoPage.setContentsMargins(20, 12, 20, 12)
+
+        # ── Control por eje: Enable/Disable + Home (copia propia, Auto no
+        # comparte estos widgets con Manual) ────────────────────────────
+        self.axisControlAuto = QFrame(self.autoPage)
+        self.axisControlAuto.setObjectName(u"axisControlAuto")
+        self.axisControlAuto.setFrameShape(QFrame.StyledPanel)
+        self.axisControlAuto.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_axisControlAuto = QHBoxLayout(self.axisControlAuto)
+        self.horizontalLayout_axisControlAuto.setObjectName(u"horizontalLayout_axisControlAuto")
+
+        self.axisControlAutoX = QFrame(self.axisControlAuto)
+        self.axisControlAutoX.setObjectName(u"axisControlAutoX")
+        self.verticalLayout_axisControlAutoX = QVBoxLayout(self.axisControlAutoX)
+        self.verticalLayout_axisControlAutoX.setObjectName(u"verticalLayout_axisControlAutoX")
+        self.labelAxisAutoX = QLabel(self.axisControlAutoX)
+        self.labelAxisAutoX.setObjectName(u"labelAxisAutoX")
+        self.labelAxisAutoX.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlAutoX.addWidget(self.labelAxisAutoX, 0, Qt.AlignHCenter)
+        self.toggleAutoXBtn = QPushButton(self.axisControlAutoX)
+        self.toggleAutoXBtn.setObjectName(u"toggleAutoXBtn")
+        self.toggleAutoXBtn.setCheckable(True)
+        self.verticalLayout_axisControlAutoX.addWidget(self.toggleAutoXBtn)
+        self.homeAutoXBtn = QPushButton(self.axisControlAutoX)
+        self.homeAutoXBtn.setObjectName(u"homeAutoXBtn")
+        self.verticalLayout_axisControlAutoX.addWidget(self.homeAutoXBtn)
+        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoX)
+
+        self.axisControlAutoY = QFrame(self.axisControlAuto)
+        self.axisControlAutoY.setObjectName(u"axisControlAutoY")
+        self.verticalLayout_axisControlAutoY = QVBoxLayout(self.axisControlAutoY)
+        self.verticalLayout_axisControlAutoY.setObjectName(u"verticalLayout_axisControlAutoY")
+        self.labelAxisAutoY = QLabel(self.axisControlAutoY)
+        self.labelAxisAutoY.setObjectName(u"labelAxisAutoY")
+        self.labelAxisAutoY.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlAutoY.addWidget(self.labelAxisAutoY, 0, Qt.AlignHCenter)
+        self.toggleAutoYBtn = QPushButton(self.axisControlAutoY)
+        self.toggleAutoYBtn.setObjectName(u"toggleAutoYBtn")
+        self.toggleAutoYBtn.setCheckable(True)
+        self.verticalLayout_axisControlAutoY.addWidget(self.toggleAutoYBtn)
+        self.homeAutoYBtn = QPushButton(self.axisControlAutoY)
+        self.homeAutoYBtn.setObjectName(u"homeAutoYBtn")
+        self.verticalLayout_axisControlAutoY.addWidget(self.homeAutoYBtn)
+        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoY)
+
+        self.axisControlAutoZ = QFrame(self.axisControlAuto)
+        self.axisControlAutoZ.setObjectName(u"axisControlAutoZ")
+        self.verticalLayout_axisControlAutoZ = QVBoxLayout(self.axisControlAutoZ)
+        self.verticalLayout_axisControlAutoZ.setObjectName(u"verticalLayout_axisControlAutoZ")
+        self.labelAxisAutoZ = QLabel(self.axisControlAutoZ)
+        self.labelAxisAutoZ.setObjectName(u"labelAxisAutoZ")
+        self.labelAxisAutoZ.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_axisControlAutoZ.addWidget(self.labelAxisAutoZ, 0, Qt.AlignHCenter)
+        self.toggleAutoZBtn = QPushButton(self.axisControlAutoZ)
+        self.toggleAutoZBtn.setObjectName(u"toggleAutoZBtn")
+        self.toggleAutoZBtn.setCheckable(True)
+        self.verticalLayout_axisControlAutoZ.addWidget(self.toggleAutoZBtn)
+        self.homeAutoZBtn = QPushButton(self.axisControlAutoZ)
+        self.homeAutoZBtn.setObjectName(u"homeAutoZBtn")
+        self.verticalLayout_axisControlAutoZ.addWidget(self.homeAutoZBtn)
+        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoZ)
+
+        self.verticalLayout_autoPage.addWidget(self.axisControlAuto)
+
+        # ── Cuerpo: selector de modo + panel por modo (izq.) | preview +
+        # botones de salida (der.) ──────────────────────────────────────
+        self.horizontalLayout_autoBody = QHBoxLayout()
+        self.horizontalLayout_autoBody.setObjectName(u"horizontalLayout_autoBody")
+
+        self.verticalLayout_autoLeft = QVBoxLayout()
+        self.verticalLayout_autoLeft.setObjectName(u"verticalLayout_autoLeft")
+
+        self.modeSelectorRow = QFrame(self.autoPage)
+        self.modeSelectorRow.setObjectName(u"modeSelectorRow")
+        self.horizontalLayout_modeSelectorRow = QHBoxLayout(self.modeSelectorRow)
+        self.horizontalLayout_modeSelectorRow.setObjectName(u"horizontalLayout_modeSelectorRow")
+        self.label_autoMode = QLabel(self.modeSelectorRow)
+        self.label_autoMode.setObjectName(u"label_autoMode")
+        self.horizontalLayout_modeSelectorRow.addWidget(self.label_autoMode)
+        self.modeSelector = QComboBox(self.modeSelectorRow)
+        self.modeSelector.setObjectName(u"modeSelector")
+        self.horizontalLayout_modeSelectorRow.addWidget(self.modeSelector)
+        self.verticalLayout_autoLeft.addWidget(self.modeSelectorRow)
+
+        self.modeStack = QStackedWidget(self.autoPage)
+        self.modeStack.setObjectName(u"modeStack")
+
+        # -- Panel 0: Single point --
+        self.panelSinglePoint = QWidget()
+        self.panelSinglePoint.setObjectName(u"panelSinglePoint")
+        self.verticalLayout_panelSinglePoint = QVBoxLayout(self.panelSinglePoint)
+        self.label_spPosition = QLabel(self.panelSinglePoint)
+        self.label_spPosition.setObjectName(u"label_spPosition")
+        self.verticalLayout_panelSinglePoint.addWidget(self.label_spPosition)
+        self.horizontalLayout_spPosition = QHBoxLayout()
+        self.spX = QDoubleSpinBox(self.panelSinglePoint)
+        self.spX.setObjectName(u"spX")
+        self.spY = QDoubleSpinBox(self.panelSinglePoint)
+        self.spY.setObjectName(u"spY")
+        self.spZ = QDoubleSpinBox(self.panelSinglePoint)
+        self.spZ.setObjectName(u"spZ")
+        self.horizontalLayout_spPosition.addWidget(self.spX)
+        self.horizontalLayout_spPosition.addWidget(self.spY)
+        self.horizontalLayout_spPosition.addWidget(self.spZ)
+        self.verticalLayout_panelSinglePoint.addLayout(self.horizontalLayout_spPosition)
+        self.spFireCheck = QCheckBox(self.panelSinglePoint)
+        self.spFireCheck.setObjectName(u"spFireCheck")
+        self.verticalLayout_panelSinglePoint.addWidget(self.spFireCheck)
+        self.label_spDuration = QLabel(self.panelSinglePoint)
+        self.label_spDuration.setObjectName(u"label_spDuration")
+        self.verticalLayout_panelSinglePoint.addWidget(self.label_spDuration)
+        self.horizontalLayout_spDuration = QHBoxLayout()
+        self.spDuration = QDoubleSpinBox(self.panelSinglePoint)
+        self.spDuration.setObjectName(u"spDuration")
+        self.spDurationScale = QComboBox(self.panelSinglePoint)
+        self.spDurationScale.setObjectName(u"spDurationScale")
+        self.horizontalLayout_spDuration.addWidget(self.spDuration)
+        self.horizontalLayout_spDuration.addWidget(self.spDurationScale)
+        self.verticalLayout_panelSinglePoint.addLayout(self.horizontalLayout_spDuration)
+        self.verticalLayout_panelSinglePoint.addStretch(1)
+        self.modeStack.addWidget(self.panelSinglePoint)
+
+        # -- Panel 1: Fixed-distance firing --
+        self.panelFixedDistance = QWidget()
+        self.panelFixedDistance.setObjectName(u"panelFixedDistance")
+        self.verticalLayout_panelFixedDistance = QVBoxLayout(self.panelFixedDistance)
+        self.label_fdStart = QLabel(self.panelFixedDistance)
+        self.label_fdStart.setObjectName(u"label_fdStart")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdStart)
+        self.horizontalLayout_fdStart = QHBoxLayout()
+        self.fdStartX = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdStartX.setObjectName(u"fdStartX")
+        self.fdStartY = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdStartY.setObjectName(u"fdStartY")
+        self.horizontalLayout_fdStart.addWidget(self.fdStartX)
+        self.horizontalLayout_fdStart.addWidget(self.fdStartY)
+        self.verticalLayout_panelFixedDistance.addLayout(self.horizontalLayout_fdStart)
+        self.label_fdEnd = QLabel(self.panelFixedDistance)
+        self.label_fdEnd.setObjectName(u"label_fdEnd")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdEnd)
+        self.horizontalLayout_fdEnd = QHBoxLayout()
+        self.fdEndX = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdEndX.setObjectName(u"fdEndX")
+        self.fdEndY = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdEndY.setObjectName(u"fdEndY")
+        self.horizontalLayout_fdEnd.addWidget(self.fdEndX)
+        self.horizontalLayout_fdEnd.addWidget(self.fdEndY)
+        self.verticalLayout_panelFixedDistance.addLayout(self.horizontalLayout_fdEnd)
+        self.label_fdDistance = QLabel(self.panelFixedDistance)
+        self.label_fdDistance.setObjectName(u"label_fdDistance")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdDistance)
+        self.horizontalLayout_fdDistance = QHBoxLayout()
+        self.fdDistance = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdDistance.setObjectName(u"fdDistance")
+        self.fdDistanceScale = QComboBox(self.panelFixedDistance)
+        self.fdDistanceScale.setObjectName(u"fdDistanceScale")
+        self.horizontalLayout_fdDistance.addWidget(self.fdDistance)
+        self.horizontalLayout_fdDistance.addWidget(self.fdDistanceScale)
+        self.verticalLayout_panelFixedDistance.addLayout(self.horizontalLayout_fdDistance)
+        self.label_fdPulses = QLabel(self.panelFixedDistance)
+        self.label_fdPulses.setObjectName(u"label_fdPulses")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdPulses)
+        self.fdPulses = QSpinBox(self.panelFixedDistance)
+        self.fdPulses.setObjectName(u"fdPulses")
+        self.verticalLayout_panelFixedDistance.addWidget(self.fdPulses)
+        self.label_fdPower = QLabel(self.panelFixedDistance)
+        self.label_fdPower.setObjectName(u"label_fdPower")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdPower)
+        self.fdPower = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdPower.setObjectName(u"fdPower")
+        self.verticalLayout_panelFixedDistance.addWidget(self.fdPower)
+        self.label_fdTravelSpeed = QLabel(self.panelFixedDistance)
+        self.label_fdTravelSpeed.setObjectName(u"label_fdTravelSpeed")
+        self.verticalLayout_panelFixedDistance.addWidget(self.label_fdTravelSpeed)
+        self.fdTravelSpeed = QDoubleSpinBox(self.panelFixedDistance)
+        self.fdTravelSpeed.setObjectName(u"fdTravelSpeed")
+        self.verticalLayout_panelFixedDistance.addWidget(self.fdTravelSpeed)
+        self.fdLimitWindow = QCheckBox(self.panelFixedDistance)
+        self.fdLimitWindow.setObjectName(u"fdLimitWindow")
+        self.verticalLayout_panelFixedDistance.addWidget(self.fdLimitWindow)
+        self.verticalLayout_panelFixedDistance.addStretch(1)
+        self.modeStack.addWidget(self.panelFixedDistance)
+
+        # -- Panel 2: Point array --
+        self.panelPointArray = QWidget()
+        self.panelPointArray.setObjectName(u"panelPointArray")
+        self.verticalLayout_panelPointArray = QVBoxLayout(self.panelPointArray)
+        self.horizontalLayout_paNewPass = QHBoxLayout()
+        self.paAxisCombo = QComboBox(self.panelPointArray)
+        self.paAxisCombo.setObjectName(u"paAxisCombo")
+        self.paStart = QDoubleSpinBox(self.panelPointArray)
+        self.paStart.setObjectName(u"paStart")
+        self.paEnd = QDoubleSpinBox(self.panelPointArray)
+        self.paEnd.setObjectName(u"paEnd")
+        self.paCross = QDoubleSpinBox(self.panelPointArray)
+        self.paCross.setObjectName(u"paCross")
+        self.horizontalLayout_paNewPass.addWidget(self.paAxisCombo)
+        self.horizontalLayout_paNewPass.addWidget(self.paStart)
+        self.horizontalLayout_paNewPass.addWidget(self.paEnd)
+        self.horizontalLayout_paNewPass.addWidget(self.paCross)
+        self.verticalLayout_panelPointArray.addLayout(self.horizontalLayout_paNewPass)
+        self.horizontalLayout_paPassButtons = QHBoxLayout()
+        self.paAddPassBtn = QPushButton(self.panelPointArray)
+        self.paAddPassBtn.setObjectName(u"paAddPassBtn")
+        self.paRemovePassBtn = QPushButton(self.panelPointArray)
+        self.paRemovePassBtn.setObjectName(u"paRemovePassBtn")
+        self.horizontalLayout_paPassButtons.addWidget(self.paAddPassBtn)
+        self.horizontalLayout_paPassButtons.addWidget(self.paRemovePassBtn)
+        self.verticalLayout_panelPointArray.addLayout(self.horizontalLayout_paPassButtons)
+        self.paPassesList = QListWidget(self.panelPointArray)
+        self.paPassesList.setObjectName(u"paPassesList")
+        self.paPassesList.setMaximumHeight(90)
+        self.verticalLayout_panelPointArray.addWidget(self.paPassesList)
+        self.label_paSpacing = QLabel(self.panelPointArray)
+        self.label_paSpacing.setObjectName(u"label_paSpacing")
+        self.verticalLayout_panelPointArray.addWidget(self.label_paSpacing)
+        self.paSpacingCombo = QComboBox(self.panelPointArray)
+        self.paSpacingCombo.setObjectName(u"paSpacingCombo")
+        self.verticalLayout_panelPointArray.addWidget(self.paSpacingCombo)
+        self.label_paDistance = QLabel(self.panelPointArray)
+        self.label_paDistance.setObjectName(u"label_paDistance")
+        self.verticalLayout_panelPointArray.addWidget(self.label_paDistance)
+        self.horizontalLayout_paDistance = QHBoxLayout()
+        self.paDistance = QDoubleSpinBox(self.panelPointArray)
+        self.paDistance.setObjectName(u"paDistance")
+        self.paDistanceScale = QComboBox(self.panelPointArray)
+        self.paDistanceScale.setObjectName(u"paDistanceScale")
+        self.horizontalLayout_paDistance.addWidget(self.paDistance)
+        self.horizontalLayout_paDistance.addWidget(self.paDistanceScale)
+        self.verticalLayout_panelPointArray.addLayout(self.horizontalLayout_paDistance)
+        self.label_paPulses = QLabel(self.panelPointArray)
+        self.label_paPulses.setObjectName(u"label_paPulses")
+        self.verticalLayout_panelPointArray.addWidget(self.label_paPulses)
+        self.paPulses = QSpinBox(self.panelPointArray)
+        self.paPulses.setObjectName(u"paPulses")
+        self.verticalLayout_panelPointArray.addWidget(self.paPulses)
+        self.label_paPower = QLabel(self.panelPointArray)
+        self.label_paPower.setObjectName(u"label_paPower")
+        self.verticalLayout_panelPointArray.addWidget(self.label_paPower)
+        self.paPower = QDoubleSpinBox(self.panelPointArray)
+        self.paPower.setObjectName(u"paPower")
+        self.verticalLayout_panelPointArray.addWidget(self.paPower)
+        self.label_paTravelSpeed = QLabel(self.panelPointArray)
+        self.label_paTravelSpeed.setObjectName(u"label_paTravelSpeed")
+        self.verticalLayout_panelPointArray.addWidget(self.label_paTravelSpeed)
+        self.paTravelSpeed = QDoubleSpinBox(self.panelPointArray)
+        self.paTravelSpeed.setObjectName(u"paTravelSpeed")
+        self.verticalLayout_panelPointArray.addWidget(self.paTravelSpeed)
+        self.paLimitWindow = QCheckBox(self.panelPointArray)
+        self.paLimitWindow.setObjectName(u"paLimitWindow")
+        self.verticalLayout_panelPointArray.addWidget(self.paLimitWindow)
+        self.modeStack.addWidget(self.panelPointArray)
+
+        # -- Panel 3: Power gradient --
+        self.panelPowerGradient = QWidget()
+        self.panelPowerGradient.setObjectName(u"panelPowerGradient")
+        self.verticalLayout_panelPowerGradient = QVBoxLayout(self.panelPowerGradient)
+        self.label_pgType = QLabel(self.panelPowerGradient)
+        self.label_pgType.setObjectName(u"label_pgType")
+        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgType)
+        self.pgTypeCombo = QComboBox(self.panelPowerGradient)
+        self.pgTypeCombo.setObjectName(u"pgTypeCombo")
+        self.verticalLayout_panelPowerGradient.addWidget(self.pgTypeCombo)
+
+        self.pgTypeStack = QStackedWidget(self.panelPowerGradient)
+        self.pgTypeStack.setObjectName(u"pgTypeStack")
+        self.pgLinearPanel = QWidget()
+        self.pgLinearPanel.setObjectName(u"pgLinearPanel")
+        self.verticalLayout_pgLinearPanel = QVBoxLayout(self.pgLinearPanel)
+        self.label_pgLinearStart = QLabel(self.pgLinearPanel)
+        self.label_pgLinearStart.setObjectName(u"label_pgLinearStart")
+        self.verticalLayout_pgLinearPanel.addWidget(self.label_pgLinearStart)
+        self.horizontalLayout_pgStart = QHBoxLayout()
+        self.pgStartX = QDoubleSpinBox(self.pgLinearPanel)
+        self.pgStartX.setObjectName(u"pgStartX")
+        self.pgStartY = QDoubleSpinBox(self.pgLinearPanel)
+        self.pgStartY.setObjectName(u"pgStartY")
+        self.horizontalLayout_pgStart.addWidget(self.pgStartX)
+        self.horizontalLayout_pgStart.addWidget(self.pgStartY)
+        self.verticalLayout_pgLinearPanel.addLayout(self.horizontalLayout_pgStart)
+        self.label_pgLinearEnd = QLabel(self.pgLinearPanel)
+        self.label_pgLinearEnd.setObjectName(u"label_pgLinearEnd")
+        self.verticalLayout_pgLinearPanel.addWidget(self.label_pgLinearEnd)
+        self.horizontalLayout_pgEnd = QHBoxLayout()
+        self.pgEndX = QDoubleSpinBox(self.pgLinearPanel)
+        self.pgEndX.setObjectName(u"pgEndX")
+        self.pgEndY = QDoubleSpinBox(self.pgLinearPanel)
+        self.pgEndY.setObjectName(u"pgEndY")
+        self.horizontalLayout_pgEnd.addWidget(self.pgEndX)
+        self.horizontalLayout_pgEnd.addWidget(self.pgEndY)
+        self.verticalLayout_pgLinearPanel.addLayout(self.horizontalLayout_pgEnd)
+        self.pgTypeStack.addWidget(self.pgLinearPanel)
+
+        self.pgRadialPanel = QWidget()
+        self.pgRadialPanel.setObjectName(u"pgRadialPanel")
+        self.verticalLayout_pgRadialPanel = QVBoxLayout(self.pgRadialPanel)
+        self.label_pgCenter = QLabel(self.pgRadialPanel)
+        self.label_pgCenter.setObjectName(u"label_pgCenter")
+        self.verticalLayout_pgRadialPanel.addWidget(self.label_pgCenter)
+        self.horizontalLayout_pgCenter = QHBoxLayout()
+        self.pgCenterX = QDoubleSpinBox(self.pgRadialPanel)
+        self.pgCenterX.setObjectName(u"pgCenterX")
+        self.pgCenterY = QDoubleSpinBox(self.pgRadialPanel)
+        self.pgCenterY.setObjectName(u"pgCenterY")
+        self.horizontalLayout_pgCenter.addWidget(self.pgCenterX)
+        self.horizontalLayout_pgCenter.addWidget(self.pgCenterY)
+        self.verticalLayout_pgRadialPanel.addLayout(self.horizontalLayout_pgCenter)
+        self.label_pgRadius = QLabel(self.pgRadialPanel)
+        self.label_pgRadius.setObjectName(u"label_pgRadius")
+        self.verticalLayout_pgRadialPanel.addWidget(self.label_pgRadius)
+        self.pgRadius = QDoubleSpinBox(self.pgRadialPanel)
+        self.pgRadius.setObjectName(u"pgRadius")
+        self.verticalLayout_pgRadialPanel.addWidget(self.pgRadius)
+        self.pgTypeStack.addWidget(self.pgRadialPanel)
+
+        self.verticalLayout_panelPowerGradient.addWidget(self.pgTypeStack)
+
+        self.label_pgDistance = QLabel(self.panelPowerGradient)
+        self.label_pgDistance.setObjectName(u"label_pgDistance")
+        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgDistance)
+        self.horizontalLayout_pgDistance = QHBoxLayout()
+        self.pgDistance = QDoubleSpinBox(self.panelPowerGradient)
+        self.pgDistance.setObjectName(u"pgDistance")
+        self.pgDistanceScale = QComboBox(self.panelPowerGradient)
+        self.pgDistanceScale.setObjectName(u"pgDistanceScale")
+        self.horizontalLayout_pgDistance.addWidget(self.pgDistance)
+        self.horizontalLayout_pgDistance.addWidget(self.pgDistanceScale)
+        self.verticalLayout_panelPowerGradient.addLayout(self.horizontalLayout_pgDistance)
+        self.label_pgPower = QLabel(self.panelPowerGradient)
+        self.label_pgPower.setObjectName(u"label_pgPower")
+        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgPower)
+        self.horizontalLayout_pgPower = QHBoxLayout()
+        self.pgPowerStart = QDoubleSpinBox(self.panelPowerGradient)
+        self.pgPowerStart.setObjectName(u"pgPowerStart")
+        self.pgPowerEnd = QDoubleSpinBox(self.panelPowerGradient)
+        self.pgPowerEnd.setObjectName(u"pgPowerEnd")
+        self.horizontalLayout_pgPower.addWidget(self.pgPowerStart)
+        self.horizontalLayout_pgPower.addWidget(self.pgPowerEnd)
+        self.verticalLayout_panelPowerGradient.addLayout(self.horizontalLayout_pgPower)
+        self.label_pgTravelSpeed = QLabel(self.panelPowerGradient)
+        self.label_pgTravelSpeed.setObjectName(u"label_pgTravelSpeed")
+        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgTravelSpeed)
+        self.pgTravelSpeed = QDoubleSpinBox(self.panelPowerGradient)
+        self.pgTravelSpeed.setObjectName(u"pgTravelSpeed")
+        self.verticalLayout_panelPowerGradient.addWidget(self.pgTravelSpeed)
+        self.label_pgSegmentedWarning = QLabel(self.panelPowerGradient)
+        self.label_pgSegmentedWarning.setObjectName(u"label_pgSegmentedWarning")
+        self.label_pgSegmentedWarning.setWordWrap(True)
+        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgSegmentedWarning)
+        self.verticalLayout_panelPowerGradient.addStretch(1)
+        self.modeStack.addWidget(self.panelPowerGradient)
+
+        # -- Panel 4: Binary pattern --
+        self.panelBinaryPattern = QWidget()
+        self.panelBinaryPattern.setObjectName(u"panelBinaryPattern")
+        self.verticalLayout_panelBinaryPattern = QVBoxLayout(self.panelBinaryPattern)
+        self.label_bpStart = QLabel(self.panelBinaryPattern)
+        self.label_bpStart.setObjectName(u"label_bpStart")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpStart)
+        self.horizontalLayout_bpStart = QHBoxLayout()
+        self.bpStartX = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpStartX.setObjectName(u"bpStartX")
+        self.bpStartY = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpStartY.setObjectName(u"bpStartY")
+        self.horizontalLayout_bpStart.addWidget(self.bpStartX)
+        self.horizontalLayout_bpStart.addWidget(self.bpStartY)
+        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpStart)
+        self.label_bpEnd = QLabel(self.panelBinaryPattern)
+        self.label_bpEnd.setObjectName(u"label_bpEnd")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpEnd)
+        self.horizontalLayout_bpEnd = QHBoxLayout()
+        self.bpEndX = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpEndX.setObjectName(u"bpEndX")
+        self.bpEndY = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpEndY.setObjectName(u"bpEndY")
+        self.horizontalLayout_bpEnd.addWidget(self.bpEndX)
+        self.horizontalLayout_bpEnd.addWidget(self.bpEndY)
+        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpEnd)
+        self.label_bpDistance = QLabel(self.panelBinaryPattern)
+        self.label_bpDistance.setObjectName(u"label_bpDistance")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpDistance)
+        self.horizontalLayout_bpDistance = QHBoxLayout()
+        self.bpDistance = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpDistance.setObjectName(u"bpDistance")
+        self.bpDistanceScale = QComboBox(self.panelBinaryPattern)
+        self.bpDistanceScale.setObjectName(u"bpDistanceScale")
+        self.horizontalLayout_bpDistance.addWidget(self.bpDistance)
+        self.horizontalLayout_bpDistance.addWidget(self.bpDistanceScale)
+        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpDistance)
+        self.label_bpPattern = QLabel(self.panelBinaryPattern)
+        self.label_bpPattern.setObjectName(u"label_bpPattern")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpPattern)
+        self.horizontalLayout_bpPattern = QHBoxLayout()
+        self.horizontalLayout_bpPattern.setObjectName(u"horizontalLayout_bpPattern")
+        self.bpBitToggle0 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle0.setObjectName(u"bpBitToggle0")
+        self.bpBitToggle0.setCheckable(True)
+        self.bpBitToggle1 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle1.setObjectName(u"bpBitToggle1")
+        self.bpBitToggle1.setCheckable(True)
+        self.bpBitToggle2 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle2.setObjectName(u"bpBitToggle2")
+        self.bpBitToggle2.setCheckable(True)
+        self.bpBitToggle3 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle3.setObjectName(u"bpBitToggle3")
+        self.bpBitToggle3.setCheckable(True)
+        self.bpBitToggle4 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle4.setObjectName(u"bpBitToggle4")
+        self.bpBitToggle4.setCheckable(True)
+        self.bpBitToggle5 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle5.setObjectName(u"bpBitToggle5")
+        self.bpBitToggle5.setCheckable(True)
+        self.bpBitToggle6 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle6.setObjectName(u"bpBitToggle6")
+        self.bpBitToggle6.setCheckable(True)
+        self.bpBitToggle7 = QPushButton(self.panelBinaryPattern)
+        self.bpBitToggle7.setObjectName(u"bpBitToggle7")
+        self.bpBitToggle7.setCheckable(True)
+        for _bp_toggle in (self.bpBitToggle0, self.bpBitToggle1, self.bpBitToggle2, self.bpBitToggle3,
+                           self.bpBitToggle4, self.bpBitToggle5, self.bpBitToggle6, self.bpBitToggle7):
+            _bp_toggle.setMinimumSize(QSize(28, 28))
+            _bp_toggle.setMaximumSize(QSize(28, 28))
+            self.horizontalLayout_bpPattern.addWidget(_bp_toggle)
+        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpPattern)
+        self.label_bpTravelSpeed = QLabel(self.panelBinaryPattern)
+        self.label_bpTravelSpeed.setObjectName(u"label_bpTravelSpeed")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpTravelSpeed)
+        self.bpTravelSpeed = QDoubleSpinBox(self.panelBinaryPattern)
+        self.bpTravelSpeed.setObjectName(u"bpTravelSpeed")
+        self.verticalLayout_panelBinaryPattern.addWidget(self.bpTravelSpeed)
+        self.verticalLayout_panelBinaryPattern.addStretch(1)
+        self.modeStack.addWidget(self.panelBinaryPattern)
+
+        self.verticalLayout_autoLeft.addWidget(self.modeStack)
+
+        self.horizontalLayout_autoBody.addLayout(self.verticalLayout_autoLeft, 1)
+
+        # ── Vista previa de G-Code + botones de salida ──────────────────
+        self.verticalLayout_autoRight = QVBoxLayout()
+        self.verticalLayout_autoRight.setObjectName(u"verticalLayout_autoRight")
+        self.label_autoPreview = QLabel(self.autoPage)
+        self.label_autoPreview.setObjectName(u"label_autoPreview")
+        self.verticalLayout_autoRight.addWidget(self.label_autoPreview)
+        self.gcodePreviewAuto = QTextEdit(self.autoPage)
+        self.gcodePreviewAuto.setObjectName(u"gcodePreviewAuto")
+        self.gcodePreviewAuto.setReadOnly(True)
+        self.gcodePreviewAuto.setFont(QFont("Courier New", 9))
+        self.verticalLayout_autoRight.addWidget(self.gcodePreviewAuto)
+        self.horizontalLayout_autoOutputButtons = QHBoxLayout()
+        self.openInGCodeBtn = QPushButton(self.autoPage)
+        self.openInGCodeBtn.setObjectName(u"openInGCodeBtn")
+        self.downloadFileBtn = QPushButton(self.autoPage)
+        self.downloadFileBtn.setObjectName(u"downloadFileBtn")
+        self.horizontalLayout_autoOutputButtons.addWidget(self.openInGCodeBtn)
+        self.horizontalLayout_autoOutputButtons.addWidget(self.downloadFileBtn)
+        self.verticalLayout_autoRight.addLayout(self.horizontalLayout_autoOutputButtons)
+
+        self.horizontalLayout_autoBody.addLayout(self.verticalLayout_autoRight, 1)
+
+        self.verticalLayout_autoPage.addLayout(self.horizontalLayout_autoBody)
 
         self.mainPages.addWidget(self.autoPage)
         self.gcodePage = QWidget()
@@ -1745,6 +1605,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_24 = QVBoxLayout(self.frameGcode)
         self.verticalLayout_24.setObjectName(u"verticalLayout_24")
         self.verticalLayout_24.setContentsMargins(20, -1, 20, 10)
+        self.horizontalLayout_gcodeSplit = QHBoxLayout()
+        self.horizontalLayout_gcodeSplit.setObjectName(u"horizontalLayout_gcodeSplit")
+
         self.dragYdrop = QFrame(self.frameGcode)
         self.dragYdrop.setObjectName(u"dragYdrop")
         sizePolicy11 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding)
@@ -1767,8 +1630,17 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_33.addWidget(self.label_6, 0, Qt.AlignHCenter|Qt.AlignVCenter)
 
+        self.horizontalLayout_gcodeSplit.addWidget(self.dragYdrop, 1)
 
-        self.verticalLayout_24.addWidget(self.dragYdrop)
+        # ── Vista previa de solo lectura del G-Code cargado (04_gcode.md §1) ──
+        self.gcodePreview = QTextEdit(self.frameGcode)
+        self.gcodePreview.setObjectName(u"gcodePreview")
+        self.gcodePreview.setReadOnly(True)
+        self.gcodePreview.setMinimumSize(QSize(0, 150))
+        self.gcodePreview.setFont(QFont("Courier New", 9))
+        self.horizontalLayout_gcodeSplit.addWidget(self.gcodePreview, 1)
+
+        self.verticalLayout_24.addLayout(self.horizontalLayout_gcodeSplit)
 
         self.verticalSpacer_8 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -1868,6 +1740,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_18.addItem(self.verticalSpacer_6)
 
+        # ── Dirección IP del controlador iSMC (06_connection.md) ────────
         self.frame_13 = QFrame(self.connectionPage)
         self.frame_13.setObjectName(u"frame_13")
         self.frame_13.setFrameShape(QFrame.StyledPanel)
@@ -1886,34 +1759,13 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_12.addWidget(self.label_21)
 
-        self.comPort = QComboBox(self.frame_13)
-        self.comPort.setObjectName(u"comPort")
+        self.hostAddressInput = QLineEdit(self.frame_13)
+        self.hostAddressInput.setObjectName(u"hostAddressInput")
 
-        self.verticalLayout_12.addWidget(self.comPort)
+        self.verticalLayout_12.addWidget(self.hostAddressInput)
 
 
         self.verticalLayout_18.addWidget(self.frame_13)
-
-        self.frame_14 = QFrame(self.connectionPage)
-        self.frame_14.setObjectName(u"frame_14")
-        self.frame_14.setFrameShape(QFrame.StyledPanel)
-        self.frame_14.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_25 = QVBoxLayout(self.frame_14)
-        self.verticalLayout_25.setObjectName(u"verticalLayout_25")
-        self.label_22 = QLabel(self.frame_14)
-        self.label_22.setObjectName(u"label_22")
-        sizePolicy12.setHeightForWidth(self.label_22.sizePolicy().hasHeightForWidth())
-        self.label_22.setSizePolicy(sizePolicy12)
-
-        self.verticalLayout_25.addWidget(self.label_22)
-
-        self.baudRate = QComboBox(self.frame_14)
-        self.baudRate.setObjectName(u"baudRate")
-
-        self.verticalLayout_25.addWidget(self.baudRate)
-
-
-        self.verticalLayout_18.addWidget(self.frame_14)
 
         self.verticalSpacer_7 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -1958,6 +1810,12 @@ class Ui_MainWindow(object):
         self.label_23.setWordWrap(False)
 
         self.verticalLayout_27.addWidget(self.label_23, 0, Qt.AlignHCenter)
+
+        # ── Lectura de posición Z en vivo (05_calibration.md §1.1) ──────
+        self.labelZFocusStatus = QLabel(self.frame_15)
+        self.labelZFocusStatus.setObjectName(u"labelZFocusStatus")
+        self.labelZFocusStatus.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_27.addWidget(self.labelZFocusStatus, 0, Qt.AlignHCenter)
 
         self.widget_9 = QWidget(self.frame_15)
         self.widget_9.setObjectName(u"widget_9")
@@ -2046,6 +1904,86 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_17.addWidget(self.frame_16)
 
+        # ── Master safety window (05_calibration.md §1.2) ───────────────
+        self.frame_safetyWindow = QFrame(self.calibrationPage)
+        self.frame_safetyWindow.setObjectName(u"frame_safetyWindow")
+        self.frame_safetyWindow.setFrameShape(QFrame.StyledPanel)
+        self.frame_safetyWindow.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_safetyWindow = QVBoxLayout(self.frame_safetyWindow)
+        self.verticalLayout_safetyWindow.setObjectName(u"verticalLayout_safetyWindow")
+        self.label_safetyWindowTitle = QLabel(self.frame_safetyWindow)
+        self.label_safetyWindowTitle.setObjectName(u"label_safetyWindowTitle")
+        self.verticalLayout_safetyWindow.addWidget(self.label_safetyWindowTitle, 0, Qt.AlignHCenter)
+
+        self.gridLayout_safetyWindow = QGridLayout()
+        self.gridLayout_safetyWindow.setObjectName(u"gridLayout_safetyWindow")
+        self.label_xMinField = QLabel(self.frame_safetyWindow)
+        self.label_xMinField.setObjectName(u"label_xMinField")
+        self.gridLayout_safetyWindow.addWidget(self.label_xMinField, 0, 0)
+        self.xMinField = QLineEdit(self.frame_safetyWindow)
+        self.xMinField.setObjectName(u"xMinField")
+        self.xMinField.setReadOnly(True)
+        self.xMinField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.xMinField, 0, 1)
+        self.label_xMaxField = QLabel(self.frame_safetyWindow)
+        self.label_xMaxField.setObjectName(u"label_xMaxField")
+        self.gridLayout_safetyWindow.addWidget(self.label_xMaxField, 1, 0)
+        self.xMaxField = QLineEdit(self.frame_safetyWindow)
+        self.xMaxField.setObjectName(u"xMaxField")
+        self.xMaxField.setReadOnly(True)
+        self.xMaxField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.xMaxField, 1, 1)
+        self.label_yMinField = QLabel(self.frame_safetyWindow)
+        self.label_yMinField.setObjectName(u"label_yMinField")
+        self.gridLayout_safetyWindow.addWidget(self.label_yMinField, 2, 0)
+        self.yMinField = QLineEdit(self.frame_safetyWindow)
+        self.yMinField.setObjectName(u"yMinField")
+        self.yMinField.setReadOnly(True)
+        self.yMinField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.yMinField, 2, 1)
+        self.label_yMaxField = QLabel(self.frame_safetyWindow)
+        self.label_yMaxField.setObjectName(u"label_yMaxField")
+        self.gridLayout_safetyWindow.addWidget(self.label_yMaxField, 3, 0)
+        self.yMaxField = QLineEdit(self.frame_safetyWindow)
+        self.yMaxField.setObjectName(u"yMaxField")
+        self.yMaxField.setReadOnly(True)
+        self.yMaxField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.yMaxField, 3, 1)
+        self.verticalLayout_safetyWindow.addLayout(self.gridLayout_safetyWindow)
+
+        self.horizontalLayout_safetyWindowButtons = QHBoxLayout()
+        self.setCorner1Btn = QPushButton(self.frame_safetyWindow)
+        self.setCorner1Btn.setObjectName(u"setCorner1Btn")
+        self.setCorner2Btn = QPushButton(self.frame_safetyWindow)
+        self.setCorner2Btn.setObjectName(u"setCorner2Btn")
+        self.horizontalLayout_safetyWindowButtons.addWidget(self.setCorner1Btn)
+        self.horizontalLayout_safetyWindowButtons.addWidget(self.setCorner2Btn)
+        self.verticalLayout_safetyWindow.addLayout(self.horizontalLayout_safetyWindowButtons)
+
+        self.verticalLayout_17.addWidget(self.frame_safetyWindow)
+
+        # ── Laser alignment mode (05_calibration.md §1.3) ───────────────
+        self.frame_alignmentMode = QFrame(self.calibrationPage)
+        self.frame_alignmentMode.setObjectName(u"frame_alignmentMode")
+        self.frame_alignmentMode.setFrameShape(QFrame.StyledPanel)
+        self.frame_alignmentMode.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_alignmentMode = QVBoxLayout(self.frame_alignmentMode)
+        self.verticalLayout_alignmentMode.setObjectName(u"verticalLayout_alignmentMode")
+        self.alignmentModeToggle = QPushButton(self.frame_alignmentMode)
+        self.alignmentModeToggle.setObjectName(u"alignmentModeToggle")
+        self.alignmentModeToggle.setCheckable(True)
+        self.verticalLayout_alignmentMode.addWidget(self.alignmentModeToggle)
+        self.label_alignmentPower = QLabel(self.frame_alignmentMode)
+        self.label_alignmentPower.setObjectName(u"label_alignmentPower")
+        self.label_alignmentPower.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_alignmentMode.addWidget(self.label_alignmentPower)
+        self.alignmentFireBtn = QPushButton(self.frame_alignmentMode)
+        self.alignmentFireBtn.setObjectName(u"alignmentFireBtn")
+        self.alignmentFireBtn.setEnabled(False)
+        self.verticalLayout_alignmentMode.addWidget(self.alignmentFireBtn)
+
+        self.verticalLayout_17.addWidget(self.frame_alignmentMode)
+
         self.verticalSpacer_9 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_17.addItem(self.verticalSpacer_9)
@@ -2132,22 +2070,11 @@ class Ui_MainWindow(object):
         self.minimizeBtn.setText("")
         self.restoreBtn.setText("")
         self.closeBtn.setText("")
-        self.labelConexion.setText(QCoreApplication.translate("MainWindow", u"Desconectado", None))
-        self.labelSTO.setText(QCoreApplication.translate("MainWindow", u"Seguridad OK", None))
-        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Z (mm):", None))
-        self.valorZ.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.estacionAerotech.setText("")
-        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Y (mm):", None))
-        self.valorY.setText(QCoreApplication.translate("MainWindow", u"—", None))
-        self.label_16.setText(QCoreApplication.translate("MainWindow", u"X (mm):", None))
-        self.valorX.setText(QCoreApplication.translate("MainWindow", u"—", None))
-        self.axisStatusIcon.setText("")
-        self.axisStatusTitle.setText(QCoreApplication.translate("MainWindow", u"Estado de Ejes:", None))
         self.laserIcon.setText("")
-        self.laserTitleLabel.setText(QCoreApplication.translate("MainWindow", u"Salida Láser:", None))
+        self.laserTitleLabel.setText(QCoreApplication.translate("MainWindow", u"Laser Output:", None))
         self.labelLaserState.setText(QCoreApplication.translate("MainWindow", u"OFF", None))
-        self.estadoPotencia.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW (consigna)", None))
-        self.labelInterlock.setText(QCoreApplication.translate("MainWindow", u"Interlock: N/D", None))
+        self.estadoPotencia.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW (setpoint)", None))
         self.label_36.setText("")
         self.labelAxisX.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.toggleXBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
@@ -2161,7 +2088,6 @@ class Ui_MainWindow(object):
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Movement XYZ", None))
         self.label_31.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
         self.label_32.setText(QCoreApplication.translate("MainWindow", u"Velocity", None))
-        self.label_33.setText(QCoreApplication.translate("MainWindow", u"Acceleration", None))
         self.confirmBtn.setText(QCoreApplication.translate("MainWindow", u"Confirm", None))
         self.labelXMinus.setText(QCoreApplication.translate("MainWindow", u"X-", None))
         self.labelYPlus.setText(QCoreApplication.translate("MainWindow", u"Y+", None))
@@ -2177,36 +2103,64 @@ class Ui_MainWindow(object):
         self.label_35.setText(QCoreApplication.translate("MainWindow", u"|", None))
         self.zDownBtn.setText("")
         self.labelZMinus.setText(QCoreApplication.translate("MainWindow", u"Z-", None))
-        self.labelPosManualX.setText(QCoreApplication.translate("MainWindow", u"X (mm):", None))
-        self.valorXManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
-        self.labelPosManualY.setText(QCoreApplication.translate("MainWindow", u"Y (mm):", None))
-        self.valorYManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
-        self.labelPosManualZ.setText(QCoreApplication.translate("MainWindow", u"Z (mm):", None))
-        self.valorZManual.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.label_8.setText("")
-        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Shutter", None))
+        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Laser", None))
         self.laserOC.setText("")
         self.labelLaserPowerManual.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW", None))
-        self.laserOffBtn.setText(QCoreApplication.translate("MainWindow", u"LÁSER OFF", None))
-        self.label_37.setText("")
-        self.label_15.setText(QCoreApplication.translate("MainWindow", u"Movement XYZ", None))
-        self.label_38.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
-        self.label_40.setText(QCoreApplication.translate("MainWindow", u"Velocity", None))
-        self.label_39.setText(QCoreApplication.translate("MainWindow", u"Acceleration", None))
-        self.confirmBtn_2.setText(QCoreApplication.translate("MainWindow", u"Confirm", None))
-        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Absolute Motion", None))
-        self.label_17.setText(QCoreApplication.translate("MainWindow", u"X position", None))
-        self.label_26.setText(QCoreApplication.translate("MainWindow", u"Z position", None))
-        self.label_25.setText(QCoreApplication.translate("MainWindow", u"Y position", None))
-        self.resetBtn.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
-        self.moveBtn.setText(QCoreApplication.translate("MainWindow", u"Move to position", None))
-        self.label_41.setText("")
-        self.label_27.setText(QCoreApplication.translate("MainWindow", u"Shutter", None))
-        self.label_42.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
-        self.timeGraph.setText("")
-        self.label_28.setText(QCoreApplication.translate("MainWindow", u"Delay time", None))
-        self.label_29.setText(QCoreApplication.translate("MainWindow", u"Time from automatically opening shutter until it closes.", None))
-        self.acceptBtn.setText(QCoreApplication.translate("MainWindow", u"Accept", None))
+        self.laserFireBtn.setText(QCoreApplication.translate("MainWindow", u"Laser ON", None))
+        self.labelAxisAutoX.setText(QCoreApplication.translate("MainWindow", u"X", None))
+        self.toggleAutoXBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeAutoXBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
+        self.labelAxisAutoY.setText(QCoreApplication.translate("MainWindow", u"Y", None))
+        self.toggleAutoYBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeAutoYBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
+        self.labelAxisAutoZ.setText(QCoreApplication.translate("MainWindow", u"Z", None))
+        self.toggleAutoZBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.homeAutoZBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
+        self.label_autoMode.setText(QCoreApplication.translate("MainWindow", u"Mode:", None))
+        self.label_spPosition.setText(QCoreApplication.translate("MainWindow", u"Position (X, Y, Z)", None))
+        self.spFireCheck.setText(QCoreApplication.translate("MainWindow", u"Fire at this point", None))
+        self.label_spDuration.setText(QCoreApplication.translate("MainWindow", u"Duration", None))
+        self.label_fdStart.setText(QCoreApplication.translate("MainWindow", u"Start point (X, Y)", None))
+        self.label_fdEnd.setText(QCoreApplication.translate("MainWindow", u"End point (X, Y)", None))
+        self.label_fdDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
+        self.label_fdPulses.setText(QCoreApplication.translate("MainWindow", u"Pulses per event", None))
+        self.label_fdPower.setText(QCoreApplication.translate("MainWindow", u"Power (%)", None))
+        self.label_fdTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
+        self.fdLimitWindow.setText(QCoreApplication.translate("MainWindow", u"Limit to position window", None))
+        self.paAddPassBtn.setText(QCoreApplication.translate("MainWindow", u"Add pass", None))
+        self.paRemovePassBtn.setText(QCoreApplication.translate("MainWindow", u"Remove pass", None))
+        self.label_paSpacing.setText(QCoreApplication.translate("MainWindow", u"Spacing", None))
+        self.label_paDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
+        self.label_paPulses.setText(QCoreApplication.translate("MainWindow", u"Pulses per event", None))
+        self.label_paPower.setText(QCoreApplication.translate("MainWindow", u"Power (%)", None))
+        self.label_paTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
+        self.paLimitWindow.setText(QCoreApplication.translate("MainWindow", u"Limit to position window", None))
+        self.label_pgType.setText(QCoreApplication.translate("MainWindow", u"Gradient type", None))
+        self.label_pgLinearStart.setText(QCoreApplication.translate("MainWindow", u"Start point (X, Y)", None))
+        self.label_pgLinearEnd.setText(QCoreApplication.translate("MainWindow", u"End point (X, Y)", None))
+        self.label_pgCenter.setText(QCoreApplication.translate("MainWindow", u"Center (X, Y)", None))
+        self.label_pgRadius.setText(QCoreApplication.translate("MainWindow", u"Radius", None))
+        self.label_pgDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
+        self.label_pgPower.setText(QCoreApplication.translate("MainWindow", u"Power start % → end %", None))
+        self.label_pgTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
+        self.label_pgSegmentedWarning.setText(QCoreApplication.translate("MainWindow", u"Segmented approximation — not a native PSO array.", None))
+        self.label_bpStart.setText(QCoreApplication.translate("MainWindow", u"Start point (X, Y)", None))
+        self.label_bpEnd.setText(QCoreApplication.translate("MainWindow", u"End point (X, Y)", None))
+        self.label_bpDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
+        self.label_bpPattern.setText(QCoreApplication.translate("MainWindow", u"Bit pattern", None))
+        self.bpBitToggle0.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.bpBitToggle1.setText(QCoreApplication.translate("MainWindow", u"1", None))
+        self.bpBitToggle2.setText(QCoreApplication.translate("MainWindow", u"2", None))
+        self.bpBitToggle3.setText(QCoreApplication.translate("MainWindow", u"3", None))
+        self.bpBitToggle4.setText(QCoreApplication.translate("MainWindow", u"4", None))
+        self.bpBitToggle5.setText(QCoreApplication.translate("MainWindow", u"5", None))
+        self.bpBitToggle6.setText(QCoreApplication.translate("MainWindow", u"6", None))
+        self.bpBitToggle7.setText(QCoreApplication.translate("MainWindow", u"7", None))
+        self.label_bpTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
+        self.label_autoPreview.setText(QCoreApplication.translate("MainWindow", u"G-Code preview", None))
+        self.openInGCodeBtn.setText(QCoreApplication.translate("MainWindow", u"Open in G-Code", None))
+        self.downloadFileBtn.setText(QCoreApplication.translate("MainWindow", u"Download file", None))
         self.label_20.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Upload the G-Code file", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Drag and drop your file", None))
@@ -2215,17 +2169,32 @@ class Ui_MainWindow(object):
         self.startBtn.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.closeRightMenuBtn.setText("")
         self.label_11.setText(QCoreApplication.translate("MainWindow", u"Connection Page", None))
-        self.label_21.setText(QCoreApplication.translate("MainWindow", u"Select COM Port:", None))
-        self.label_22.setText(QCoreApplication.translate("MainWindow", u"Select Baud Rate:", None))
+        self.label_21.setText(QCoreApplication.translate("MainWindow", u"iSMC controller IP address", None))
+        self.hostAddressInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"192.168.7.1", None))
         self.connectBtn.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Calibration Page", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Focusing Z - Axis", None))
+        self.labelZFocusStatus.setText(QCoreApplication.translate("MainWindow", u"Current Z: — mm", None))
         self.zUpFocusing.setText("")
         self.zDownFocusing.setText("")
-        self.calibratedBtn.setText(QCoreApplication.translate("MainWindow", u"Calibrated", None))
+        self.calibratedBtn.setText(QCoreApplication.translate("MainWindow", u"Confirm focus", None))
         self.label_24.setText(QCoreApplication.translate("MainWindow", u"X/Y Axis Calibration", None))
         self.zeroXBtn.setText(QCoreApplication.translate("MainWindow", u"Zero X", None))
         self.zeroYBtn.setText(QCoreApplication.translate("MainWindow", u"Zero Y", None))
+        self.label_safetyWindowTitle.setText(QCoreApplication.translate("MainWindow", u"Master Safety Window", None))
+        self.label_xMinField.setText(QCoreApplication.translate("MainWindow", u"X min", None))
+        self.xMinField.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.label_xMaxField.setText(QCoreApplication.translate("MainWindow", u"X max", None))
+        self.xMaxField.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.label_yMinField.setText(QCoreApplication.translate("MainWindow", u"Y min", None))
+        self.yMinField.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.label_yMaxField.setText(QCoreApplication.translate("MainWindow", u"Y max", None))
+        self.yMaxField.setText(QCoreApplication.translate("MainWindow", u"—", None))
+        self.setCorner1Btn.setText(QCoreApplication.translate("MainWindow", u"Set corner 1", None))
+        self.setCorner2Btn.setText(QCoreApplication.translate("MainWindow", u"Set corner 2", None))
+        self.alignmentModeToggle.setText(QCoreApplication.translate("MainWindow", u"Laser alignment mode", None))
+        self.label_alignmentPower.setText(QCoreApplication.translate("MainWindow", u"Capped at — %", None))
+        self.alignmentFireBtn.setText(QCoreApplication.translate("MainWindow", u"Fire", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"ETSII B\u00e9jar | Ingenier\u00eda Electr\u00f3nica Industrial y Autom\u00e1tica | Christine Marie Quan Jo", None))
         self.size_grip.setText("")
     # retranslateUi

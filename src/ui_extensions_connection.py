@@ -3,10 +3,37 @@
 ## Modificaciones de diseño para la página de conexión
 ########################################################################
 
+import json
+import os
+import re
+
 from PySide6.QtCore import Qt, QSize, QObject, QThread, Signal
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QSizePolicy
-from PySide6.QtSerialPort import QSerialPortInfo
+from PySide6.QtWidgets import QSizePolicy, QMessageBox
+
+# Fichero local (no versionado, ver .gitignore) donde se guarda la última IP
+# con la que se conectó con éxito, para precargarla en el futuro en vez del
+# valor de fábrica.
+LOCAL_SETTINGS_PATH = "local_connection_settings.json"
+DEFAULT_HOST = "192.168.7.1"
+
+_IPV4_RE = re.compile(
+    r"^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$"
+)
+# Hostname básico (RFC 1123, simplificado): letras/dígitos/guiones, con
+# puntos como separador de etiquetas, sin empezar/terminar en guión.
+_HOSTNAME_RE = re.compile(
+    r"^(?=.{1,253}$)([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)"
+    r"(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
+
+
+def _is_valid_host(host: str) -> bool:
+    """IPv4 básico o hostname — ver 06_connection.md §2."""
+    host = host.strip()
+    if not host:
+        return False
+    return bool(_IPV4_RE.match(host) or _HOSTNAME_RE.match(host))
 
 
 class _ConnectWorker(QObject):
@@ -28,19 +55,18 @@ class ConnectionPageExtensions:
     """
     Extensiones de UI para la página de conexión.
 
-    NOTA: el controlador Aerotech Automation1-iSMC NO se conecta por puerto
-    serie/baud rate, sino por red/local con Controller.connect(host). Además,
-    esa llamada es bloqueante y puede tardar mucho si no hay hardware
-    escuchando, así que el botón "Connect" de esta página la lanza en un
-    QThread aparte en vez de conectar automáticamente al arrancar la app.
-    El selector de puerto COM y baud rate queda disponible para un posible
-    dispositivo serie auxiliar (p. ej. un Arduino), no para el iSMC.
+    Reescrita en la migración de agosto de 2026 (06_connection.md):
+    confirmado que el iSMC no se conecta por puerto serie/baudios, así que
+    el selector de COM port y de baud rate se eliminaron por completo y se
+    sustituyeron por un campo de IP (hostAddressInput). El mecanismo de
+    conexión en QThread (_ConnectWorker) no se ha tocado — solo cambió de
+    dónde sale el valor de host.
     """
 
     def __init__(self, ui, main_window, controller):
         self.ui = ui
         self.main = main_window
-        # Instancia compartida de AerotechController (ver src/ui_extensions.py)
+        # Instancia compartida de AerotechController (ver main.py)
         self.controller = controller
         self._connect_thread = None
         self._connect_worker = None
@@ -48,31 +74,27 @@ class ConnectionPageExtensions:
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página de conexión"""
         self.setup_title()
-        self.setup_com_port_selector()
-        self.setup_baud_rate_selector()
+        self.setup_host_address_input()
         self.setup_connect_button()
-        
+
     def connect_signals(self):
         """Conecta las señales específicas de la página de conexión"""
         # El botón connectBtn ya está conectado en setup_connect_button()
-        # Botón para refrescar puertos COM (si existe)
-        # self.ui.refreshPortsBtn.clicked.connect(self.populate_com_ports)
-        
+
     def setup_title(self):
         """Configura el título de la página"""
         self.ui.label_11.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.ui.label_11.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
-    def setup_com_port_selector(self):
-        """Configura el selector de puerto COM"""
-        # Label
+
+    def setup_host_address_input(self):
+        """Configura el campo de IP del controlador iSMC"""
         self.ui.label_21.setFont(QFont("Sitka Small", 10))
         self.ui.label_21.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
-        # ComboBox
-        self.ui.comPort.setFont(QFont("Sitka Small", 10))
-        self.ui.comPort.setStyleSheet("""
-            QComboBox {
+        self.ui.label_21.setText("iSMC controller IP address")
+
+        self.ui.hostAddressInput.setFont(QFont("Sitka Small", 10))
+        self.ui.hostAddressInput.setStyleSheet("""
+            QLineEdit {
                 background-color: THEME.COLOR_BACKGROUND_2;
                 color: THEME.COLOR_TEXT_1;
                 border: 2px solid THEME.COLOR_ACCENT_3;
@@ -80,114 +102,22 @@ class ConnectionPageExtensions:
                 padding: 8px;
                 min-height: 30px;
             }
-            QComboBox:hover {
+            QLineEdit:focus {
                 border: 2px solid THEME.COLOR_ACCENT_1;
             }
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-            QComboBox::down-arrow {
-                image: url(:/feather/icons/feather/chevron-down.png);
-                width: 14px;
-                height: 14px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                selection-background-color: THEME.COLOR_ACCENT_2;
-                border: 2px solid THEME.COLOR_ACCENT_3;
-            }
         """)
-        
-        # Poblar con puertos disponibles
-        self.populate_com_ports()
-        
-    def populate_com_ports(self):
-        """Pobla el selector con los puertos COM disponibles"""
-        self.ui.comPort.clear()
-        
-        # Obtener puertos disponibles
-        available_ports = QSerialPortInfo.availablePorts()
-        
-        if available_ports:
-            for port in available_ports:
-                port_name = port.portName()
-                port_description = port.description()
-                display_text = f"{port_name} - {port_description}"
-                self.ui.comPort.addItem(display_text, port_name)
-        else:
-            self.ui.comPort.addItem("No ports available", None)
-            
-    def setup_baud_rate_selector(self):
-        """Configura el selector de baud rate"""
-        # Label
-        self.ui.label_22.setFont(QFont("Sitka Small", 10))
-        self.ui.label_22.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        
-        # ComboBox
-        self.ui.baudRate.setFont(QFont("Sitka Small", 10))
-        self.ui.baudRate.setStyleSheet("""
-            QComboBox {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
-                border-radius: 5px;
-                padding: 8px;
-                min-height: 30px;
-            }
-            QComboBox:hover {
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-            QComboBox::down-arrow {
-                image: url(:/feather/icons/feather/chevron-down.png);
-                width: 14px;
-                height: 14px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                selection-background-color: THEME.COLOR_ACCENT_2;
-                border: 2px solid THEME.COLOR_ACCENT_3;
-            }
-        """)
-        
-        # Poblar con baud rates comunes
-        self.populate_baud_rates()
-        
-    def populate_baud_rates(self):
-        """Pobla el selector con baud rates comunes"""
-        self.ui.baudRate.clear()
-        
-        # Baud rates comunes
-        baud_rates = [
-            "9600",
-            "19200",
-            "38400",
-            "57600",
-            "115200",
-            "230400",
-            "460800",
-            "921600"
-        ]
-        
-        for rate in baud_rates:
-            self.ui.baudRate.addItem(rate, int(rate))
-            
-        # Seleccionar 115200 por defecto (común para Arduino y dispositivos modernos)
-        default_index = baud_rates.index("115200")
-        self.ui.baudRate.setCurrentIndex(default_index)
-        
+
+        # Precargar con self.controller.host si ya hubo un intento de
+        # conexión en esta sesión; si no, con la última IP guardada
+        # localmente; si tampoco existe, con el valor de fábrica.
+        self.ui.hostAddressInput.setText(self.controller.host or self._load_last_host())
+
     def setup_connect_button(self):
         """Configura el botón de conectar"""
         self.ui.connectBtn.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.ui.connectBtn.setMinimumHeight(50)
         self.ui.connectBtn.setCheckable(True)
-        
+
         self.ui.connectBtn.setStyleSheet("""
             QPushButton {
                 background-color: THEME.COLOR_BACKGROUND_2;
@@ -210,26 +140,39 @@ class ConnectionPageExtensions:
                 background-color: #45a049;
             }
         """)
-        
+
         # Conectar señal
         self.ui.connectBtn.clicked.connect(self.handle_connect_click)
-        
+
     def handle_connect_click(self):
         """
-        Maneja el clic del botón de conectar con el iSMC. La conexión se
-        lanza en un QThread para no congelar la interfaz mientras se
-        establece (o falla) la comunicación con el controlador.
+        Maneja el clic del botón de conectar con el iSMC. Valida el formato
+        de la IP antes de intentar nada, y lanza la conexión en un QThread
+        para no congelar la interfaz mientras se establece (o falla) la
+        comunicación con el controlador — mismo mecanismo de antes, solo
+        cambia el origen del host.
         """
         if self.ui.connectBtn.isChecked():
             if self.controller.is_connected:
                 self._on_connect_finished(True)
                 return
 
+            host = self.ui.hostAddressInput.text().strip()
+            if not _is_valid_host(host):
+                self.ui.connectBtn.setChecked(False)
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("Invalid address")
+                msg.setText(f'"{host}" is not a valid IPv4 address or hostname.')
+                msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg.exec()
+                return
+
             self.ui.connectBtn.setEnabled(False)
             self.ui.connectBtn.setText("Connecting...")
 
             self._connect_thread = QThread()
-            self._connect_worker = _ConnectWorker(self.controller, "::1")
+            self._connect_worker = _ConnectWorker(self.controller, host)
             self._connect_worker.moveToThread(self._connect_thread)
             self._connect_thread.started.connect(self._connect_worker.run)
             self._connect_worker.finished.connect(self._on_connect_finished)
@@ -248,7 +191,33 @@ class ConnectionPageExtensions:
         if connected:
             print("[Aerotech] Conexión establecida")
             self.ui.connectBtn.setText("Disconnect")
+            # Tras una conexión exitosa con una IP distinta de la de
+            # fábrica, se guarda localmente para precargarla en el futuro.
+            if self.controller.host and self.controller.host != DEFAULT_HOST:
+                self._save_last_host(self.controller.host)
         else:
             print("[Aerotech] No se pudo conectar con el iSMC")
             self.ui.connectBtn.setChecked(False)
             self.ui.connectBtn.setText("Connect")
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Persistencia local de la última IP exitosa
+    # ─────────────────────────────────────────────────────────────────────
+    def _load_last_host(self):
+        try:
+            if os.path.exists(LOCAL_SETTINGS_PATH):
+                with open(LOCAL_SETTINGS_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                host = data.get("last_host")
+                if host and _is_valid_host(host):
+                    return host
+        except Exception as e:
+            print(f"[Connection] Error leyendo {LOCAL_SETTINGS_PATH}: {e}")
+        return DEFAULT_HOST
+
+    def _save_last_host(self, host):
+        try:
+            with open(LOCAL_SETTINGS_PATH, "w", encoding="utf-8") as f:
+                json.dump({"last_host": host}, f, indent=2)
+        except Exception as e:
+            print(f"[Connection] Error guardando {LOCAL_SETTINGS_PATH}: {e}")

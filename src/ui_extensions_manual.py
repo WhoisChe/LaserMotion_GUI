@@ -2,43 +2,56 @@
 ## MANUAL PAGE EXTENSIONS
 ########################################################################
 
-from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMessageBox
 
-from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
-from src.ui_extensions_home import HomePageExtensions, LED_COLOR_OK, LED_COLOR_INACTIVE, LED_COLOR_FAULT, DISCONNECTED_TEXT_COLOR
+import config
+from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z, NEJE_B30635_MAX_POWER_MW
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
-# Borde naranja para Velocity/Acceleration mientras el valor en pantalla no
-# coincide con el valor realmente aplicado a los movimientos (ver 2.3).
+# Borde naranja para Velocity mientras el valor en pantalla no coincide con
+# el valor realmente aplicado a los movimientos (ver 02_manual.md §2.2).
 PENDING_BORDER_STYLE = "QDoubleSpinBox { border: 2px solid #FFA726; }"
 
 
 class ManualPageExtensions:
-    """Extensiones de UI para la página Manual Mode"""
+    """
+    Extensiones de UI para la página Manual Mode.
+
+    Tras la migración a GlobalStatusPanel (agosto de 2026, ver
+    00_global_architecture.md), Manual ya no tiene su propia copia de
+    posición/LEDs por eje (vivían en positionManual/ledRowManual<Axis>) — el
+    panel compartido de main.py ya cubre eso. axisControlManual se mantiene:
+    son controles activos (Enable/Disable/Home), no un indicador pasivo.
+
+    El control de aceleración desapareció de la interfaz (02_manual.md §1.3):
+    solo queda velocity, con la misma compuerta de confirmación; la
+    aceleración usa config.DEFAULT_ACCELERATION_MM_S2[axis], fija.
+
+    El láser pasó de "en vivo" a "mantener pulsado" sobre PSO real
+    (02_manual.md §1.4/2.3): laserPowerSlider ya solo fija una consigna,
+    laserFireBtn dispara mientras se mantiene pulsado.
+    """
 
     def __init__(self, ui, main_window, controller):
         self.ui = ui
         self.main = main_window
-        # Instancia compartida de AerotechController (ver src/ui_extensions.py)
+        # Instancia compartida de AerotechController (ver main.py)
         self.controller = controller
 
-        # LEDs de estado por eje (Habilitado, Homed, Sin error de posición,
-        # Límites libres), indexados para poder actualizar su color sin recrearlos.
-        self._axis_leds = {}
-
-        # Valores de velocidad/aceleración realmente aplicados a los
-        # movimientos — distintos de lo que muestren los spinbox mientras
-        # haya cambios sin confirmar (ver 2.3).
+        # Valor de velocidad realmente aplicado a los movimientos — distinto
+        # de lo que muestre el spinbox mientras haya un cambio sin confirmar.
         self._applied_velocity = 10.0
-        self._applied_acceleration = 100.0
+
+        # Eje que dispara el láser (fijo: NEJE cableado a la salida PSO del
+        # drive 1 / eje X, ver 00_global_architecture.md §3).
+        self._laser_axis = AXIS_X
+        self._firing = False
 
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página Manual"""
         self.setup_axis_control_section()
-        self.setup_position_manual()
         self.setup_movement_section()
         self.setup_laser_power_section()
 
@@ -58,10 +71,9 @@ class ManualPageExtensions:
         # Cambio de escala
         self.ui.scaleList.currentIndexChanged.connect(self.on_scale_changed)
 
-        # Compuerta de confirmación de velocity/acceleration
+        # Compuerta de confirmación de velocity
         self.ui.confirmBtn.clicked.connect(self.confirm_values)
         self.ui.velocity.valueChanged.connect(self._check_pending_changes)
-        self.ui.acceleration.valueChanged.connect(self._check_pending_changes)
 
         # Control por eje: enable/disable + home
         self.ui.toggleXBtn.clicked.connect(lambda: self.handle_toggle_axis("X"))
@@ -71,27 +83,13 @@ class ManualPageExtensions:
         self.ui.homeYBtn.clicked.connect(lambda: self.controller.home_axes([AXIS_Y]))
         self.ui.homeZBtn.clicked.connect(lambda: self.controller.home_axes([AXIS_Z]))
 
-        # Control de potencia del láser (en vivo, sin compuerta de confirmación)
+        # Consigna de potencia del láser (solo fija el valor mostrado/color;
+        # NO dispara nada por sí sola — ver 02_manual.md §1.4)
         self.ui.laserPowerSlider.valueChanged.connect(self.handle_laser_power_changed)
-        self.ui.laserOffBtn.clicked.connect(lambda: self.ui.laserPowerSlider.setValue(0))
 
-        # Refresco periódico de posición y LEDs de estado por eje
-        self.status_timer = QTimer()
-        self.status_timer.timeout.connect(self.update_status_display)
-        self.status_timer.start(100)  # Mismo intervalo que Home
-
-    # ─────────────────────────────────────────────────────────────────────
-    # LED reutilizado de la página Home (ver directriz 1.1: "no duplicar la
-    # construcción del LED"). _make_led()/_set_led_color() de HomePageExtensions
-    # no usan ningún atributo de instancia (self.ui/self.controller), así que
-    # se pueden invocar pasando esta instancia de ManualPageExtensions como
-    # "self" sin heredar de esa clase ni copiar la lógica de dibujo del LED.
-    # ─────────────────────────────────────────────────────────────────────
-    def _make_led(self, *args, **kwargs):
-        return HomePageExtensions._make_led(self, *args, **kwargs)
-
-    def _set_led_color(self, *args, **kwargs):
-        return HomePageExtensions._set_led_color(self, *args, **kwargs)
+        # Disparo por mantener pulsado, sobre PSO real
+        self.ui.laserFireBtn.pressed.connect(self._start_firing)
+        self.ui.laserFireBtn.released.connect(self._stop_firing)
 
     # ─────────────────────────────────────────────────────────────────────
     # Conexión al controlador Automation1-iSMC via API - Funciones de movimiento
@@ -112,7 +110,7 @@ class ManualPageExtensions:
         """Mueve X en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving X+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_X, scale, velocity, acceleration)
@@ -121,7 +119,7 @@ class ManualPageExtensions:
         """Mueve X en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving X- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_X, -scale, velocity, acceleration)
@@ -130,7 +128,7 @@ class ManualPageExtensions:
         """Mueve Y en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving Y+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_Y, scale, velocity, acceleration)
@@ -139,7 +137,7 @@ class ManualPageExtensions:
         """Mueve Y en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving Y- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_Y, -scale, velocity, acceleration)
@@ -148,7 +146,7 @@ class ManualPageExtensions:
         """Mueve Z en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Z]
 
         print(f"Moving Z+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_Z, scale, velocity, acceleration)
@@ -157,7 +155,7 @@ class ManualPageExtensions:
         """Mueve Z en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Z]
 
         print(f"Moving Z- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
         self._move_relative(AXIS_Z, -scale, velocity, acceleration)
@@ -165,13 +163,13 @@ class ManualPageExtensions:
     def move_xy_zero(self):
         """Mueve XY a posición cero"""
         velocity = self._applied_velocity
-        acceleration = self._applied_acceleration
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving to XY Zero | Vel: {velocity} | Acc: {acceleration}")
         self.controller.move_absolute([AXIS_X, AXIS_Y], [0.0, 0.0], velocity, acceleration)
 
     # ─────────────────────────────────────────────────────────────────────
-    # Control por eje: Enable/Disable + Home (directriz 2.1)
+    # Control por eje: Enable/Disable + Home
     # ─────────────────────────────────────────────────────────────────────
     def handle_toggle_axis(self, axis):
         """Alterna habilitación/deshabilitación de un único eje (patrón de connectBtn)."""
@@ -183,52 +181,6 @@ class ManualPageExtensions:
         else:
             self.controller.disable_axes([axis_const])
             btn.setText("ENABLE")
-
-    # ─────────────────────────────────────────────────────────────────────
-    # Refresco periódico de estado (posición, fallos, homed) — directriz 2.2
-    # ─────────────────────────────────────────────────────────────────────
-    def update_status_display(self):
-        """Misma lógica que HomePageExtensions.update_position_display(), aplicada
-        a los widgets propios de la página Manual."""
-        if not self.controller.is_connected:
-            self._show_disconnected_status()
-            return
-
-        x, y, z = self.controller.get_axis_positions()
-        self.ui.valorXManual.setText(f"{x:.3f}")
-        self.ui.valorYManual.setText(f"{y:.3f}")
-        self.ui.valorZManual.setText(f"{z:.3f}")
-        self._set_position_text_color(None)
-
-        # NOTA: get_axes_enabled() devuelve un único booleano combinado para
-        # los 3 ejes (no hay lectura individual por eje en la API actual), así
-        # que el LED "Habilitado" de X, Y y Z muestra ese mismo valor.
-        enabled = self.controller.get_axes_enabled()
-        homed = self.controller.get_axes_homed()
-        faults = self.controller.get_axis_faults()
-        for axis in ("X", "Y", "Z"):
-            leds = self._axis_leds[axis]
-            axis_faults = faults[axis]
-            self._set_led_color(leds["enabled"], LED_COLOR_OK if enabled else LED_COLOR_INACTIVE)
-            self._set_led_color(leds["homed"], LED_COLOR_OK if homed[axis] else LED_COLOR_INACTIVE)
-            self._set_led_color(leds["fault"], LED_COLOR_FAULT if axis_faults["position_error"] else LED_COLOR_OK)
-            limits_ok = not (axis_faults["limit_cw"] or axis_faults["limit_ccw"])
-            self._set_led_color(leds["limits"], LED_COLOR_OK if limits_ok else LED_COLOR_FAULT)
-
-    def _show_disconnected_status(self):
-        self.ui.valorXManual.setText("—")
-        self.ui.valorYManual.setText("—")
-        self.ui.valorZManual.setText("—")
-        self._set_position_text_color(DISCONNECTED_TEXT_COLOR)
-
-        for axis in ("X", "Y", "Z"):
-            for led in self._axis_leds[axis].values():
-                self._set_led_color(led, LED_COLOR_INACTIVE)
-
-    def _set_position_text_color(self, color):
-        style = f"color: {color};" if color else "color: THEME.COLOR_ACCENT_3;"
-        for value in (self.ui.valorXManual, self.ui.valorYManual, self.ui.valorZManual):
-            value.setStyleSheet(style)
 
     # ─────────────────────────────────────────────────────────────────────
     # Modificación de la interfaz de usuario
@@ -254,17 +206,11 @@ class ManualPageExtensions:
         print(f"Scale changed to: {scale}")
 
     def setup_axis_control_section(self):
-        """Configura los 3 bloques de control por eje (Enable/Disable, Home, LEDs)"""
+        """Configura los 3 bloques de control por eje (Enable/Disable, Home)"""
         axis_specs = [
-            ("X", self.ui.labelAxisX, self.ui.toggleXBtn, self.ui.homeXBtn, self.ui.horizontalLayout_ledManualX),
-            ("Y", self.ui.labelAxisY, self.ui.toggleYBtn, self.ui.homeYBtn, self.ui.horizontalLayout_ledManualY),
-            ("Z", self.ui.labelAxisZ, self.ui.toggleZBtn, self.ui.homeZBtn, self.ui.horizontalLayout_ledManualZ),
-        ]
-        led_specs = [
-            ("enabled", "Habilitado"),
-            ("homed", "Homed"),
-            ("fault", "Sin error de posición"),
-            ("limits", "Límites libres"),
+            (self.ui.labelAxisX, self.ui.toggleXBtn, self.ui.homeXBtn),
+            (self.ui.labelAxisY, self.ui.toggleYBtn, self.ui.homeYBtn),
+            (self.ui.labelAxisZ, self.ui.toggleZBtn, self.ui.homeZBtn),
         ]
 
         toggle_style = """
@@ -300,7 +246,7 @@ class ManualPageExtensions:
             }
         """
 
-        for axis, label, toggle_btn, home_btn, led_layout in axis_specs:
+        for label, toggle_btn, home_btn in axis_specs:
             label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
             label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
@@ -313,40 +259,17 @@ class ManualPageExtensions:
             home_btn.setMinimumHeight(36)
             home_btn.setStyleSheet(home_style)
 
-            self._axis_leds[axis] = {}
-            for key, tooltip in led_specs:
-                led = self._make_led(LED_COLOR_INACTIVE, size=12, tooltip=f"{tooltip} — eje {axis}")
-                led_layout.addWidget(led)
-                self._axis_leds[axis][key] = led
-
-    def setup_position_manual(self):
-        """Configura la posición en vivo X/Y/Z junto al D-pad (mismo formato que Home)"""
-        position_labels = [
-            (self.ui.labelPosManualX, self.ui.valorXManual),
-            (self.ui.labelPosManualY, self.ui.valorYManual),
-            (self.ui.labelPosManualZ, self.ui.valorZManual),
-        ]
-        for label, value in position_labels:
-            label.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-            value.setFont(QFont("Sitka Small", 12))
-            value.setMinimumWidth(80)
-            value.setStyleSheet("color: THEME.COLOR_ACCENT_3;")
-            value.setText("—")
-
     def setup_movement_section(self):
         """Configura la sección de movimiento XYZ"""
         # Título de Moviviento XYZ
         self.ui.label_19.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.ui.label_19.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
-        # Configurar selector de escala, velocidad y aceleración
+        # Configurar selector de escala y velocidad (ya no hay aceleración)
         self.ui.label_31.setFont(QFont("Sitka Small", 10))
         self.setup_scale_selector()
         self.ui.label_32.setFont(QFont("Sitka Small", 10))
         self.setup_velocity_selector()
-        self.ui.label_33.setFont(QFont("Sitka Small", 10))
-        self.setup_acceleration_selector()
 
     def setup_scale_selector(self):
         """Configura el selector de escala y su multiplicador ×N"""
@@ -370,9 +293,9 @@ class ManualPageExtensions:
         # Estilo
         self.ui.scaleList.setFont(QFont("Sitka Small", 10))
 
-        # Multiplicador ×N (directriz 1.3)
+        # Multiplicador ×N
         self.ui.scaleMultiplier.setFont(QFont("Sitka Small", 10))
-        self.ui.scaleMultiplier.setToolTip("Multiplicador del paso de jog (escala × N)")
+        self.ui.scaleMultiplier.setToolTip("Jog step multiplier (scale × N)")
 
     def setup_velocity_selector(self):
         """Configura el selector de velocidad"""
@@ -384,55 +307,41 @@ class ManualPageExtensions:
         self.ui.velocity.setSuffix(" mm/s")
         self.ui.velocity.setValue(self._applied_velocity)
 
-    def setup_acceleration_selector(self):
-        """Configura el selector de aceleración"""
-        self.ui.acceleration.setFont(QFont("Sitka Small", 10))
-        self.ui.acceleration.setMinimum(0.1)
-        self.ui.acceleration.setMaximum(10000.0)
-        self.ui.acceleration.setSingleStep(1.0)
-        self.ui.acceleration.setDecimals(2)
-        self.ui.acceleration.setSuffix(" mm/s²")
-        self.ui.acceleration.setValue(self._applied_acceleration)
-
     # ─────────────────────────────────────────────────────────────────────
-    # Compuerta de confirmación de Velocity/Acceleration (directriz 2.3)
+    # Compuerta de confirmación de Velocity
     # ─────────────────────────────────────────────────────────────────────
     def _check_pending_changes(self):
         vel_pending = abs(self.ui.velocity.value() - self._applied_velocity) > 1e-9
-        acc_pending = abs(self.ui.acceleration.value() - self._applied_acceleration) > 1e-9
 
         self.ui.velocity.setStyleSheet(PENDING_BORDER_STYLE if vel_pending else "")
-        self.ui.acceleration.setStyleSheet(PENDING_BORDER_STYLE if acc_pending else "")
-        self.ui.confirmBtn.setText("Aplicar cambios pendientes" if (vel_pending or acc_pending) else "Confirm")
+        self.ui.confirmBtn.setText("Apply pending changes" if vel_pending else "Confirm")
 
     def confirm_values(self):
-        """Aplica los valores de velocity/acceleration mostrados en pantalla y
-        avisa al usuario (compuerta de confirmación real, ver 2.3)."""
+        """Aplica el valor de velocity mostrado en pantalla y avisa al usuario
+        (compuerta de confirmación real)."""
         self._applied_velocity = self.ui.velocity.value()
-        self._applied_acceleration = self.ui.acceleration.value()
 
         self.ui.velocity.setStyleSheet("")
-        self.ui.acceleration.setStyleSheet("")
         self.ui.confirmBtn.setText("Confirm")
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Information)
-        msg.setWindowTitle("Valores Guardados")
-        msg.setText(f"Los valores han sido guardados correctamente:")
-        msg.setInformativeText(f"Velocidad: {self._applied_velocity} mm/s\nAceleración: {self._applied_acceleration} mm/s²")
+        msg.setWindowTitle("Values Saved")
+        msg.setText("Values have been saved successfully:")
+        msg.setInformativeText(f"Velocity: {self._applied_velocity} mm/s")
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.exec()
 
     # ─────────────────────────────────────────────────────────────────────
-    # Control de potencia del láser — slider continuo (directriz 1.5 / 2.4)
+    # Control de potencia del láser — mantener pulsado, sobre PSO real
     # ─────────────────────────────────────────────────────────────────────
     def setup_laser_power_section(self):
-        """Configura el slider de potencia, el indicador de consigna y LÁSER OFF"""
+        """Configura el slider de consigna, el indicador y el botón de disparo"""
         self.ui.laserPowerSlider.setMinimumWidth(160)
 
         self.ui.labelLaserPowerManual.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.labelLaserPowerManual.setToolTip(
-            "Valor de consigna de potencia — no es una medida real, es el mando enviado al láser"
+            "Power setpoint — not a real measurement, this is the command sent to the laser"
         )
         self.ui.labelLaserPowerManual.setMinimumWidth(120)
         self.ui.labelLaserPowerManual.setStyleSheet("""
@@ -445,8 +354,9 @@ class ManualPageExtensions:
         """)
         self.ui.labelLaserPowerManual.setText("0% · 0 mW")
 
-        self.ui.laserOffBtn.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        self.ui.laserOffBtn.setStyleSheet("""
+        self.ui.laserFireBtn.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
+        self.ui.laserFireBtn.setText("Laser ON")
+        self.ui.laserFireBtn.setStyleSheet("""
             QPushButton {
                 background-color: #F44336;
                 color: white;
@@ -465,11 +375,36 @@ class ManualPageExtensions:
         self._apply_laser_icon_color(0)
 
     def handle_laser_power_changed(self, value):
-        """Se dispara en vivo mientras se arrastra el slider (no solo al soltar)."""
-        self.controller.set_laser_power_percent(value)
-        _, duty_percent, power_mw = self.controller.get_laser_output_state()
-        self.ui.labelLaserPowerManual.setText(f"{duty_percent:.0f}% · {power_mw:.0f} mW")
-        self._apply_laser_icon_color(value)
+        """
+        Solo fija la consigna mostrada y el color de laserOC — ya NO llama a
+        set_laser_power_percent() ni dispara nada por sí solo (a diferencia
+        del comportamiento anterior). El disparo real ocurre en
+        _start_firing()/_stop_firing(), vía PSO.
+        """
+        power_mw = value / 100 * NEJE_B30635_MAX_POWER_MW
+        self.ui.labelLaserPowerManual.setText(f"{value:.0f}% · {power_mw:.0f} mW")
+        self._apply_laser_icon_color(value if self._firing else 0)
+
+    def _start_firing(self):
+        """laserFireBtn.pressed — dispara mientras se mantiene pulsado."""
+        power_percent = self.ui.laserPowerSlider.value()
+        self._firing = True
+        self.controller.pso_configure_waveform(self._laser_axis, power_percent)
+        self.controller.pso_output_on(self._laser_axis)
+        self._apply_laser_icon_color(power_percent)
+
+    def _stop_firing(self):
+        """laserFireBtn.released — corta el disparo."""
+        self._firing = False
+        self.controller.pso_output_off(self._laser_axis)
+        self._apply_laser_icon_color(0)
+
+    def handle_emergency_stop(self):
+        """Conectado a GlobalStatusPanel.laser_emergency_stop (ver main.py):
+        pone la consigna a 0 y corta el disparo si estaba en curso."""
+        self.ui.laserPowerSlider.setValue(0)
+        if self._firing:
+            self._stop_firing()
 
     def _apply_laser_icon_color(self, percent):
         color = self._laser_color_for_percent(percent)
