@@ -4,7 +4,7 @@
 ########################################################################
 
 from PySide6.QtCore import Qt, QSize, QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QFontMetrics
 from PySide6.QtWidgets import QSizePolicy, QMessageBox
 
 import config
@@ -64,6 +64,14 @@ class CalibrationPageExtensions:
         _, _, z = self.controller.get_axis_positions()
         self.ui.labelZFocusStatus.setText(f"Current Z: {z:.3f} mm")
 
+    @staticmethod
+    def _fit_button_width(button, padding=40):
+        """Ensancha el botón lo justo para que su texto (con la fuente ya
+        aplicada) no se recorte por los lados — el ancho lo fijaba el
+        contenedor padre sin comprobar si el texto cabía."""
+        text_width = QFontMetrics(button.font()).horizontalAdvance(button.text())
+        button.setMinimumWidth(text_width + padding)
+
     def setup_title(self):
         """Configura el título de la página"""
         self.ui.label_10.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
@@ -105,12 +113,14 @@ class CalibrationPageExtensions:
         self.ui.zUpFocusing.setStyleSheet(focus_button_style)
         self.ui.zUpFocusing.setIconSize(QSize(20, 20))
         self.ui.zUpFocusing.setText("Move Up")
+        self._fit_button_width(self.ui.zUpFocusing)
 
         # Botón Z Down
         self.ui.zDownFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zDownFocusing.setStyleSheet(focus_button_style)
         self.ui.zDownFocusing.setIconSize(QSize(20, 20))
         self.ui.zDownFocusing.setText("Move Down")
+        self._fit_button_width(self.ui.zDownFocusing)
 
         # Botón "Confirm focus" — visualmente separado de subir/bajar (ya
         # está en su propia fila, debajo del par Up/Down). Pulsación manual
@@ -137,6 +147,7 @@ class CalibrationPageExtensions:
             }
         """)
         self.ui.calibratedBtn.setText("Confirm focus")
+        self._fit_button_width(self.ui.calibratedBtn)
 
         # Conectar señales
         self.ui.zUpFocusing.clicked.connect(self.handle_z_up_focusing)
@@ -173,11 +184,13 @@ class CalibrationPageExtensions:
         self.ui.zeroXBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroXBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroXBtn.setText("Zero X Position")
+        self._fit_button_width(self.ui.zeroXBtn)
 
         # Botón Zero Y
         self.ui.zeroYBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroYBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroYBtn.setText("Zero Y Position")
+        self._fit_button_width(self.ui.zeroYBtn)
 
         # Conectar señales
         self.ui.zeroXBtn.clicked.connect(self.handle_zero_x)
@@ -221,10 +234,16 @@ class CalibrationPageExtensions:
                 border: 2px solid THEME.COLOR_ACCENT_1;
             }
         """
+        # Etiquetas acortadas ("Set corner 1/2" se recortaba por los bordes
+        # en el ancho disponible del panel lateral)
+        self.ui.setCorner1Btn.setText("Corner 1")
         self.ui.setCorner1Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
         self.ui.setCorner1Btn.setStyleSheet(corner_button_style)
+        self._fit_button_width(self.ui.setCorner1Btn)
+        self.ui.setCorner2Btn.setText("Corner 2")
         self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
         self.ui.setCorner2Btn.setStyleSheet(corner_button_style)
+        self._fit_button_width(self.ui.setCorner2Btn)
 
         self.ui.setCorner1Btn.clicked.connect(self.capture_corner_1)
         self.ui.setCorner2Btn.clicked.connect(self.capture_corner_2)
@@ -290,8 +309,12 @@ class CalibrationPageExtensions:
     # Laser alignment mode (directriz 1.3 / 2.1 de 05_calibration.md)
     # ─────────────────────────────────────────────────────────────────────
     def setup_alignment_mode_section(self):
+        # "Laser alignment mode" se recortaba por los bordes — etiqueta
+        # acortada a "Alignment mode"
+        self.ui.alignmentModeToggle.setText("Alignment mode")
         self.ui.alignmentModeToggle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.alignmentModeToggle.setMinimumHeight(40)
+        self._fit_button_width(self.ui.alignmentModeToggle)
         self.ui.alignmentModeToggle.setStyleSheet("""
             QPushButton {
                 background-color: THEME.COLOR_BACKGROUND_2;
@@ -313,6 +336,7 @@ class CalibrationPageExtensions:
         self.ui.alignmentFireBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.alignmentFireBtn.setMinimumHeight(40)
         self.ui.alignmentFireBtn.setEnabled(False)
+        self._fit_button_width(self.ui.alignmentFireBtn)
         self.ui.alignmentFireBtn.setStyleSheet("""
             QPushButton {
                 background-color: #F44336;

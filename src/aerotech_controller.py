@@ -114,20 +114,17 @@ class AerotechController:
 
     def get_axis_indicators(self, axis):
         """
-        Estado combinado de un único eje para los 4 LEDs del panel global
-        (ENA/HMD/INP/LIM). Devuelve {"enabled": bool, "homed": bool,
-        "in_position": bool, "no_limit_active": bool}; todo False si no hay
-        conexión. Sustituye a las antiguas get_axes_enabled()/
-        get_axes_homed()/get_axis_faults(), que devolvían un booleano
-        combinado para los 3 ejes en el caso de "enabled" — aquí cada eje se
-        lee de forma independiente.
+        Estado combinado de un único eje para los 3 LEDs del panel global
+        (Enabled/Homed/CW-CCW). Devuelve {"enabled": bool, "homed": bool,
+        "limit_active": bool}; todo False si no hay conexión. Sustituye a
+        las antiguas get_axes_enabled()/get_axes_homed()/get_axis_faults(),
+        que devolvían un booleano combinado para los 3 ejes en el caso de
+        "enabled" — aquí cada eje se lee de forma independiente.
         """
         # TODO: verificar nombres exactos de cada bit contra
         # dir(a1.AxisStatus) / dir(a1.DriveStatus) / dir(a1.AxisFault) en la
-        # instalación real. "in_position" en concreto no se ha usado hasta
-        # ahora en el proyecto — no dar por sentado el nombre del bit ni si
-        # vive en AxisStatus o en DriveStatus.
-        empty = {"enabled": False, "homed": False, "in_position": False, "no_limit_active": False}
+        # instalación real.
+        empty = {"enabled": False, "homed": False, "limit_active": False}
         if not self.is_connected:
             return dict(empty)
         try:
@@ -137,15 +134,13 @@ class AerotechController:
 
             enabled = bool(drive_status & int(a1.DriveStatus.Enabled))
             homed = bool(drive_status & int(a1.DriveStatus.Homed))
-            in_position = bool(drive_status & int(a1.DriveStatus.InPosition)) if hasattr(a1.DriveStatus, "InPosition") else False
             limit_active = bool(fault_bits & int(a1.AxisFault.CwEndOfTravelLimitFault)) or \
                 bool(fault_bits & int(a1.AxisFault.CcwEndOfTravelLimitFault))
 
             return {
                 "enabled": enabled,
                 "homed": homed,
-                "in_position": in_position,
-                "no_limit_active": not limit_active,
+                "limit_active": limit_active,
             }
         except Exception as e:
             print(f"[Aerotech] Error leyendo indicadores del eje {axis}: {e}")

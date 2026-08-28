@@ -12,7 +12,7 @@ from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 
 from PySide6.QtCore import QSettings, QTimer, Signal
-from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtGui import QFont, QFontDatabase, QFontMetrics
 
 # Gestor centralizado de la conexión con el controlador Aerotech Automation1-iSMC
 from src.aerotech_controller import AerotechController
@@ -28,12 +28,16 @@ from src.ui_extensions_calibration import CalibrationPageExtensions
 
 ########################################################################
 ## GLOBAL STATUS PANEL
-## Panel de estado compartido por Home/Manual/Auto: banner de conexión/STO,
-## posición X/Y/Z en vivo, matriz de LEDs por eje (ENA/HMD/INP/LIM) y el
-## botón de parada de emergencia del láser. Construido una vez aquí, fuera
-## del QStackedWidget principal — sustituye a los paneles duplicados que
-## Home y Manual tenían cada uno por su cuenta antes de esta migración (ver
-## PROGRESO.md, sección de agosto de 2026).
+## Panel de estado compartido por Home/Manual/Auto: banner de conexión y el
+## botón de parada de emergencia del láser en una sola fila, posición X/Y/Z
+## en vivo y matriz de LEDs por eje (Enabled/Homed/CW-CCW). Construido una
+## vez aquí, fuera del QStackedWidget principal — sustituye a los paneles
+## duplicados que Home y Manual tenían cada uno por su cuenta antes de esta
+## migración (ver PROGRESO.md, sección de agosto de 2026).
+##
+## No hay señal de STO cableada en la instalación — el panel no muestra ni
+## lee estado de STO (get_sto_status() sigue existiendo en
+## aerotech_controller.py, pero este panel ya no lo llama).
 ########################################################################
 class GlobalStatusPanel(QFrame):
 
@@ -42,15 +46,13 @@ class GlobalStatusPanel(QFrame):
     LED_COLOR_OK = "#4CAF50"
     LED_COLOR_INACTIVE = "#808080"
     LED_COLOR_FAULT = "#F44336"
-    BANNER_ALERT_COLOR = "#DA190B"
 
     AXIS_ORDER = ("X", "Y", "Z")
-    # (clave interna en get_axis_indicators(), abreviatura visible bajo el LED, tooltip)
+    # (clave interna en get_axis_indicators(), etiqueta visible bajo el LED, tooltip)
     INDICATORS = [
-        ("enabled", "ENA", "Enabled"),
-        ("homed", "HMD", "Homed"),
-        ("in_position", "INP", "In Position"),
-        ("no_limit_active", "LIM", "No limit active"),
+        ("enabled", "Enabled", "Enabled"),
+        ("homed", "Homed", "Homed"),
+        ("limit_active", "CW/CCW", "CW or CCW travel limit active"),
     ]
 
     def __init__(self, controller, parent=None):
@@ -60,7 +62,6 @@ class GlobalStatusPanel(QFrame):
         self._axis_leds = {axis: {} for axis in self.AXIS_ORDER}
         self._axis_position_labels = {}
         self._led_conexion = None
-        self._led_sto = None
         self._build_ui()
 
     # ── LED reutilizable (patrón ya usado en el resto del proyecto) ────
@@ -92,7 +93,7 @@ class GlobalStatusPanel(QFrame):
         outer_layout.setContentsMargins(20, 14, 20, 14)
         outer_layout.setSpacing(16)
 
-        # ── Fila superior: conexión + STO + Laser Stop ──────────────────
+        # ── Fila superior: conexión + Laser Stop, en una sola fila ───────
         top_row = QHBoxLayout()
         top_row.setSpacing(10)
 
@@ -103,23 +104,18 @@ class GlobalStatusPanel(QFrame):
         top_row.addWidget(self._led_conexion)
         top_row.addWidget(self.label_connection)
 
-        top_row.addSpacing(16)
-
-        self._led_sto = self._make_led(tooltip="Safe Torque Off status")
-        self.label_sto = QLabel("Safety OK")
-        self.label_sto.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.label_sto.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        top_row.addWidget(self._led_sto)
-        top_row.addWidget(self.label_sto)
-
         top_row.addStretch(1)
 
         # Laser stop — corta la salida PSO y avisa a las páginas suscritas.
         # Tamaño fijo (no solo mínimo) para que el layout nunca lo comprima
-        # por debajo de lo necesario para leer el texto completo.
-        self.laser_stop_btn = QPushButton("LASER STOP")
+        # por debajo de lo necesario para leer el texto completo. El ancho
+        # se calcula a partir del texto real (QFontMetrics) en vez de un
+        # número fijo adivinado, para que no vuelva a quedar recortado si
+        # cambia la fuente o el texto del botón.
+        self.laser_stop_btn = QPushButton("Laser stop")
         self.laser_stop_btn.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.laser_stop_btn.setMinimumSize(QSize(260, 48))
+        button_width = QFontMetrics(self.laser_stop_btn.font()).horizontalAdvance(self.laser_stop_btn.text()) + 60
+        self.laser_stop_btn.setMinimumSize(QSize(button_width, 48))
         self.laser_stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.laser_stop_btn.setStyleSheet("""
             QPushButton {
@@ -184,9 +180,9 @@ class GlobalStatusPanel(QFrame):
 
         return card
 
-    def _build_indicator_column(self, axis, key, abbr, tooltip):
-        """LED + su abreviatura debajo (ENA/HMD/INP/LIM), para que se sepa
-        qué significa cada uno sin depender solo del toolTip."""
+    def _build_indicator_column(self, axis, key, label_text, tooltip):
+        """LED + su nombre completo debajo (Enabled/Homed/CW-CCW), para que
+        se sepa qué significa cada uno sin depender solo del toolTip."""
         column = QVBoxLayout()
         column.setSpacing(2)
 
@@ -194,11 +190,11 @@ class GlobalStatusPanel(QFrame):
         self._axis_leds[axis][key] = led
         column.addWidget(led, 0, Qt.AlignHCenter)
 
-        abbr_label = QLabel(abbr)
-        abbr_label.setFont(QFont("Sitka Small", 7))
-        abbr_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        abbr_label.setAlignment(Qt.AlignCenter)
-        column.addWidget(abbr_label)
+        text_label = QLabel(label_text)
+        text_label.setFont(QFont("Sitka Small", 7))
+        text_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        text_label.setAlignment(Qt.AlignCenter)
+        column.addWidget(text_label)
 
         return column
 
@@ -220,17 +216,14 @@ class GlobalStatusPanel(QFrame):
         self._set_led_color(self._led_conexion, self.LED_COLOR_OK)
         self.label_connection.setText(f"Connected — {self.controller.host}")
 
-        self._update_sto(self.controller.get_sto_status())
-
         for axis in self.AXIS_ORDER:
             indicators = self.controller.get_axis_indicators(axis)
             leds = self._axis_leds[axis]
             self._set_led_color(leds["enabled"], self.LED_COLOR_OK if indicators["enabled"] else self.LED_COLOR_INACTIVE)
             self._set_led_color(leds["homed"], self.LED_COLOR_OK if indicators["homed"] else self.LED_COLOR_INACTIVE)
-            self._set_led_color(leds["in_position"], self.LED_COLOR_OK if indicators["in_position"] else self.LED_COLOR_INACTIVE)
             self._set_led_color(
-                leds["no_limit_active"],
-                self.LED_COLOR_OK if indicators["no_limit_active"] else self.LED_COLOR_FAULT,
+                leds["limit_active"],
+                self.LED_COLOR_FAULT if indicators["limit_active"] else self.LED_COLOR_OK,
             )
 
     def _show_disconnected(self):
@@ -238,23 +231,9 @@ class GlobalStatusPanel(QFrame):
             self._axis_position_labels[axis].setText("—")
         self._set_led_color(self._led_conexion, self.LED_COLOR_FAULT)
         self.label_connection.setText("Disconnected")
-        self._update_sto(False)
         for axis in self.AXIS_ORDER:
             for led in self._axis_leds[axis].values():
                 self._set_led_color(led, self.LED_COLOR_INACTIVE)
-
-    def _update_sto(self, sto_active):
-        if sto_active:
-            self.setStyleSheet(
-                f"QFrame#globalStatusPanel {{ background-color: {self.BANNER_ALERT_COLOR}; border-radius: 12px; }}"
-            )
-            self.label_sto.setText("STO ACTIVE")
-        else:
-            self.setStyleSheet(
-                "QFrame#globalStatusPanel { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 12px; }"
-            )
-            self.label_sto.setText("Safety OK")
-        self._set_led_color(self._led_sto, self.LED_COLOR_FAULT if sto_active else self.LED_COLOR_OK)
 
 
 ########################################################################
