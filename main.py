@@ -12,7 +12,7 @@ from Custom_Widgets import *
 from Custom_Widgets.QAppSettings import QAppSettings
 
 from PySide6.QtCore import QSettings, QTimer, Signal
-from PySide6.QtGui import QFont, QFontDatabase, QFontMetrics
+from PySide6.QtGui import QFont, QFontDatabase
 
 # Gestor centralizado de la conexión con el controlador Aerotech Automation1-iSMC
 from src.aerotech_controller import AerotechController
@@ -107,15 +107,16 @@ class GlobalStatusPanel(QFrame):
         top_row.addStretch(1)
 
         # Laser stop — corta la salida PSO y avisa a las páginas suscritas.
-        # Tamaño fijo (no solo mínimo) para que el layout nunca lo comprima
-        # por debajo de lo necesario para leer el texto completo. El ancho
-        # se calcula a partir del texto real (QFontMetrics) en vez de un
-        # número fijo adivinado, para que no vuelva a quedar recortado si
-        # cambia la fuente o el texto del botón.
+        # Ancho mínimo fijo y generoso (el cálculo dinámico vía QFontMetrics
+        # no fue suficiente — seguía leyéndose recortado). setMinimumWidth
+        # explícito en el propio botón, sin stretch factor en top_row que
+        # pueda comprimirlo, y min-width repetido en el QSS de instancia
+        # para que ninguna regla de QSS global con mayor prioridad de
+        # cascada lo reduzca por debajo de este mínimo.
         self.laser_stop_btn = QPushButton("Laser stop")
         self.laser_stop_btn.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        button_width = QFontMetrics(self.laser_stop_btn.font()).horizontalAdvance(self.laser_stop_btn.text()) + 60
-        self.laser_stop_btn.setMinimumSize(QSize(button_width, 48))
+        self.laser_stop_btn.setMinimumWidth(180)
+        self.laser_stop_btn.setMinimumHeight(48)
         self.laser_stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.laser_stop_btn.setStyleSheet("""
             QPushButton {
@@ -124,12 +125,14 @@ class GlobalStatusPanel(QFrame):
                 border: 2px solid #DA190B;
                 border-radius: 8px;
                 padding: 8px 18px;
+                min-width: 180px;
+                min-height: 48px;
             }
             QPushButton:hover { background-color: #DA190B; }
             QPushButton:pressed { background-color: #B71C1C; }
         """)
         self.laser_stop_btn.clicked.connect(self._handle_laser_stop)
-        top_row.addWidget(self.laser_stop_btn)
+        top_row.addWidget(self.laser_stop_btn, 0)
 
         outer_layout.addLayout(top_row)
 
@@ -287,6 +290,13 @@ class MainWindow(QMainWindow):
         # gestiona de forma centralizada en UIExtensions (más abajo en este
         # mismo archivo, y en src/aerotech_controller.py), ya invocada
         # dentro de self.ui_ext.apply_all_modifications() más arriba.
+
+        # setupUi() deja mainPages en el índice 1 (manualPage añadido justo
+        # después de homePage en ui_interface.py) — se fuerza aquí a Home,
+        # y se sincroniza homeBtn en el menú lateral para que no quede
+        # manualBtn marcado como activo mientras se ve Home.
+        self.ui.mainPages.setCurrentWidget(self.ui.homePage)
+        self.ui.homeBtn.setChecked(True)
 
         # Muestra la ventana principal
         self.show()

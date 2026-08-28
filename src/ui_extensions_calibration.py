@@ -5,7 +5,7 @@
 
 from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QFont, QFontMetrics
-from PySide6.QtWidgets import QSizePolicy, QMessageBox
+from PySide6.QtWidgets import QSizePolicy, QMessageBox, QLabel, QVBoxLayout
 
 import config
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
@@ -65,12 +65,38 @@ class CalibrationPageExtensions:
         self.ui.labelZFocusStatus.setText(f"Current Z: {z:.3f} mm")
 
     @staticmethod
-    def _fit_button_width(button, padding=40):
+    def _fit_button_width(button, padding=24):
         """Ensancha el botón lo justo para que su texto (con la fuente ya
         aplicada) no se recorte por los lados — el ancho lo fijaba el
-        contenedor padre sin comprobar si el texto cabía."""
+        contenedor padre sin comprobar si el texto cabía. Padding ajustado
+        (antes 40) porque exigir el ancho de la frase completa en botones
+        que van en pareja (Corner 1/Corner 2) desbordaba el ancho del panel
+        lateral (08_ui_polish_fixes.md ronda 2, §3.3)."""
         text_width = QFontMetrics(button.font()).horizontalAdvance(button.text())
         button.setMinimumWidth(text_width + padding)
+
+    @staticmethod
+    def _enable_button_wrap(button, min_height, color_style="color: THEME.COLOR_TEXT_1;"):
+        """QPushButton no tiene wordWrap nativo — en vez de forzar el ancho
+        de la frase completa en una sola línea (lo que desbordaba el panel
+        lateral), se superpone un QLabel interno con wordWrap activado y se
+        vacía el texto propio del botón, para que el texto pueda partirse en
+        2 líneas dentro del ancho que dé el layout padre."""
+        text = button.text()
+        button.setText("")
+        button.setMinimumHeight(min_height)
+
+        label = QLabel(text, button)
+        label.setWordWrap(True)
+        label.setAlignment(Qt.AlignCenter)
+        label.setFont(button.font())
+        label.setAttribute(Qt.WA_TransparentForMouseEvents)
+        label.setStyleSheet(f"background: transparent; {color_style}")
+
+        layout = QVBoxLayout(button)
+        layout.setContentsMargins(6, 2, 6, 2)
+        layout.addWidget(label)
+        return label
 
     def setup_title(self):
         """Configura el título de la página"""
@@ -82,6 +108,7 @@ class CalibrationPageExtensions:
         # Título de la sección
         self.ui.label_23.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.label_23.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_23.setWordWrap(True)
 
         # Lectura de posición Z en vivo
         self.ui.labelZFocusStatus.setFont(QFont("Sitka Small", 10))
@@ -108,19 +135,20 @@ class CalibrationPageExtensions:
             }
         """
 
-        # Botón Z Up
+        # Botón Z Up — altura mayor + wrap (en vez de forzar el ancho de
+        # "Move Up" en una sola línea, que desbordaba el panel lateral)
         self.ui.zUpFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zUpFocusing.setStyleSheet(focus_button_style)
         self.ui.zUpFocusing.setIconSize(QSize(20, 20))
         self.ui.zUpFocusing.setText("Move Up")
-        self._fit_button_width(self.ui.zUpFocusing)
+        self._enable_button_wrap(self.ui.zUpFocusing, min_height=50)
 
         # Botón Z Down
         self.ui.zDownFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zDownFocusing.setStyleSheet(focus_button_style)
         self.ui.zDownFocusing.setIconSize(QSize(20, 20))
         self.ui.zDownFocusing.setText("Move Down")
-        self._fit_button_width(self.ui.zDownFocusing)
+        self._enable_button_wrap(self.ui.zDownFocusing, min_height=50)
 
         # Botón "Confirm focus" — visualmente separado de subir/bajar (ya
         # está en su propia fila, debajo del par Up/Down). Pulsación manual
@@ -147,7 +175,7 @@ class CalibrationPageExtensions:
             }
         """)
         self.ui.calibratedBtn.setText("Confirm focus")
-        self._fit_button_width(self.ui.calibratedBtn)
+        self._calibratedBtn_label = self._enable_button_wrap(self.ui.calibratedBtn, min_height=55)
 
         # Conectar señales
         self.ui.zUpFocusing.clicked.connect(self.handle_z_up_focusing)
@@ -159,6 +187,7 @@ class CalibrationPageExtensions:
         # Título de la sección
         self.ui.label_24.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.label_24.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_24.setWordWrap(True)
 
         # Estilo común para botones de calibración
         calibration_button_style = """
@@ -184,13 +213,13 @@ class CalibrationPageExtensions:
         self.ui.zeroXBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroXBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroXBtn.setText("Zero X Position")
-        self._fit_button_width(self.ui.zeroXBtn)
+        self._zeroXBtn_label = self._enable_button_wrap(self.ui.zeroXBtn, min_height=50)
 
         # Botón Zero Y
         self.ui.zeroYBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.zeroYBtn.setStyleSheet(calibration_button_style)
         self.ui.zeroYBtn.setText("Zero Y Position")
-        self._fit_button_width(self.ui.zeroYBtn)
+        self._zeroYBtn_label = self._enable_button_wrap(self.ui.zeroYBtn, min_height=50)
 
         # Conectar señales
         self.ui.zeroXBtn.clicked.connect(self.handle_zero_x)
@@ -202,6 +231,10 @@ class CalibrationPageExtensions:
     def setup_safety_window_section(self):
         self.ui.label_safetyWindowTitle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.label_safetyWindowTitle.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        # "Master Safety Window" se recortaba por el borde derecho del panel
+        # en vez de ajustar línea — provocaba scroll horizontal en toda la
+        # página (08_ui_polish_fixes.md ronda 2, §3.3)
+        self.ui.label_safetyWindowTitle.setWordWrap(True)
 
         for label in (self.ui.label_xMinField, self.ui.label_xMaxField,
                       self.ui.label_yMinField, self.ui.label_yMaxField):
@@ -400,8 +433,10 @@ class CalibrationPageExtensions:
         print("Calibration: Z position confirmed as focus (zeroed)")
         self.controller.zero_axis(AXIS_Z)
 
-        # Feedback visual
-        self.ui.calibratedBtn.setText("✓ Focus confirmed!")
+        # Feedback visual — el texto vive en el QLabel interno (wrap
+        # activado por _enable_button_wrap), no en el propio QPushButton
+        self._calibratedBtn_label.setText("✓ Focus confirmed!")
+        self._calibratedBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.calibratedBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
@@ -409,7 +444,7 @@ class CalibrationPageExtensions:
                 border: 2px solid #45a049;
                 border-radius: 8px;
                 padding: 10px;
-                min-height: 40px;
+                min-height: 55px;
                 font-weight: bold;
                 margin-top: 10px;
             }
@@ -420,8 +455,9 @@ class CalibrationPageExtensions:
         print("Calibration: Setting X position to zero")
         self.controller.zero_axis(AXIS_X)
 
-        # Feedback visual
-        self.ui.zeroXBtn.setText("✓ X = 0 Set")
+        # Feedback visual — el texto vive en el QLabel interno
+        self._zeroXBtn_label.setText("✓ X = 0 Set")
+        self._zeroXBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.zeroXBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
@@ -429,7 +465,7 @@ class CalibrationPageExtensions:
                 border: 2px solid #45a049;
                 border-radius: 8px;
                 padding: 10px;
-                min-height: 40px;
+                min-height: 50px;
                 font-weight: bold;
             }
         """)
@@ -439,8 +475,9 @@ class CalibrationPageExtensions:
         print("Calibration: Setting Y position to zero")
         self.controller.zero_axis(AXIS_Y)
 
-        # Feedback visual
-        self.ui.zeroYBtn.setText("✓ Y = 0 Set")
+        # Feedback visual — el texto vive en el QLabel interno
+        self._zeroYBtn_label.setText("✓ Y = 0 Set")
+        self._zeroYBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.zeroYBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
@@ -448,7 +485,7 @@ class CalibrationPageExtensions:
                 border: 2px solid #45a049;
                 border-radius: 8px;
                 padding: 10px;
-                min-height: 40px;
+                min-height: 50px;
                 font-weight: bold;
             }
         """)

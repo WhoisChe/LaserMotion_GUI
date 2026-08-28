@@ -182,7 +182,7 @@ class ManualPageExtensions:
     # ─────────────────────────────────────────────────────────────────────
     def handle_toggle_axis(self, axis):
         """Alterna habilitación/deshabilitación de un único eje (patrón de
-        connectBtn). El botón mantiene siempre el texto corto "Ena" — el
+        connectBtn). El botón mantiene siempre el texto "Enable" — el
         estado enabled/disabled ya lo indica el color vía QPushButton:checked
         (ver toggle_style en setup_axis_control_section)."""
         btn = {"X": self.ui.toggleXBtn, "Y": self.ui.toggleYBtn, "Z": self.ui.toggleZBtn}[axis]
@@ -260,12 +260,10 @@ class ManualPageExtensions:
             label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
             label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
-            # Etiquetas cortas ("Ena"/"Home") — con los 6 botones ya en una
-            # sola fila no hay ancho para "ENABLE"/"DISABLE" completos.
             toggle_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             toggle_btn.setMinimumHeight(40)
             toggle_btn.setStyleSheet(toggle_style)
-            toggle_btn.setText("Ena")
+            toggle_btn.setText("Enable")
 
             home_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             home_btn.setMinimumHeight(36)
