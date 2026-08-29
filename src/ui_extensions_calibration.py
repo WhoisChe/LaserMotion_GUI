@@ -3,9 +3,9 @@
 ## Modificaciones de diseño para la página de calibración
 ########################################################################
 
-from PySide6.QtCore import Qt, QSize, QTimer
-from PySide6.QtGui import QFont, QFontMetrics
-from PySide6.QtWidgets import QSizePolicy, QMessageBox, QLabel, QVBoxLayout
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QFont, QFontMetrics, QIcon
+from PySide6.QtWidgets import QSizePolicy, QMessageBox, QLabel, QVBoxLayout, QBoxLayout
 
 import config
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
@@ -76,12 +76,15 @@ class CalibrationPageExtensions:
         button.setMinimumWidth(text_width + padding)
 
     @staticmethod
-    def _enable_button_wrap(button, min_height, color_style="color: THEME.COLOR_TEXT_1;"):
+    def _enable_button_wrap(button, min_height, color_style=None):
         """QPushButton no tiene wordWrap nativo — en vez de forzar el ancho
         de la frase completa en una sola línea (lo que desbordaba el panel
         lateral), se superpone un QLabel interno con wordWrap activado y se
         vacía el texto propio del botón, para que el texto pueda partirse en
         2 líneas dentro del ancho que dé el layout padre."""
+        if color_style is None:
+            color_style = f"color: {config.THEME.COLOR_TEXT_1};"
+
         text = button.text()
         button.setText("")
         button.setMinimumHeight(min_height)
@@ -101,78 +104,84 @@ class CalibrationPageExtensions:
     def setup_title(self):
         """Configura el título de la página"""
         self.ui.label_10.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_10.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_10.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
     def setup_focusing_section(self):
         """Configura la sección de enfoque Z"""
         # Título de la sección
         self.ui.label_23.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.label_23.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_23.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_23.setWordWrap(True)
 
         # Lectura de posición Z en vivo
         self.ui.labelZFocusStatus.setFont(QFont("Sitka Small", 10))
-        self.ui.labelZFocusStatus.setStyleSheet("color: THEME.COLOR_ACCENT_3;")
+        self.ui.labelZFocusStatus.setStyleSheet(f"color: {config.THEME.COLOR_ACCENT_3};")
         self.ui.labelZFocusStatus.setText("Current Z: —")
 
-        # Estilo común para botones de enfoque
-        focus_button_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        # Estilo común para botones de enfoque — mismos colores/hover que
+        # Auto (setup_axis_control_section en ui_extensions_auto.py), para
+        # que todos los botones de la aplicación se comporten igual.
+        focus_button_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 5px;
                 padding: 8px;
                 min-height: 35px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_2;
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_2};
                 color: white;
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
-            QPushButton:pressed {
-                background-color: THEME.COLOR_ACCENT_1;
-            }
+                border: 2px solid {config.THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:pressed {{
+                background-color: {config.THEME.COLOR_ACCENT_1};
+            }}
         """
 
-        # Botón Z Up — altura mayor + wrap (en vez de forzar el ancho de
-        # "Move Up" en una sola línea, que desbordaba el panel lateral)
+        # Botón Z Up — altura mayor + wrap en 2 líneas (flecha arriba, texto
+        # debajo). El QIcon propio del botón (icon26 en ui_interface.py) se
+        # dibuja centrado en el botón en cuanto su texto queda vacío (lo hace
+        # _enable_button_wrap) y terminaba solapado con la palabra "Up"/"Down"
+        # del QLabel superpuesto — se quita el icono y la flecha pasa a ser la
+        # primera línea del propio texto envuelto.
+        self.ui.zUpFocusing.setIcon(QIcon())
         self.ui.zUpFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zUpFocusing.setStyleSheet(focus_button_style)
-        self.ui.zUpFocusing.setIconSize(QSize(20, 20))
-        self.ui.zUpFocusing.setText("Move Up")
-        self._enable_button_wrap(self.ui.zUpFocusing, min_height=50)
+        self.ui.zUpFocusing.setText("▲\nMove Up")
+        self._enable_button_wrap(self.ui.zUpFocusing, min_height=60)
 
         # Botón Z Down
+        self.ui.zDownFocusing.setIcon(QIcon())
         self.ui.zDownFocusing.setFont(QFont("Sitka Small", 10))
         self.ui.zDownFocusing.setStyleSheet(focus_button_style)
-        self.ui.zDownFocusing.setIconSize(QSize(20, 20))
-        self.ui.zDownFocusing.setText("Move Down")
-        self._enable_button_wrap(self.ui.zDownFocusing, min_height=50)
+        self.ui.zDownFocusing.setText("▼\nMove Down")
+        self._enable_button_wrap(self.ui.zDownFocusing, min_height=60)
 
         # Botón "Confirm focus" — visualmente separado de subir/bajar (ya
         # está en su propia fila, debajo del par Up/Down). Pulsación manual
         # explícita del usuario tras ajustar Z a ojo — no se infiere de
         # ninguna lectura automática.
         self.ui.calibratedBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.calibratedBtn.setStyleSheet("""
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
+        self.ui.calibratedBtn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
                 border: 2px solid #4CAF50;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 40px;
                 margin-top: 10px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
-            QPushButton:pressed {
+            }}
+            QPushButton:pressed {{
                 background-color: #45a049;
-            }
+            }}
         """)
         self.ui.calibratedBtn.setText("Confirm focus")
         self._calibratedBtn_label = self._enable_button_wrap(self.ui.calibratedBtn, min_height=55)
@@ -186,27 +195,36 @@ class CalibrationPageExtensions:
         """Configura la sección de calibración X-Y"""
         # Título de la sección
         self.ui.label_24.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.label_24.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_24.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_24.setWordWrap(True)
+        # El label tenía política de altura vertical Fixed (fijada en Qt
+        # Designer sobre el sizeHint de una sola línea, antes de activar
+        # wordWrap aquí) — al envolver a 2 líneas, el contenido no cabía en
+        # esa altura fija y las líneas se dibujaban superpuestas. Con
+        # Preferred, el layout recalcula la altura según el contenido.
+        label_24_policy = self.ui.label_24.sizePolicy()
+        label_24_policy.setVerticalPolicy(QSizePolicy.Policy.Preferred)
+        self.ui.label_24.setSizePolicy(label_24_policy)
 
-        # Estilo común para botones de calibración
-        calibration_button_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        # Estilo común para botones de calibración — mismos colores/hover
+        # que Auto, en vez de la variante naranja propia de esta página.
+        calibration_button_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 40px;
-            }
-            QPushButton:hover {
-                background-color: #FF9800;
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_2};
                 color: white;
-                border: 2px solid #F57C00;
-            }
-            QPushButton:pressed {
-                background-color: #F57C00;
-            }
+                border: 2px solid {config.THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:pressed {{
+                background-color: {config.THEME.COLOR_ACCENT_1};
+            }}
         """
 
         # Botón Zero X
@@ -230,7 +248,7 @@ class CalibrationPageExtensions:
     # ─────────────────────────────────────────────────────────────────────
     def setup_safety_window_section(self):
         self.ui.label_safetyWindowTitle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.label_safetyWindowTitle.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_safetyWindowTitle.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         # "Master Safety Window" se recortaba por el borde derecho del panel
         # en vez de ajustar línea — provocaba scroll horizontal en toda la
         # página (08_ui_polish_fixes.md ronda 2, §3.3)
@@ -239,44 +257,54 @@ class CalibrationPageExtensions:
         for label in (self.ui.label_xMinField, self.ui.label_xMaxField,
                       self.ui.label_yMinField, self.ui.label_yMaxField):
             label.setFont(QFont("Sitka Small", 9))
-            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
         for field in (self.ui.xMinField, self.ui.xMaxField, self.ui.yMinField, self.ui.yMaxField):
             field.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
-            field.setStyleSheet("""
-                QLineEdit {
-                    background-color: THEME.COLOR_BACKGROUND_2;
-                    color: THEME.COLOR_TEXT_1;
-                    border: 2px solid THEME.COLOR_ACCENT_3;
+            field.setStyleSheet(f"""
+                QLineEdit {{
+                    background-color: {config.THEME.COLOR_BACKGROUND_2};
+                    color: {config.THEME.COLOR_TEXT_1};
+                    border: 2px solid {config.THEME.COLOR_ACCENT_3};
                     border-radius: 5px;
-                }
+                }}
             """)
 
-        corner_button_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        # Mismo estilo que "Confirm focus" (calibratedBtn en
+        # setup_focusing_section) — no un estilo nuevo para estos dos.
+        corner_button_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid #4CAF50;
                 border-radius: 8px;
-                padding: 8px;
-                min-height: 32px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_2;
+                padding: 10px;
+                min-height: 50px;
+                margin-top: 10px;
+            }}
+            QPushButton:hover {{
+                background-color: #4CAF50;
                 color: white;
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
+                border: 2px solid #45a049;
+            }}
+            QPushButton:pressed {{
+                background-color: #45a049;
+            }}
         """
-        # Etiquetas acortadas ("Set corner 1/2" se recortaba por los bordes
-        # en el ancho disponible del panel lateral)
+        # Apilados verticalmente (antes en horizontal, uno al lado del otro,
+        # competían por ancho en el panel lateral estrecho y "Corner 1"/
+        # "Corner 2" se recortaban pese al ancho mínimo fijo ya probado en
+        # 11_style_unification.md) — mismo QHBoxLayout ya definido en
+        # ui_interface.py, solo se le cambia la dirección, así cada botón usa
+        # todo el ancho disponible del panel.
+        self.ui.horizontalLayout_safetyWindowButtons.setDirection(QBoxLayout.Direction.TopToBottom)
+
         self.ui.setCorner1Btn.setText("Corner 1")
-        self.ui.setCorner1Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.setCorner1Btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.setCorner1Btn.setStyleSheet(corner_button_style)
-        self._fit_button_width(self.ui.setCorner1Btn)
         self.ui.setCorner2Btn.setText("Corner 2")
-        self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.setCorner2Btn.setStyleSheet(corner_button_style)
-        self._fit_button_width(self.ui.setCorner2Btn)
 
         self.ui.setCorner1Btn.clicked.connect(self.capture_corner_1)
         self.ui.setCorner2Btn.clicked.connect(self.capture_corner_2)
@@ -348,43 +376,56 @@ class CalibrationPageExtensions:
         self.ui.alignmentModeToggle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.alignmentModeToggle.setMinimumHeight(40)
         self._fit_button_width(self.ui.alignmentModeToggle)
-        self.ui.alignmentModeToggle.setStyleSheet("""
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        self.ui.alignmentModeToggle.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
-            }
-            QPushButton:checked {
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_2};
+                color: white;
+                border: 2px solid {config.THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:checked {{
                 background-color: #FFA726;
                 color: white;
                 border: 2px solid #FB8C00;
-            }
+            }}
         """)
 
-        self.ui.label_alignmentPower.setFont(QFont("Sitka Small", 9))
-        self.ui.label_alignmentPower.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        self.ui.label_alignmentPower.setText(f"Capped at {config.ALIGNMENT_MODE_MAX_POWER_PERCENT}%")
+        # El tope de potencia (config.ALIGNMENT_MODE_MAX_POWER_PERCENT) se
+        # sigue aplicando igual en _start_alignment_firing(); label_alignmentPower
+        # solo anunciaba el número en pantalla, ya no se muestra.
+        self.ui.label_alignmentPower.setText("")
+        self.ui.label_alignmentPower.hide()
 
-        self.ui.alignmentFireBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.alignmentFireBtn.setMinimumHeight(40)
+        # Mismo tamaño/estilo que "Laser ON" (laserFireBtn) en Manual —
+        # ver setup_laser_power_section() en ui_extensions_manual.py.
+        # :disabled se añade aparte porque, a diferencia de laserFireBtn,
+        # alignmentFireBtn empieza deshabilitado hasta activar Alignment mode.
+        self.ui.alignmentFireBtn.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
+        self.ui.alignmentFireBtn.setMinimumSize(150, 60)
         self.ui.alignmentFireBtn.setEnabled(False)
-        self._fit_button_width(self.ui.alignmentFireBtn)
-        self.ui.alignmentFireBtn.setStyleSheet("""
-            QPushButton {
+        self.ui.alignmentFireBtn.setStyleSheet(f"""
+            QPushButton {{
                 background-color: #F44336;
                 color: white;
                 border: 2px solid #DA190B;
-                border-radius: 8px;
-            }
-            QPushButton:disabled {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
-            }
-            QPushButton:hover:!disabled {
+                border-radius: 10px;
+            }}
+            QPushButton:hover:!disabled {{
                 background-color: #DA190B;
-            }
+            }}
+            QPushButton:pressed:!disabled {{
+                background-color: #B71C1C;
+            }}
+            QPushButton:disabled {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
+            }}
         """)
 
         self.ui.alignmentModeToggle.clicked.connect(self.handle_alignment_mode_toggle)

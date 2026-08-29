@@ -27,3 +27,18 @@ DEFAULT_ACCELERATION_MM_S2 = {"X": 100.0, "Y": 100.0, "Z": 100.0}
 # suficiente para ver el punto del láser sin quemar/marcar la pieza mientras
 # se alinea. Ajustar según sensibilidad del material usado en el laboratorio.
 ALIGNMENT_MODE_MAX_POWER_PERCENT = 8
+
+
+class THEME:
+    """Paleta de colores de la interfaz. Debe mantenerse en sincronía con
+    Qss/scss/_variables.scss (fichero autogenerado a partir de
+    json-styles/style.json) — si se cambia la paleta ahí, actualizar también
+    aquí."""
+    COLOR_BACKGROUND_1 = "#F7F5EE"
+    COLOR_BACKGROUND_2 = "#EAE8E2"
+    COLOR_BACKGROUND_3 = "#DEDCD6"
+    COLOR_TEXT_1 = "#06112B"
+    COLOR_TEXT_2 = "#374055"
+    COLOR_ACCENT_1 = "#015185"
+    COLOR_ACCENT_2 = "#33739D"
+    COLOR_ACCENT_3 = "#6696B5"

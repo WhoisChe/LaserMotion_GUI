@@ -7,6 +7,8 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QSizePolicy, QGraphicsDropShadowEffect, QFrame
 from PySide6.QtGui import QColor
 
+import config
+
 # Colores fijos usados por los LEDs de estado (no dependen del tema visual
 # activo, para que el semáforo se lea igual en cualquier tema). Reutilizados
 # también por ManualPageExtensions (ver src/ui_extensions_manual.py).
@@ -108,12 +110,12 @@ class HomePageExtensions:
 
         # Título
         self.ui.laserTitleLabel.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
-        self.ui.laserTitleLabel.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.laserTitleLabel.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.laserTitleLabel.setText("Laser Output:")
 
         # Indicador ON/OFF
         self.ui.labelLaserState.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        self.ui.labelLaserState.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.labelLaserState.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self._led_laser_state = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Laser output state")
         self.ui.horizontalLayout_laserState.insertWidget(0, self._led_laser_state)
         self.ui.horizontalLayout_laserState.setSpacing(10)

@@ -317,3 +317,246 @@
 2026-08-19 18:39:51,717 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
 2026-08-19 18:39:52,237 - INFO - Checking icons for qt designer app.
 2026-08-19 18:39:53,194 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 09:37:47,156 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 09:37:47,157 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 09:37:47,548 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 09:37:47,756 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 09:37:47,967 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 09:37:48,180 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 09:37:48,405 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 09:37:48,632 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 09:37:48,856 - INFO - Checking icons for qt designer app.
+2026-08-29 09:37:49,080 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:01:40,987 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:01:40,987 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:01:41,367 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:01:41,554 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:01:41,740 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:01:41,921 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:01:42,110 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:01:42,300 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:01:42,500 - INFO - Checking icons for qt designer app.
+2026-08-29 10:01:42,694 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:08:35,770 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:08:35,770 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:08:36,113 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:08:36,294 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:08:36,476 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:08:36,655 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:08:36,910 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:08:37,107 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:08:37,313 - INFO - Checking icons for qt designer app.
+2026-08-29 10:08:37,520 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:31:44,819 - ERROR - Error loading your JSON files: 'C:\Users\chinq\AppData\Local\Temp\claude\c--Users-chinq-Documents-Python-PyQt6-CodeOnly\aab85c32-b7ca-4fc5-9fd9-fb6a542ff6bd\scratchpad\json-styles\style.json' does not exist
+2026-08-29 10:32:06,254 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:32:06,254 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:32:06,596 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:32:07,124 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:32:07,240 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:32:07,365 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:32:07,477 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:32:07,597 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:32:07,712 - INFO - Checking icons for qt designer app.
+2026-08-29 10:36:27,294 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:36:27,298 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:36:27,632 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:36:27,932 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:36:28,134 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:36:28,315 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:36:28,549 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:36:28,871 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:36:29,158 - INFO - Checking icons for qt designer app.
+2026-08-29 10:36:52,723 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:36:52,728 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:36:53,379 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:36:53,960 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:36:54,355 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:36:54,683 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:36:54,933 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:36:55,144 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:36:55,416 - INFO - Checking icons for qt designer app.
+2026-08-29 10:37:31,679 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:37:31,679 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:37:32,013 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:37:32,285 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:37:32,456 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:37:32,590 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:37:32,712 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:37:32,826 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:37:32,944 - INFO - Checking icons for qt designer app.
+2026-08-29 10:38:00,255 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:38:00,257 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:38:00,568 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:38:00,783 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:38:00,931 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:38:01,067 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:38:01,199 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:38:01,311 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:38:01,418 - INFO - Checking icons for qt designer app.
+2026-08-29 10:38:52,718 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:38:52,718 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:38:53,004 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:38:53,146 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:38:53,276 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:38:53,406 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:38:53,544 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:38:53,684 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:38:53,893 - INFO - Checking icons for qt designer app.
+2026-08-29 10:38:54,028 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:39:37,487 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:39:37,487 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:39:37,764 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:39:37,909 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:39:38,035 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:39:38,166 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:39:38,300 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:39:38,424 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:39:38,554 - INFO - Checking icons for qt designer app.
+2026-08-29 10:39:38,694 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:40:19,464 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:40:19,464 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:40:19,739 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:40:19,893 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:40:20,032 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:40:20,161 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:40:20,292 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:40:20,417 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:40:20,548 - INFO - Checking icons for qt designer app.
+2026-08-29 10:40:20,700 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:41:47,314 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:41:47,314 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:41:47,597 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:41:47,753 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:41:47,891 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:41:48,030 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:41:48,164 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:41:48,300 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:41:48,429 - INFO - Checking icons for qt designer app.
+2026-08-29 10:41:48,605 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:47:26,839 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:47:26,839 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:47:27,194 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:47:27,393 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:47:27,587 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:47:27,773 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:47:27,975 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:47:28,187 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:47:28,385 - INFO - Checking icons for qt designer app.
+2026-08-29 10:47:28,573 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 10:51:31,212 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 10:51:31,214 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 10:51:31,857 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:51:32,065 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:51:32,277 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:51:32,699 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 10:51:33,144 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 10:51:33,647 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 10:51:34,055 - INFO - Checking icons for qt designer app.
+2026-08-29 10:51:34,449 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 11:09:44,940 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:09:44,940 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:09:45,215 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:09:45,354 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:09:45,476 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:09:45,599 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:09:45,711 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:09:45,816 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:09:45,917 - INFO - Checking icons for qt designer app.
+2026-08-29 11:14:18,423 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:14:18,424 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:14:18,700 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:14:18,845 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:14:18,978 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:14:19,104 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:14:19,241 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:14:19,378 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:14:19,495 - INFO - Checking icons for qt designer app.
+2026-08-29 11:14:19,633 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 11:15:26,675 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:15:26,675 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:15:26,963 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:15:27,124 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:15:27,266 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:15:27,394 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:15:27,526 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:15:27,658 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:15:27,787 - INFO - Checking icons for qt designer app.
+2026-08-29 11:15:27,910 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 11:16:43,189 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:16:43,199 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:16:43,481 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:16:43,629 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:16:43,759 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:16:43,903 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:16:44,048 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:16:44,187 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:16:44,337 - INFO - Checking icons for qt designer app.
+2026-08-29 11:16:44,484 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 11:17:56,562 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:17:56,562 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:17:56,974 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:17:57,178 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:17:57,332 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:17:57,558 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:17:57,827 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:17:58,166 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:22:55,065 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 11:22:55,066 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 11:22:55,459 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:22:55,678 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:22:55,878 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:22:56,083 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 11:22:56,397 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 11:22:56,865 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 11:22:57,306 - INFO - Checking icons for qt designer app.
+2026-08-29 11:22:57,787 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 12:25:00,464 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 12:25:00,464 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 12:25:00,775 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:25:00,926 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:25:01,063 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:25:01,200 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:25:01,334 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:25:01,469 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:25:01,600 - INFO - Checking icons for qt designer app.
+2026-08-29 12:25:01,743 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 12:26:04,338 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 12:26:04,339 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 12:26:04,679 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:26:04,938 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:26:05,102 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:26:05,234 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:26:05,368 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:26:05,500 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:26:05,632 - INFO - Checking icons for qt designer app.
+2026-08-29 12:26:05,801 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 12:28:33,431 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 12:28:33,434 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 12:28:33,876 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:28:34,085 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:28:34,305 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:28:34,537 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:28:34,777 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:28:34,987 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:28:35,222 - INFO - Checking icons for qt designer app.
+2026-08-29 12:28:35,437 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 12:29:47,514 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 12:29:47,514 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 12:29:47,880 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:29:48,075 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:29:48,275 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:29:48,465 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:29:48,697 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:29:48,930 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:29:49,163 - INFO - Checking icons for qt designer app.
+2026-08-29 12:29:49,394 - INFO - all icons have been checked and missing icons generated!
+2026-08-29 12:30:24,387 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-29 12:30:24,390 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-29 12:30:24,755 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:30:24,955 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:30:25,161 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:30:25,366 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-29 12:30:25,590 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-29 12:30:25,797 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-29 12:30:26,012 - INFO - Checking icons for qt designer app.
+2026-08-29 12:30:26,219 - INFO - all icons have been checked and missing icons generated!

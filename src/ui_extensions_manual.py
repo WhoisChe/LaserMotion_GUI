@@ -10,9 +10,94 @@ from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z, NEJE_B30635_MAX_POWE
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
-# Borde naranja para Velocity mientras el valor en pantalla no coincide con
-# el valor realmente aplicado a los movimientos (ver 02_manual.md §2.2).
-PENDING_BORDER_STYLE = "QDoubleSpinBox { border: 2px solid #FFA726; }"
+# Fondo azul oscuro / texto claro, igual al que ya se ve bien en los campos
+# de posición de Auto (spX/spY/spZ) — ahí lo da gratis el QSS global
+# (QDoubleSpinBox#... con selector #autoPage), pero el mismo selector con
+# #manualPage deja de aplicarse de forma fiable desde que manualPage es un
+# QScrollArea (ronda 2 de 14_parche_visual, PROGRESO.md); replicado aquí en
+# línea para no depender de esa cascada.
+DARK_FIELD_STYLE = """
+    QSpinBox, QDoubleSpinBox {
+        background-color: #06112B;
+        color: #EAE8E2;
+        border-radius: 5px;
+        padding: 5px;
+        min-width: 100px;
+    }
+    QSpinBox:hover, QDoubleSpinBox:hover {
+        border: 2px solid #DEDCD6;
+        color: #06112B;
+    }
+    QSpinBox:focus, QDoubleSpinBox:focus {
+        border: 2px solid #DEDCD6;
+        background-color: #EAE8E2;
+        color: #06112B;
+    }
+"""
+DARK_COMBO_STYLE = """
+    QComboBox {
+        background-color: #06112B;
+        color: #EAE8E2;
+        border-radius: 5px;
+        padding: 5px;
+        min-width: 120px;
+    }
+    QComboBox:hover {
+        border: 2px solid #DEDCD6;
+    }
+    QComboBox::drop-down {
+        border: none;
+    }
+"""
+DARK_CONFIRM_BTN_STYLE = """
+    QPushButton {
+        background-color: #06112B;
+        color: #EAE8E2;
+        border-radius: 8px;
+        padding: 8px;
+    }
+    QPushButton:hover {
+        background-color: #015185;
+    }
+    QPushButton:pressed {
+        background-color: #015185;
+    }
+"""
+# Velocity combina el fondo oscuro de base con el borde naranja de "cambio
+# sin confirmar" (antes PENDING_BORDER_STYLE sustituía el stylesheet entero
+# y perdía el fondo oscuro mientras había un cambio pendiente).
+VELOCITY_PENDING_STYLE = DARK_FIELD_STYLE + "QDoubleSpinBox { border: 2px solid #FFA726; }"
+
+# D-pad XY y Z+/Z- (botones de icono, sin texto) — el QSS global
+# (generated-files/css/main.css) SÍ define hover para #xyUpBtn/#xyDownBtn/
+# #xyLeftBtn/#xyRightBtn/#zUpBtn/#zDownBtn con selector "#manualPage ...",
+# pero, igual que scaleList/velocity/confirmBtn más arriba, deja de aplicarse
+# de forma fiable desde que manualPage es un QScrollArea — replicado en línea.
+DPAD_ARROW_STYLE = """
+    QPushButton {
+        background-color: transparent;
+        border: 2px solid #015185;
+    }
+    QPushButton:hover {
+        background-color: #33739D;
+        border: 2px solid #015185;
+    }
+    QPushButton:pressed {
+        background-color: #015185;
+    }
+"""
+DPAD_CENTER_STYLE = """
+    QPushButton {
+        background-color: #015185;
+        border-radius: 15px;
+    }
+    QPushButton:hover {
+        background-color: #33739D;
+    }
+    QPushButton:pressed {
+        background-color: white;
+    }
+"""
 
 
 class ManualPageExtensions:
@@ -223,42 +308,42 @@ class ManualPageExtensions:
             (self.ui.labelAxisZ, self.ui.toggleZBtn, self.ui.homeZBtn),
         ]
 
-        toggle_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        toggle_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_2;
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_2};
                 color: white;
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
-            QPushButton:checked {
+                border: 2px solid {config.THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:checked {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
+            }}
         """
-        home_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        home_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_1;
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_1};
                 color: white;
-            }
+            }}
         """
 
         for label, toggle_btn, home_btn in axis_specs:
             label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
-            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
             toggle_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             toggle_btn.setMinimumHeight(40)
@@ -273,13 +358,24 @@ class ManualPageExtensions:
         """Configura la sección de movimiento XYZ"""
         # Título de Moviviento XYZ
         self.ui.label_19.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_19.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_19.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
         # Configurar selector de escala y velocidad (ya no hay aceleración)
         self.ui.label_31.setFont(QFont("Sitka Small", 10))
         self.setup_scale_selector()
         self.ui.label_32.setFont(QFont("Sitka Small", 10))
         self.setup_velocity_selector()
+
+        self.setup_dpad_style()
+
+    def setup_dpad_style(self):
+        """Aplica hover/pressed al D-pad XY y a Z+/Z- (ver DPAD_ARROW_STYLE
+        más arriba) — sin esto, los botones de icono no cambiaban de color
+        al pasar el ratón."""
+        for btn in (self.ui.xyUpBtn, self.ui.xyDownBtn, self.ui.xyLeftBtn,
+                    self.ui.xyRightBtn, self.ui.zUpBtn, self.ui.zDownBtn):
+            btn.setStyleSheet(DPAD_ARROW_STYLE)
+        self.ui.xyZeroBtn.setStyleSheet(DPAD_CENTER_STYLE)
 
     def setup_scale_selector(self):
         """Configura el selector de escala y su multiplicador ×N"""
@@ -300,12 +396,15 @@ class ManualPageExtensions:
         # Seleccionar mm por defecto
         self.ui.scaleList.setCurrentIndex(2)
 
-        # Estilo
+        # Estilo — mismo fondo oscuro/texto claro que Auto en sus campos de
+        # posición (ver DARK_COMBO_STYLE más arriba)
         self.ui.scaleList.setFont(QFont("Sitka Small", 10))
+        self.ui.scaleList.setStyleSheet(DARK_COMBO_STYLE)
 
         # Multiplicador ×N
         self.ui.scaleMultiplier.setFont(QFont("Sitka Small", 10))
         self.ui.scaleMultiplier.setToolTip("Jog step multiplier (scale × N)")
+        self.ui.scaleMultiplier.setStyleSheet(DARK_FIELD_STYLE)
 
     def setup_velocity_selector(self):
         """Configura el selector de velocidad"""
@@ -316,6 +415,10 @@ class ManualPageExtensions:
         self.ui.velocity.setDecimals(2)
         self.ui.velocity.setSuffix(" mm/s")
         self.ui.velocity.setValue(self._applied_velocity)
+        self.ui.velocity.setStyleSheet(DARK_FIELD_STYLE)
+
+        self.ui.confirmBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.confirmBtn.setStyleSheet(DARK_CONFIRM_BTN_STYLE)
 
     # ─────────────────────────────────────────────────────────────────────
     # Compuerta de confirmación de Velocity
@@ -323,7 +426,7 @@ class ManualPageExtensions:
     def _check_pending_changes(self):
         vel_pending = abs(self.ui.velocity.value() - self._applied_velocity) > 1e-9
 
-        self.ui.velocity.setStyleSheet(PENDING_BORDER_STYLE if vel_pending else "")
+        self.ui.velocity.setStyleSheet(VELOCITY_PENDING_STYLE if vel_pending else DARK_FIELD_STYLE)
         self.ui.confirmBtn.setText("Apply pending changes" if vel_pending else "Confirm")
 
     def confirm_values(self):
@@ -331,7 +434,7 @@ class ManualPageExtensions:
         (compuerta de confirmación real)."""
         self._applied_velocity = self.ui.velocity.value()
 
-        self.ui.velocity.setStyleSheet("")
+        self.ui.velocity.setStyleSheet(DARK_FIELD_STYLE)
         self.ui.confirmBtn.setText("Confirm")
 
         msg = QMessageBox()
@@ -348,19 +451,24 @@ class ManualPageExtensions:
     def setup_laser_power_section(self):
         """Configura el slider de consigna, el indicador y el botón de disparo"""
         self.ui.laserBoardPowerBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.laserBoardPowerBtn.setStyleSheet("""
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        self.ui.laserBoardPowerBtn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid {config.THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:checked {
+            }}
+            QPushButton:hover {{
+                background-color: {config.THEME.COLOR_ACCENT_2};
+                color: white;
+                border: 2px solid {config.THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:checked {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
+            }}
         """)
         self.ui.laserBoardPowerBtn.setChecked(False)
         self.ui.laserBoardPowerBtn.setText("Laser board power: OFF")
@@ -372,13 +480,13 @@ class ManualPageExtensions:
             "Power setpoint — not a real measurement, this is the command sent to the laser"
         )
         self.ui.labelLaserPowerManual.setMinimumWidth(120)
-        self.ui.labelLaserPowerManual.setStyleSheet("""
-            QLineEdit#labelLaserPowerManual {
+        self.ui.labelLaserPowerManual.setStyleSheet(f"""
+            QLineEdit#labelLaserPowerManual {{
                 background-color: transparent;
-                color: THEME.COLOR_TEXT_1;
+                color: {config.THEME.COLOR_TEXT_1};
                 font-weight: bold;
                 border: none;
-            }
+            }}
         """)
         self.ui.labelLaserPowerManual.setText("0% · 0 mW")
 

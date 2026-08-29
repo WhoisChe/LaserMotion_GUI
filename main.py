@@ -4,6 +4,8 @@
 
 import sys
 
+import config
+
 # Importar el archivo GUI
 from src.ui_interface import *
 
@@ -85,8 +87,11 @@ class GlobalStatusPanel(QFrame):
         self.setMinimumHeight(170)
         self.setMaximumHeight(230)
         self.setFrameShape(QFrame.StyledPanel)
+        # Mismo fondo que las tarjetas (COLOR_BACKGROUND_1, no BACKGROUND_2)
+        # para que el hueco entre tarjetas no se note como un tono distinto
+        # — todo el banner se lee como un único panel continuo.
         self.setStyleSheet(
-            "QFrame#globalStatusPanel { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 12px; }"
+            f"QFrame#globalStatusPanel {{ background-color: {config.THEME.COLOR_BACKGROUND_1}; border-radius: 12px; }}"
         )
 
         outer_layout = QVBoxLayout(self)
@@ -94,17 +99,46 @@ class GlobalStatusPanel(QFrame):
         outer_layout.setSpacing(16)
 
         # ── Fila superior: conexión + Laser Stop, en una sola fila ───────
+        # Ambos contenedores comparten el mismo fondo que las tarjetas de eje
+        # (COLOR_BACKGROUND_1) para que el banner se vea como un solo
+        # conjunto — "Laser stop" mantiene su relleno rojo (alerta
+        # intencional), solo se unifica el fondo del contenedor a su
+        # alrededor, no el botón en sí.
         top_row = QHBoxLayout()
         top_row.setSpacing(10)
+
+        connection_card = QFrame()
+        connection_card.setObjectName(u"connectionCard")
+        connection_card.setStyleSheet(f"""
+            QFrame#connectionCard {{
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border-radius: 10px;
+            }}
+        """)
+        connection_layout = QHBoxLayout(connection_card)
+        connection_layout.setContentsMargins(14, 10, 14, 10)
+        connection_layout.setSpacing(10)
 
         self._led_conexion = self._make_led(tooltip="Connection status with the iSMC")
         self.label_connection = QLabel("Disconnected")
         self.label_connection.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.label_connection.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        top_row.addWidget(self._led_conexion)
-        top_row.addWidget(self.label_connection)
+        self.label_connection.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        connection_layout.addWidget(self._led_conexion)
+        connection_layout.addWidget(self.label_connection)
+        top_row.addWidget(connection_card)
 
         top_row.addStretch(1)
+
+        laser_stop_card = QFrame()
+        laser_stop_card.setObjectName(u"laserStopCard")
+        laser_stop_card.setStyleSheet(f"""
+            QFrame#laserStopCard {{
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border-radius: 10px;
+            }}
+        """)
+        laser_stop_layout = QHBoxLayout(laser_stop_card)
+        laser_stop_layout.setContentsMargins(10, 8, 10, 8)
 
         # Laser stop — corta la salida PSO y avisa a las páginas suscritas.
         # Ancho mínimo fijo y generoso (el cálculo dinámico vía QFontMetrics
@@ -132,7 +166,8 @@ class GlobalStatusPanel(QFrame):
             QPushButton:pressed { background-color: #B71C1C; }
         """)
         self.laser_stop_btn.clicked.connect(self._handle_laser_stop)
-        top_row.addWidget(self.laser_stop_btn, 0)
+        laser_stop_layout.addWidget(self.laser_stop_btn)
+        top_row.addWidget(laser_stop_card, 0)
 
         outer_layout.addLayout(top_row)
 
@@ -149,24 +184,27 @@ class GlobalStatusPanel(QFrame):
         card.setMinimumHeight(110)
         card.setStyleSheet(f"""
             QFrame#axisCard_{axis} {{
-                background-color: THEME.COLOR_BACKGROUND_1;
-                border: 1px solid THEME.COLOR_ACCENT_3;
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border: none;
                 border-radius: 10px;
             }}
         """)
 
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(16, 16, 16, 16)
-        card_layout.setSpacing(14)
+        # Antes 14 — la fila de LEDs quedaba recortada por el borde inferior
+        # de la tarjeta con ese espaciado, dentro de la altura fija de la
+        # tarjeta (setMinimumHeight(110) más abajo).
+        card_layout.setSpacing(4)
 
         header_row = QHBoxLayout()
         axis_label = QLabel(axis)
         axis_label.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        axis_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        axis_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         axis_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         value_label = QLabel("—")
         value_label.setFont(QFont("Sitka Small", 12))
-        value_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        value_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         value_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         header_row.addWidget(axis_label)
         header_row.addStretch(1)
@@ -175,31 +213,35 @@ class GlobalStatusPanel(QFrame):
         self._axis_position_labels[axis] = value_label
 
         led_row = QHBoxLayout()
-        led_row.setSpacing(10)
+        led_row.setSpacing(14)
         for key, abbr, tooltip in self.INDICATORS:
-            led_row.addLayout(self._build_indicator_column(axis, key, abbr, tooltip))
+            led_row.addLayout(self._build_indicator_row(axis, key, abbr, tooltip))
         led_row.addStretch(1)
         card_layout.addLayout(led_row)
 
         return card
 
-    def _build_indicator_column(self, axis, key, label_text, tooltip):
-        """LED + su nombre completo debajo (Enabled/Homed/CW-CCW), para que
-        se sepa qué significa cada uno sin depender solo del toolTip."""
-        column = QVBoxLayout()
-        column.setSpacing(2)
+    def _build_indicator_row(self, axis, key, label_text, tooltip):
+        """LED junto a su nombre (Enabled/Homed/CW-CCW) en la misma línea, en
+        vez de debajo — diagnóstico (_diag_led_labels.py) confirmó que el
+        texto sí se asignaba, con tamaño y posición correctos, incluso
+        cuando no se leía en pantalla; layout en fila en vez de columna para
+        no depender de que una fila vertical estrecha dejara el texto pegado
+        al borde inferior de la tarjeta."""
+        row = QHBoxLayout()
+        row.setSpacing(5)
 
         led = self._make_led(size=12, tooltip=f"{tooltip} — axis {axis}")
         self._axis_leds[axis][key] = led
-        column.addWidget(led, 0, Qt.AlignHCenter)
+        row.addWidget(led, 0, Qt.AlignVCenter)
 
         text_label = QLabel(label_text)
-        text_label.setFont(QFont("Sitka Small", 7))
-        text_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
-        text_label.setAlignment(Qt.AlignCenter)
-        column.addWidget(text_label)
+        text_label.setFont(QFont("Sitka Small", 8))
+        text_label.setStyleSheet("color: #06112B;")
+        text_label.setAlignment(Qt.AlignVCenter)
+        row.addWidget(text_label, 0, Qt.AlignVCenter)
 
-        return column
+        return row
 
     def _handle_laser_stop(self):
         self.controller.stop_laser(cut_power=True)
