@@ -324,41 +324,41 @@ class AutoPageExtensions:
             (self.ui.labelAxisAutoY, self.ui.toggleAutoYBtn, self.ui.homeAutoYBtn),
             (self.ui.labelAxisAutoZ, self.ui.toggleAutoZBtn, self.ui.homeAutoZBtn),
         ]
-        toggle_style = f"""
-            QPushButton {{
-                background-color: {THEME.COLOR_BACKGROUND_2};
-                color: {THEME.COLOR_TEXT_1};
-                border: 2px solid {THEME.COLOR_ACCENT_3};
+        toggle_style = """
+            QPushButton {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
                 border-radius: 8px;
                 padding: 6px;
-            }}
-            QPushButton:hover {{
-                background-color: {THEME.COLOR_ACCENT_2};
+            }
+            QPushButton:hover {
+                background-color: THEME.COLOR_ACCENT_2;
                 color: white;
-                border: 2px solid {THEME.COLOR_ACCENT_1};
-            }}
-            QPushButton:checked {{
+                border: 2px solid THEME.COLOR_ACCENT_1;
+            }
+            QPushButton:checked {
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }}
+            }
         """
-        home_style = f"""
-            QPushButton {{
-                background-color: {THEME.COLOR_BACKGROUND_2};
-                color: {THEME.COLOR_TEXT_1};
-                border: 2px solid {THEME.COLOR_ACCENT_3};
+        home_style = """
+            QPushButton {
+                background-color: THEME.COLOR_BACKGROUND_2;
+                color: THEME.COLOR_TEXT_1;
+                border: 2px solid THEME.COLOR_ACCENT_3;
                 border-radius: 8px;
                 padding: 6px;
-            }}
-            QPushButton:hover {{
-                background-color: {THEME.COLOR_ACCENT_1};
+            }
+            QPushButton:hover {
+                background-color: THEME.COLOR_ACCENT_1;
                 color: white;
-            }}
+            }
         """
         for label, toggle_btn, home_btn in axis_specs:
             label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
-            label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
             toggle_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             toggle_btn.setMinimumHeight(40)
             toggle_btn.setStyleSheet(toggle_style)
@@ -369,7 +369,7 @@ class AutoPageExtensions:
 
     def setup_mode_selector(self):
         self.ui.label_autoMode.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_autoMode.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.ui.label_autoMode.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         self.ui.modeSelector.clear()
         self.ui.modeSelector.addItems([
             "Single point",
@@ -461,14 +461,14 @@ class AutoPageExtensions:
                       self.ui.label_bpStart, self.ui.label_bpEnd, self.ui.label_bpDistance,
                       self.ui.label_bpPattern, self.ui.label_bpTravelSpeed):
             label.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
-            label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
 
         for toggle in self._bit_toggles():
             toggle.setFont(QFont("Sitka Small", 9))
 
     def setup_preview_and_buttons(self):
         self.ui.label_autoPreview.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.label_autoPreview.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.ui.label_autoPreview.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         self.ui.gcodePreviewAuto.setStyleSheet("""
             QTextEdit {
                 background-color: #2B2B2B;

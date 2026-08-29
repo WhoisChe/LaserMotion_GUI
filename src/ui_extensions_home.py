@@ -108,12 +108,12 @@ class HomePageExtensions:
 
         # Título
         self.ui.laserTitleLabel.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
-        self.ui.laserTitleLabel.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.ui.laserTitleLabel.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         self.ui.laserTitleLabel.setText("Laser Output:")
 
         # Indicador ON/OFF
         self.ui.labelLaserState.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        self.ui.labelLaserState.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.ui.labelLaserState.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         self._led_laser_state = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Laser output state")
         self.ui.horizontalLayout_laserState.insertWidget(0, self._led_laser_state)
         self.ui.horizontalLayout_laserState.setSpacing(10)

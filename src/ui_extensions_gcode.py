@@ -269,7 +269,7 @@ class GCodePageExtensions:
     def setup_title(self):
         """Configura el tí­tulo de la página"""
         self.ui.label_9.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_9.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.ui.label_9.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         
     def setup_drag_drop_area(self):
         """Configura el área de drag and drop"""
@@ -278,7 +278,7 @@ class GCodePageExtensions:
         
         # Configurar label dentro del área
         self.ui.label_6.setFont(QFont("Sitka Small", 10))
-        self.ui.label_6.setStyleSheet(f"color: {THEME.COLOR_TEXT_2};")
+        self.ui.label_6.setStyleSheet("color: THEME.COLOR_TEXT_2;")
         self.ui.label_6.setText("Drag and drop your G-Code file here\nor click 'Select File' button")
         
         # Crear botón de eliminar archivo (inicialmente oculto)
@@ -336,12 +336,12 @@ class GCodePageExtensions:
                 if file_path.lower().endswith(('.gcode', '.nc', '.txt')):
                     event.acceptProposedAction()
                     # Cambiar apariencia
-                    self.ui.dragYdrop.setStyleSheet(f"""
-                        QFrame {{
-                            background-color: {THEME.COLOR_ACCENT_2};
-                            border: 3px dashed {THEME.COLOR_ACCENT_1};
+                    self.ui.dragYdrop.setStyleSheet("""
+                        QFrame {
+                            background-color: THEME.COLOR_ACCENT_2;
+                            border: 3px dashed THEME.COLOR_ACCENT_1;
                             border-radius: 15px;
-                        }}
+                        }
                     """)
         
     def drop_event(self, event: QDropEvent):
@@ -354,12 +354,12 @@ class GCodePageExtensions:
                 event.acceptProposedAction()
         
         # Restaurar apariencia normal
-        self.ui.dragYdrop.setStyleSheet(f"""
-            QFrame {{
-                background-color: {THEME.COLOR_BACKGROUND_3};
-                border: 3px dashed {THEME.COLOR_ACCENT_1};
+        self.ui.dragYdrop.setStyleSheet("""
+            QFrame {
+                background-color: THEME.COLOR_BACKGROUND_3;
+                border: 3px dashed THEME.COLOR_ACCENT_1;
                 border-radius: 15px;
-            }}
+            }
         """)
         
     def setup_buttons(self):
@@ -494,7 +494,7 @@ class GCodePageExtensions:
         
         # Resetear UI
         self.ui.label_6.setText("Drag and drop your G-Code file here\nor click 'Select File' button")
-        self.ui.label_6.setStyleSheet(f"color: {THEME.COLOR_TEXT_2};")
+        self.ui.label_6.setStyleSheet("color: THEME.COLOR_TEXT_2;")
         
         # Deshabilitar botones
         self.ui.startBtn.setEnabled(False)
@@ -534,26 +534,26 @@ class GCodeEditorDialog(QDialog):
         title_label = QLabel("G-Code Editor")
         title_label.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet(f"""
-            QLabel#titleLabel {{
+        title_label.setStyleSheet("""
+            QLabel#titleLabel {
                 background-color: #F5F5F5;
-                color: {THEME.COLOR_TEXT_1};
+                color: THEME.COLOR_TEXT_1;
                 padding: 10px;
                 border-radius: 5px;
-            }}
+            }
         """)
         layout.addWidget(title_label)
         
         # Información del archivo
         info_label = QLabel(f"File: {file_path}")
         info_label.setFont(QFont("Sitka Small", 9))
-        info_label.setStyleSheet(f"""
-            QLabel#infoLabel {{
+        info_label.setStyleSheet("""
+            QLabel#infoLabel {
                 background-color: #F5F5F5;
-                color: {THEME.COLOR_ACCENT_2};
+                color: THEME.COLOR_ACCENT_2;
                 padding: 5px;
                 border-radius: 3px;
-            }}
+            }
         """)
         layout.addWidget(info_label)
         
@@ -575,14 +575,14 @@ class GCodeEditorDialog(QDialog):
         # Información de ayuda
         help_label = QLabel("Tip: Edit your G-Code and click 'Save' to update the file")
         help_label.setFont(QFont("Sitka Small", 9))
-        help_label.setStyleSheet(f"""
-            QLabel#helpLabel {{
+        help_label.setStyleSheet("""
+            QLabel#helpLabel {
                 background-color: #F5F5F5;
-                color: {THEME.COLOR_ACCENT_2};
+                color: THEME.COLOR_ACCENT_2;
                 padding: 8px;
                 border-radius: 3px;
                 font-style: italic;
-            }}
+            }
         """)
         layout.addWidget(help_label)
         

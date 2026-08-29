@@ -86,7 +86,7 @@ class GlobalStatusPanel(QFrame):
         self.setMaximumHeight(230)
         self.setFrameShape(QFrame.StyledPanel)
         self.setStyleSheet(
-            f"QFrame#globalStatusPanel {{ background-color: {THEME.COLOR_BACKGROUND_2}; border-radius: 12px; }}"
+            "QFrame#globalStatusPanel { background-color: THEME.COLOR_BACKGROUND_2; border-radius: 12px; }"
         )
 
         outer_layout = QVBoxLayout(self)
@@ -100,7 +100,7 @@ class GlobalStatusPanel(QFrame):
         self._led_conexion = self._make_led(tooltip="Connection status with the iSMC")
         self.label_connection = QLabel("Disconnected")
         self.label_connection.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.label_connection.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        self.label_connection.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         top_row.addWidget(self._led_conexion)
         top_row.addWidget(self.label_connection)
 
@@ -149,8 +149,8 @@ class GlobalStatusPanel(QFrame):
         card.setMinimumHeight(110)
         card.setStyleSheet(f"""
             QFrame#axisCard_{axis} {{
-                background-color: {THEME.COLOR_BACKGROUND_1};
-                border: 1px solid {THEME.COLOR_ACCENT_3};
+                background-color: THEME.COLOR_BACKGROUND_1;
+                border: 1px solid THEME.COLOR_ACCENT_3;
                 border-radius: 10px;
             }}
         """)
@@ -162,11 +162,11 @@ class GlobalStatusPanel(QFrame):
         header_row = QHBoxLayout()
         axis_label = QLabel(axis)
         axis_label.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        axis_label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        axis_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         axis_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         value_label = QLabel("—")
         value_label.setFont(QFont("Sitka Small", 12))
-        value_label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        value_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         value_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         header_row.addWidget(axis_label)
         header_row.addStretch(1)
@@ -195,12 +195,8 @@ class GlobalStatusPanel(QFrame):
 
         text_label = QLabel(label_text)
         text_label.setFont(QFont("Sitka Small", 7))
-        text_label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
+        text_label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
         text_label.setAlignment(Qt.AlignCenter)
-        # Ancho mínimo fijo y generoso — "Enabled"/"Homed"/"CW/CCW" son más
-        # anchos que las abreviaturas de 3-4 letras que había antes, y sin
-        # esto la columna podía quedar más estrecha que el texto.
-        text_label.setMinimumWidth(46)
         column.addWidget(text_label)
 
         return column
