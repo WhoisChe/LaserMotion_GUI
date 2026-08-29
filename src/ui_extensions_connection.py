@@ -84,27 +84,27 @@ class ConnectionPageExtensions:
     def setup_title(self):
         """Configura el título de la página"""
         self.ui.label_11.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_11.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_11.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
 
     def setup_host_address_input(self):
         """Configura el campo de IP del controlador iSMC"""
         self.ui.label_21.setFont(QFont("Sitka Small", 10))
-        self.ui.label_21.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_21.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
         self.ui.label_21.setText("iSMC controller IP address")
 
         self.ui.hostAddressInput.setFont(QFont("Sitka Small", 10))
-        self.ui.hostAddressInput.setStyleSheet("""
-            QLineEdit {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        self.ui.hostAddressInput.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {THEME.COLOR_BACKGROUND_2};
+                color: {THEME.COLOR_TEXT_1};
+                border: 2px solid {THEME.COLOR_ACCENT_3};
                 border-radius: 5px;
                 padding: 8px;
                 min-height: 30px;
-            }
-            QLineEdit:focus {
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
+            }}
+            QLineEdit:focus {{
+                border: 2px solid {THEME.COLOR_ACCENT_1};
+            }}
         """)
 
         # Precargar con self.controller.host si ya hubo un intento de
@@ -118,27 +118,27 @@ class ConnectionPageExtensions:
         self.ui.connectBtn.setMinimumHeight(50)
         self.ui.connectBtn.setCheckable(True)
 
-        self.ui.connectBtn.setStyleSheet("""
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        self.ui.connectBtn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {THEME.COLOR_BACKGROUND_2};
+                color: {THEME.COLOR_TEXT_1};
+                border: 2px solid {THEME.COLOR_ACCENT_3};
                 border-radius: 10px;
                 padding: 12px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_2;
+            }}
+            QPushButton:hover {{
+                background-color: {THEME.COLOR_ACCENT_2};
                 color: white;
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
-            QPushButton:checked {
+                border: 2px solid {THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:checked {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
-            QPushButton:checked:hover {
+            }}
+            QPushButton:checked:hover {{
                 background-color: #45a049;
-            }
+            }}
         """)
 
         # Conectar señal

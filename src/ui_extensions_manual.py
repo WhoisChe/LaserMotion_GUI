@@ -223,42 +223,42 @@ class ManualPageExtensions:
             (self.ui.labelAxisZ, self.ui.toggleZBtn, self.ui.homeZBtn),
         ]
 
-        toggle_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        toggle_style = f"""
+            QPushButton {{
+                background-color: {THEME.COLOR_BACKGROUND_2};
+                color: {THEME.COLOR_TEXT_1};
+                border: 2px solid {THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_2;
+            }}
+            QPushButton:hover {{
+                background-color: {THEME.COLOR_ACCENT_2};
                 color: white;
-                border: 2px solid THEME.COLOR_ACCENT_1;
-            }
-            QPushButton:checked {
+                border: 2px solid {THEME.COLOR_ACCENT_1};
+            }}
+            QPushButton:checked {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
+            }}
         """
-        home_style = """
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        home_style = f"""
+            QPushButton {{
+                background-color: {THEME.COLOR_BACKGROUND_2};
+                color: {THEME.COLOR_TEXT_1};
+                border: 2px solid {THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:hover {
-                background-color: THEME.COLOR_ACCENT_1;
+            }}
+            QPushButton:hover {{
+                background-color: {THEME.COLOR_ACCENT_1};
                 color: white;
-            }
+            }}
         """
 
         for label, toggle_btn, home_btn in axis_specs:
             label.setFont(QFont("Sitka Small", 13, QFont.Weight.Bold))
-            label.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+            label.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
 
             toggle_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             toggle_btn.setMinimumHeight(40)
@@ -273,7 +273,7 @@ class ManualPageExtensions:
         """Configura la sección de movimiento XYZ"""
         # Título de Moviviento XYZ
         self.ui.label_19.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.label_19.setStyleSheet("color: THEME.COLOR_TEXT_1;")
+        self.ui.label_19.setStyleSheet(f"color: {THEME.COLOR_TEXT_1};")
 
         # Configurar selector de escala y velocidad (ya no hay aceleración)
         self.ui.label_31.setFont(QFont("Sitka Small", 10))
@@ -348,19 +348,19 @@ class ManualPageExtensions:
     def setup_laser_power_section(self):
         """Configura el slider de consigna, el indicador y el botón de disparo"""
         self.ui.laserBoardPowerBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
-        self.ui.laserBoardPowerBtn.setStyleSheet("""
-            QPushButton {
-                background-color: THEME.COLOR_BACKGROUND_2;
-                color: THEME.COLOR_TEXT_1;
-                border: 2px solid THEME.COLOR_ACCENT_3;
+        self.ui.laserBoardPowerBtn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {THEME.COLOR_BACKGROUND_2};
+                color: {THEME.COLOR_TEXT_1};
+                border: 2px solid {THEME.COLOR_ACCENT_3};
                 border-radius: 8px;
                 padding: 6px;
-            }
-            QPushButton:checked {
+            }}
+            QPushButton:checked {{
                 background-color: #4CAF50;
                 color: white;
                 border: 2px solid #45a049;
-            }
+            }}
         """)
         self.ui.laserBoardPowerBtn.setChecked(False)
         self.ui.laserBoardPowerBtn.setText("Laser board power: OFF")
@@ -372,13 +372,13 @@ class ManualPageExtensions:
             "Power setpoint — not a real measurement, this is the command sent to the laser"
         )
         self.ui.labelLaserPowerManual.setMinimumWidth(120)
-        self.ui.labelLaserPowerManual.setStyleSheet("""
-            QLineEdit#labelLaserPowerManual {
+        self.ui.labelLaserPowerManual.setStyleSheet(f"""
+            QLineEdit#labelLaserPowerManual {{
                 background-color: transparent;
-                color: THEME.COLOR_TEXT_1;
+                color: {THEME.COLOR_TEXT_1};
                 font-weight: bold;
                 border: none;
-            }
+            }}
         """)
         self.ui.labelLaserPowerManual.setText("0% · 0 mW")
 
