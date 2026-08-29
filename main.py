@@ -95,8 +95,11 @@ class GlobalStatusPanel(QFrame):
         )
 
         outer_layout = QVBoxLayout(self)
-        outer_layout.setContentsMargins(20, 14, 20, 14)
-        outer_layout.setSpacing(16)
+        outer_layout.setContentsMargins(20, 12, 20, 12)
+        # Antes 16 — dejaba menos alto disponible para la fila de tarjetas de
+        # eje (y sus LEDs) dentro de la altura máxima fija del panel
+        # (setMaximumHeight(230) más arriba).
+        outer_layout.setSpacing(6)
 
         # ── Fila superior: conexión + Laser Stop, en una sola fila ───────
         # Ambos contenedores comparten el mismo fondo que las tarjetas de eje

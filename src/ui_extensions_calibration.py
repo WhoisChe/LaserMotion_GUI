@@ -401,31 +401,28 @@ class CalibrationPageExtensions:
         self.ui.label_alignmentPower.setText("")
         self.ui.label_alignmentPower.hide()
 
-        # Mismo tamaño/estilo que "Laser ON" (laserFireBtn) en Manual —
-        # ver setup_laser_power_section() en ui_extensions_manual.py.
-        # :disabled se añade aparte porque, a diferencia de laserFireBtn,
-        # alignmentFireBtn empieza deshabilitado hasta activar Alignment mode.
+        # Mismo tamaño/estilo que "Laser ON" (laserFireBtn) en Manual, sin
+        # ninguna regla añadida — ver setup_laser_power_section() en
+        # ui_extensions_manual.py. Un ":disabled" con color propio (probado
+        # antes) dejaba el contorno en azul mientras no se activa Alignment
+        # mode; Qt ya atenúa un QPushButton deshabilitado por su cuenta sin
+        # necesidad de una regla QSS aparte, así que se quita del todo.
         self.ui.alignmentFireBtn.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
         self.ui.alignmentFireBtn.setMinimumSize(150, 60)
         self.ui.alignmentFireBtn.setEnabled(False)
-        self.ui.alignmentFireBtn.setStyleSheet(f"""
-            QPushButton {{
+        self.ui.alignmentFireBtn.setStyleSheet("""
+            QPushButton {
                 background-color: #F44336;
                 color: white;
                 border: 2px solid #DA190B;
                 border-radius: 10px;
-            }}
-            QPushButton:hover:!disabled {{
+            }
+            QPushButton:hover {
                 background-color: #DA190B;
-            }}
-            QPushButton:pressed:!disabled {{
+            }
+            QPushButton:pressed {
                 background-color: #B71C1C;
-            }}
-            QPushButton:disabled {{
-                background-color: {config.THEME.COLOR_BACKGROUND_2};
-                color: {config.THEME.COLOR_TEXT_1};
-                border: 2px solid {config.THEME.COLOR_ACCENT_3};
-            }}
+            }
         """)
 
         self.ui.alignmentModeToggle.clicked.connect(self.handle_alignment_mode_toggle)
