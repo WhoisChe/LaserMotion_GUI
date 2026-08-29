@@ -77,14 +77,15 @@ class AutoPageExtensions:
     # Control por eje: Enable/Disable + Home
     # ─────────────────────────────────────────────────────────────────────
     def handle_toggle_axis(self, axis):
+        """El botón mantiene siempre el texto "Enable" — el estado
+        enabled/disabled ya lo indica el color vía QPushButton:checked
+        (mismo patrón que Manual, ver ManualPageExtensions.handle_toggle_axis)."""
         btn = {"X": self.ui.toggleAutoXBtn, "Y": self.ui.toggleAutoYBtn, "Z": self.ui.toggleAutoZBtn}[axis]
         axis_const = AXIS_CONST[axis]
         if btn.isChecked():
             self.controller.enable_axes([axis_const])
-            btn.setText("DISABLE")
         else:
             self.controller.disable_axes([axis_const])
-            btn.setText("ENABLE")
 
     # ─────────────────────────────────────────────────────────────────────
     # Point array: gestión de pasadas
@@ -361,7 +362,7 @@ class AutoPageExtensions:
             toggle_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             toggle_btn.setMinimumHeight(40)
             toggle_btn.setStyleSheet(toggle_style)
-            toggle_btn.setText("ENABLE")
+            toggle_btn.setText("Enable")
             home_btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
             home_btn.setMinimumHeight(36)
             home_btn.setStyleSheet(home_style)

@@ -13,7 +13,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFrame,
     QGridLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
-    QMainWindow, QPushButton, QSizePolicy, QSlider, QSpacerItem,
+    QMainWindow, QPushButton, QScrollArea, QSizePolicy, QSlider, QSpacerItem,
     QSpinBox, QStackedWidget, QTextEdit, QVBoxLayout, QWidget)
 
 from Custom_Widgets.QCustomQStackedWidget import QCustomQStackedWidget
@@ -545,82 +545,93 @@ class Ui_MainWindow(object):
         self.horizontalLayout_18.addItem(self.horizontalSpacer_8)
 
         self.mainPages.addWidget(self.homePage)
-        self.manualPage = QWidget()
+        # QScrollArea en vez de QWidget plano — mismo patrón que
+        # calibrationPage (08_ui_polish_fixes.md §2.1): el D-pad XY, los
+        # controles Z y la columna del láser no siempre caben en el alto
+        # disponible en ventanas más pequeñas. El objectName "manualPage" se
+        # mantiene en el QScrollArea (no en el widget de contenido) porque
+        # la navegación del menú lateral (json-styles/style.json,
+        # "manualBtn": "manualPage") busca ese nombre dentro de mainPages.
+        self.manualPage = QScrollArea()
         self.manualPage.setObjectName(u"manualPage")
         sizePolicy4.setHeightForWidth(self.manualPage.sizePolicy().hasHeightForWidth())
         self.manualPage.setSizePolicy(sizePolicy4)
-        self.horizontalLayout_20 = QHBoxLayout(self.manualPage)
+        self.manualPage.setWidgetResizable(True)
+        self.manualPage.setFrameShape(QFrame.NoFrame)
+        self.manualPage.setStyleSheet(u"QScrollArea { background: transparent; border: none; }")
+        self.manualPage.viewport().setStyleSheet(u"background: transparent;")
+        self.manualPageContents = QWidget()
+        self.manualPageContents.setObjectName(u"manualPageContents")
+        self.horizontalLayout_20 = QHBoxLayout(self.manualPageContents)
         self.horizontalLayout_20.setObjectName(u"horizontalLayout_20")
-        self.movementManual = QWidget(self.manualPage)
+        self.movementManual = QWidget(self.manualPageContents)
         self.movementManual.setObjectName(u"movementManual")
         self.verticalLayout_22 = QVBoxLayout(self.movementManual)
         self.verticalLayout_22.setObjectName(u"verticalLayout_22")
         self.verticalLayout_22.setContentsMargins(30, -1, 25, -1)
+        # Spacing reducido (por defecto heredaba el del estilo, ~11px, y
+        # dejaba demasiado hueco entre "Movement XYZ" y Scale/Velocity) —
+        # sube la fila de Scale/Velocity y libera espacio para el D-pad.
+        self.verticalLayout_22.setSpacing(6)
 
-        # ── Control por eje: Enable/Disable + Home + LEDs de estado ─────
+        # ── Control por eje: Enable/Disable + Home ───────────────────────
+        # Fila 1: encabezados X/Y/Z, cada uno centrado sobre su pareja de
+        # botones. Fila 2: los 6 botones (Ena/Home × 3 ejes) en una sola
+        # fila — las columnas 2 y 5 son espaciadores más anchos que el
+        # spacing normal, para que se lea como 3 grupos de 2 botones y no
+        # como 6 botones sueltos.
         self.axisControlManual = QFrame(self.movementManual)
         self.axisControlManual.setObjectName(u"axisControlManual")
         self.axisControlManual.setFrameShape(QFrame.StyledPanel)
         self.axisControlManual.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_axisControl = QHBoxLayout(self.axisControlManual)
-        self.horizontalLayout_axisControl.setObjectName(u"horizontalLayout_axisControl")
+        self.gridLayout_axisControl = QGridLayout(self.axisControlManual)
+        self.gridLayout_axisControl.setObjectName(u"gridLayout_axisControl")
+        self.gridLayout_axisControl.setHorizontalSpacing(6)
+        self.gridLayout_axisControl.setVerticalSpacing(8)
 
-        self.axisControlX = QFrame(self.axisControlManual)
-        self.axisControlX.setObjectName(u"axisControlX")
-        self.axisControlX.setFrameShape(QFrame.StyledPanel)
-        self.axisControlX.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_axisControlX = QVBoxLayout(self.axisControlX)
-        self.verticalLayout_axisControlX.setObjectName(u"verticalLayout_axisControlX")
-        self.labelAxisX = QLabel(self.axisControlX)
+        self.labelAxisX = QLabel(self.axisControlManual)
         self.labelAxisX.setObjectName(u"labelAxisX")
         self.labelAxisX.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlX.addWidget(self.labelAxisX, 0, Qt.AlignHCenter)
-        self.toggleXBtn = QPushButton(self.axisControlX)
-        self.toggleXBtn.setObjectName(u"toggleXBtn")
-        self.toggleXBtn.setCheckable(True)
-        self.verticalLayout_axisControlX.addWidget(self.toggleXBtn)
-        self.homeXBtn = QPushButton(self.axisControlX)
-        self.homeXBtn.setObjectName(u"homeXBtn")
-        self.verticalLayout_axisControlX.addWidget(self.homeXBtn)
-        self.horizontalLayout_axisControl.addWidget(self.axisControlX)
+        self.gridLayout_axisControl.addWidget(self.labelAxisX, 0, 0, 1, 2, Qt.AlignHCenter)
 
-        self.axisControlY = QFrame(self.axisControlManual)
-        self.axisControlY.setObjectName(u"axisControlY")
-        self.axisControlY.setFrameShape(QFrame.StyledPanel)
-        self.axisControlY.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_axisControlY = QVBoxLayout(self.axisControlY)
-        self.verticalLayout_axisControlY.setObjectName(u"verticalLayout_axisControlY")
-        self.labelAxisY = QLabel(self.axisControlY)
+        self.labelAxisY = QLabel(self.axisControlManual)
         self.labelAxisY.setObjectName(u"labelAxisY")
         self.labelAxisY.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlY.addWidget(self.labelAxisY, 0, Qt.AlignHCenter)
-        self.toggleYBtn = QPushButton(self.axisControlY)
-        self.toggleYBtn.setObjectName(u"toggleYBtn")
-        self.toggleYBtn.setCheckable(True)
-        self.verticalLayout_axisControlY.addWidget(self.toggleYBtn)
-        self.homeYBtn = QPushButton(self.axisControlY)
-        self.homeYBtn.setObjectName(u"homeYBtn")
-        self.verticalLayout_axisControlY.addWidget(self.homeYBtn)
-        self.horizontalLayout_axisControl.addWidget(self.axisControlY)
+        self.gridLayout_axisControl.addWidget(self.labelAxisY, 0, 3, 1, 2, Qt.AlignHCenter)
 
-        self.axisControlZ = QFrame(self.axisControlManual)
-        self.axisControlZ.setObjectName(u"axisControlZ")
-        self.axisControlZ.setFrameShape(QFrame.StyledPanel)
-        self.axisControlZ.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_axisControlZ = QVBoxLayout(self.axisControlZ)
-        self.verticalLayout_axisControlZ.setObjectName(u"verticalLayout_axisControlZ")
-        self.labelAxisZ = QLabel(self.axisControlZ)
+        self.labelAxisZ = QLabel(self.axisControlManual)
         self.labelAxisZ.setObjectName(u"labelAxisZ")
         self.labelAxisZ.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlZ.addWidget(self.labelAxisZ, 0, Qt.AlignHCenter)
-        self.toggleZBtn = QPushButton(self.axisControlZ)
+        self.gridLayout_axisControl.addWidget(self.labelAxisZ, 0, 6, 1, 2, Qt.AlignHCenter)
+
+        self.toggleXBtn = QPushButton(self.axisControlManual)
+        self.toggleXBtn.setObjectName(u"toggleXBtn")
+        self.toggleXBtn.setCheckable(True)
+        self.gridLayout_axisControl.addWidget(self.toggleXBtn, 1, 0)
+        self.homeXBtn = QPushButton(self.axisControlManual)
+        self.homeXBtn.setObjectName(u"homeXBtn")
+        self.gridLayout_axisControl.addWidget(self.homeXBtn, 1, 1)
+
+        self.toggleYBtn = QPushButton(self.axisControlManual)
+        self.toggleYBtn.setObjectName(u"toggleYBtn")
+        self.toggleYBtn.setCheckable(True)
+        self.gridLayout_axisControl.addWidget(self.toggleYBtn, 1, 3)
+        self.homeYBtn = QPushButton(self.axisControlManual)
+        self.homeYBtn.setObjectName(u"homeYBtn")
+        self.gridLayout_axisControl.addWidget(self.homeYBtn, 1, 4)
+
+        self.toggleZBtn = QPushButton(self.axisControlManual)
         self.toggleZBtn.setObjectName(u"toggleZBtn")
         self.toggleZBtn.setCheckable(True)
-        self.verticalLayout_axisControlZ.addWidget(self.toggleZBtn)
-        self.homeZBtn = QPushButton(self.axisControlZ)
+        self.gridLayout_axisControl.addWidget(self.toggleZBtn, 1, 6)
+        self.homeZBtn = QPushButton(self.axisControlManual)
         self.homeZBtn.setObjectName(u"homeZBtn")
-        self.verticalLayout_axisControlZ.addWidget(self.homeZBtn)
-        self.horizontalLayout_axisControl.addWidget(self.axisControlZ)
+        self.gridLayout_axisControl.addWidget(self.homeZBtn, 1, 7)
+
+        self.gridLayout_axisControl.addItem(
+            QSpacerItem(20, 1, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum), 1, 2)
+        self.gridLayout_axisControl.addItem(
+            QSpacerItem(20, 1, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum), 1, 5)
 
         self.verticalLayout_22.addWidget(self.axisControlManual)
 
@@ -977,7 +988,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_20.addItem(self.horizontalSpacer_9)
 
-        self.shutterManual = QFrame(self.manualPage)
+        self.shutterManual = QFrame(self.manualPageContents)
         self.shutterManual.setObjectName(u"shutterManual")
         self.shutterManual.setFrameShape(QFrame.StyledPanel)
         self.shutterManual.setFrameShadow(QFrame.Raised)
@@ -1015,27 +1026,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_21.addItem(self.verticalSpacer_11)
 
-        self.laserOC = QLabel(self.shutterManual)
-        self.laserOC.setObjectName(u"laserOC")
-        sizePolicy9 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
-        sizePolicy9.setHorizontalStretch(0)
-        sizePolicy9.setVerticalStretch(0)
-        sizePolicy9.setHeightForWidth(self.laserOC.sizePolicy().hasHeightForWidth())
-        self.laserOC.setSizePolicy(sizePolicy9)
-        self.laserOC.setMinimumSize(QSize(80, 80))
-        self.laserOC.setMaximumSize(QSize(130, 130))
-        self.laserOC.setStyleSheet(u"")
-        self.laserOC.setPixmap(QPixmap(u"images/laserOC4.png"))
-        self.laserOC.setScaledContents(True)
-        self.laserOC.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
-        self.laserOC.setMargin(3)
-
-        self.verticalLayout_21.addWidget(self.laserOC)
-
-        self.verticalSpacer_12 = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_21.addItem(self.verticalSpacer_12)
-
         self.frame_7 = QFrame(self.shutterManual)
         self.frame_7.setObjectName(u"frame_7")
         sizePolicy4.setHeightForWidth(self.frame_7.sizePolicy().hasHeightForWidth())
@@ -1053,6 +1043,25 @@ class Ui_MainWindow(object):
         self.laserBoardPowerBtn.setMinimumSize(QSize(150, 40))
 
         self.verticalLayout_34.addWidget(self.laserBoardPowerBtn)
+
+        # laserOC entre "Laser board power" y el slider — no al principio de
+        # la columna (08_ui_polish_fixes.md ronda 2, §2.4)
+        self.laserOC = QLabel(self.frame_7)
+        self.laserOC.setObjectName(u"laserOC")
+        sizePolicy9 = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
+        sizePolicy9.setHorizontalStretch(0)
+        sizePolicy9.setVerticalStretch(0)
+        sizePolicy9.setHeightForWidth(self.laserOC.sizePolicy().hasHeightForWidth())
+        self.laserOC.setSizePolicy(sizePolicy9)
+        self.laserOC.setMinimumSize(QSize(80, 80))
+        self.laserOC.setMaximumSize(QSize(130, 130))
+        self.laserOC.setStyleSheet(u"")
+        self.laserOC.setPixmap(QPixmap(u"images/laserOC4.png"))
+        self.laserOC.setScaledContents(True)
+        self.laserOC.setAlignment(Qt.AlignCenter)
+        self.laserOC.setMargin(3)
+
+        self.verticalLayout_34.addWidget(self.laserOC, 0, Qt.AlignHCenter)
 
         self.laserPowerRow = QFrame(self.frame_7)
         self.laserPowerRow.setObjectName(u"laserPowerRow")
@@ -1100,6 +1109,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_20.addItem(self.horizontalSpacer_10)
 
+        self.manualPage.setWidget(self.manualPageContents)
         self.mainPages.addWidget(self.manualPage)
         self.autoPage = QWidget()
         self.autoPage.setObjectName(u"autoPage")
@@ -1110,64 +1120,62 @@ class Ui_MainWindow(object):
         self.verticalLayout_autoPage.setContentsMargins(20, 12, 20, 12)
 
         # ── Control por eje: Enable/Disable + Home (copia propia, Auto no
-        # comparte estos widgets con Manual) ────────────────────────────
+        # comparte estos widgets con Manual) — mismo patrón de fila única
+        # ya aplicado en Manual (08_ui_polish_fixes.md §3.1 / ronda 2 §4):
+        # fila de encabezados X/Y/Z, fila de 6 botones agrupados de dos en
+        # dos por eje. ─────────────────────────────────────────────────
         self.axisControlAuto = QFrame(self.autoPage)
         self.axisControlAuto.setObjectName(u"axisControlAuto")
         self.axisControlAuto.setFrameShape(QFrame.StyledPanel)
         self.axisControlAuto.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_axisControlAuto = QHBoxLayout(self.axisControlAuto)
-        self.horizontalLayout_axisControlAuto.setObjectName(u"horizontalLayout_axisControlAuto")
+        self.gridLayout_axisControlAuto = QGridLayout(self.axisControlAuto)
+        self.gridLayout_axisControlAuto.setObjectName(u"gridLayout_axisControlAuto")
+        self.gridLayout_axisControlAuto.setHorizontalSpacing(6)
+        self.gridLayout_axisControlAuto.setVerticalSpacing(8)
 
-        self.axisControlAutoX = QFrame(self.axisControlAuto)
-        self.axisControlAutoX.setObjectName(u"axisControlAutoX")
-        self.verticalLayout_axisControlAutoX = QVBoxLayout(self.axisControlAutoX)
-        self.verticalLayout_axisControlAutoX.setObjectName(u"verticalLayout_axisControlAutoX")
-        self.labelAxisAutoX = QLabel(self.axisControlAutoX)
+        self.labelAxisAutoX = QLabel(self.axisControlAuto)
         self.labelAxisAutoX.setObjectName(u"labelAxisAutoX")
         self.labelAxisAutoX.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlAutoX.addWidget(self.labelAxisAutoX, 0, Qt.AlignHCenter)
-        self.toggleAutoXBtn = QPushButton(self.axisControlAutoX)
-        self.toggleAutoXBtn.setObjectName(u"toggleAutoXBtn")
-        self.toggleAutoXBtn.setCheckable(True)
-        self.verticalLayout_axisControlAutoX.addWidget(self.toggleAutoXBtn)
-        self.homeAutoXBtn = QPushButton(self.axisControlAutoX)
-        self.homeAutoXBtn.setObjectName(u"homeAutoXBtn")
-        self.verticalLayout_axisControlAutoX.addWidget(self.homeAutoXBtn)
-        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoX)
+        self.gridLayout_axisControlAuto.addWidget(self.labelAxisAutoX, 0, 0, 1, 2, Qt.AlignHCenter)
 
-        self.axisControlAutoY = QFrame(self.axisControlAuto)
-        self.axisControlAutoY.setObjectName(u"axisControlAutoY")
-        self.verticalLayout_axisControlAutoY = QVBoxLayout(self.axisControlAutoY)
-        self.verticalLayout_axisControlAutoY.setObjectName(u"verticalLayout_axisControlAutoY")
-        self.labelAxisAutoY = QLabel(self.axisControlAutoY)
+        self.labelAxisAutoY = QLabel(self.axisControlAuto)
         self.labelAxisAutoY.setObjectName(u"labelAxisAutoY")
         self.labelAxisAutoY.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlAutoY.addWidget(self.labelAxisAutoY, 0, Qt.AlignHCenter)
-        self.toggleAutoYBtn = QPushButton(self.axisControlAutoY)
-        self.toggleAutoYBtn.setObjectName(u"toggleAutoYBtn")
-        self.toggleAutoYBtn.setCheckable(True)
-        self.verticalLayout_axisControlAutoY.addWidget(self.toggleAutoYBtn)
-        self.homeAutoYBtn = QPushButton(self.axisControlAutoY)
-        self.homeAutoYBtn.setObjectName(u"homeAutoYBtn")
-        self.verticalLayout_axisControlAutoY.addWidget(self.homeAutoYBtn)
-        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoY)
+        self.gridLayout_axisControlAuto.addWidget(self.labelAxisAutoY, 0, 3, 1, 2, Qt.AlignHCenter)
 
-        self.axisControlAutoZ = QFrame(self.axisControlAuto)
-        self.axisControlAutoZ.setObjectName(u"axisControlAutoZ")
-        self.verticalLayout_axisControlAutoZ = QVBoxLayout(self.axisControlAutoZ)
-        self.verticalLayout_axisControlAutoZ.setObjectName(u"verticalLayout_axisControlAutoZ")
-        self.labelAxisAutoZ = QLabel(self.axisControlAutoZ)
+        self.labelAxisAutoZ = QLabel(self.axisControlAuto)
         self.labelAxisAutoZ.setObjectName(u"labelAxisAutoZ")
         self.labelAxisAutoZ.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_axisControlAutoZ.addWidget(self.labelAxisAutoZ, 0, Qt.AlignHCenter)
-        self.toggleAutoZBtn = QPushButton(self.axisControlAutoZ)
+        self.gridLayout_axisControlAuto.addWidget(self.labelAxisAutoZ, 0, 6, 1, 2, Qt.AlignHCenter)
+
+        self.toggleAutoXBtn = QPushButton(self.axisControlAuto)
+        self.toggleAutoXBtn.setObjectName(u"toggleAutoXBtn")
+        self.toggleAutoXBtn.setCheckable(True)
+        self.gridLayout_axisControlAuto.addWidget(self.toggleAutoXBtn, 1, 0)
+        self.homeAutoXBtn = QPushButton(self.axisControlAuto)
+        self.homeAutoXBtn.setObjectName(u"homeAutoXBtn")
+        self.gridLayout_axisControlAuto.addWidget(self.homeAutoXBtn, 1, 1)
+
+        self.toggleAutoYBtn = QPushButton(self.axisControlAuto)
+        self.toggleAutoYBtn.setObjectName(u"toggleAutoYBtn")
+        self.toggleAutoYBtn.setCheckable(True)
+        self.gridLayout_axisControlAuto.addWidget(self.toggleAutoYBtn, 1, 3)
+        self.homeAutoYBtn = QPushButton(self.axisControlAuto)
+        self.homeAutoYBtn.setObjectName(u"homeAutoYBtn")
+        self.gridLayout_axisControlAuto.addWidget(self.homeAutoYBtn, 1, 4)
+
+        self.toggleAutoZBtn = QPushButton(self.axisControlAuto)
         self.toggleAutoZBtn.setObjectName(u"toggleAutoZBtn")
         self.toggleAutoZBtn.setCheckable(True)
-        self.verticalLayout_axisControlAutoZ.addWidget(self.toggleAutoZBtn)
-        self.homeAutoZBtn = QPushButton(self.axisControlAutoZ)
+        self.gridLayout_axisControlAuto.addWidget(self.toggleAutoZBtn, 1, 6)
+        self.homeAutoZBtn = QPushButton(self.axisControlAuto)
         self.homeAutoZBtn.setObjectName(u"homeAutoZBtn")
-        self.verticalLayout_axisControlAutoZ.addWidget(self.homeAutoZBtn)
-        self.horizontalLayout_axisControlAuto.addWidget(self.axisControlAutoZ)
+        self.gridLayout_axisControlAuto.addWidget(self.homeAutoZBtn, 1, 7)
+
+        self.gridLayout_axisControlAuto.addItem(
+            QSpacerItem(20, 1, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum), 1, 2)
+        self.gridLayout_axisControlAuto.addItem(
+            QSpacerItem(20, 1, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum), 1, 5)
 
         self.verticalLayout_autoPage.addWidget(self.axisControlAuto)
 
@@ -1787,14 +1795,34 @@ class Ui_MainWindow(object):
         self.verticalLayout_18.addWidget(self.connectBtn)
 
         self.rightMenuPages.addWidget(self.connectionPage)
-        self.calibrationPage = QWidget()
+        # QScrollArea en vez de QWidget plano: el contenido de esta página
+        # (enfoque + calibración XY + ventana de seguridad + alineación) no
+        # cabe siempre en el espacio disponible del panel lateral, así que
+        # se envuelve en scroll en vez de dejar que los widgets se compriman
+        # o se recorten. El objectName "calibrationPage" se mantiene en el
+        # QScrollArea (y no en el widget de contenido) porque la navegación
+        # del menú lateral (json-styles/style.json, "calibrationBtn":
+        # "calibrationPage") busca ese nombre dentro de rightMenuPages.
+        self.calibrationPage = QScrollArea()
         self.calibrationPage.setObjectName(u"calibrationPage")
         sizePolicy4.setHeightForWidth(self.calibrationPage.sizePolicy().hasHeightForWidth())
         self.calibrationPage.setSizePolicy(sizePolicy4)
-        self.verticalLayout_17 = QVBoxLayout(self.calibrationPage)
+        self.calibrationPage.setWidgetResizable(True)
+        self.calibrationPage.setFrameShape(QFrame.NoFrame)
+        # setFrameShape(NoFrame) por sí solo no basta — el viewport interno
+        # del QScrollArea sigue pintando su propio fondo (color de paleta
+        # base), distinto del fondo real detrás de rightMenuPages, así que
+        # se ven como dos cajas anidadas. Se hace transparente tanto el
+        # QScrollArea como su viewport para que se vea como una sola caja
+        # (08_ui_polish_fixes.md ronda 2, §3.2).
+        self.calibrationPage.setStyleSheet(u"QScrollArea { background: transparent; border: none; }")
+        self.calibrationPage.viewport().setStyleSheet(u"background: transparent;")
+        self.calibrationPageContents = QWidget()
+        self.calibrationPageContents.setObjectName(u"calibrationPageContents")
+        self.verticalLayout_17 = QVBoxLayout(self.calibrationPageContents)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
         self.verticalLayout_17.setContentsMargins(-1, -1, 0, -1)
-        self.label_10 = QLabel(self.calibrationPage)
+        self.label_10 = QLabel(self.calibrationPageContents)
         self.label_10.setObjectName(u"label_10")
         self.label_10.setFont(font2)
         self.label_10.setStyleSheet(u"")
@@ -1806,7 +1834,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_17.addItem(self.verticalSpacer_15)
 
-        self.frame_15 = QFrame(self.calibrationPage)
+        self.frame_15 = QFrame(self.calibrationPageContents)
         self.frame_15.setObjectName(u"frame_15")
         self.frame_15.setFrameShape(QFrame.StyledPanel)
         self.frame_15.setFrameShadow(QFrame.Raised)
@@ -1879,7 +1907,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_17.addWidget(self.frame_15)
 
-        self.frame_16 = QFrame(self.calibrationPage)
+        self.frame_16 = QFrame(self.calibrationPageContents)
         self.frame_16.setObjectName(u"frame_16")
         sizePolicy.setHeightForWidth(self.frame_16.sizePolicy().hasHeightForWidth())
         self.frame_16.setSizePolicy(sizePolicy)
@@ -1914,7 +1942,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.addWidget(self.frame_16)
 
         # ── Master safety window (05_calibration.md §1.2) ───────────────
-        self.frame_safetyWindow = QFrame(self.calibrationPage)
+        self.frame_safetyWindow = QFrame(self.calibrationPageContents)
         self.frame_safetyWindow.setObjectName(u"frame_safetyWindow")
         self.frame_safetyWindow.setFrameShape(QFrame.StyledPanel)
         self.frame_safetyWindow.setFrameShadow(QFrame.Raised)
@@ -1972,7 +2000,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.addWidget(self.frame_safetyWindow)
 
         # ── Laser alignment mode (05_calibration.md §1.3) ───────────────
-        self.frame_alignmentMode = QFrame(self.calibrationPage)
+        self.frame_alignmentMode = QFrame(self.calibrationPageContents)
         self.frame_alignmentMode.setObjectName(u"frame_alignmentMode")
         self.frame_alignmentMode.setFrameShape(QFrame.StyledPanel)
         self.frame_alignmentMode.setFrameShadow(QFrame.Raised)
@@ -1997,6 +2025,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_17.addItem(self.verticalSpacer_9)
 
+        self.calibrationPage.setWidget(self.calibrationPageContents)
         self.rightMenuPages.addWidget(self.calibrationPage)
 
         self.verticalLayout_16.addWidget(self.rightMenuPages)
