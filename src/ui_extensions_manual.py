@@ -150,6 +150,27 @@ class ManualPageExtensions:
         self.setup_movement_section()
         self.setup_laser_power_section()
 
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples que no están dentro de
+        un botón/QComboBox/QLineEdit con su propio fondo (labelAxisX/Y/Z,
+        'Movement XYZ', labelLaserPowerManual) — construidas una sola vez
+        con el tema activo en ese momento, así que si el usuario cambia de
+        tema en caliente se quedan con el color del tema anterior (p. ej. el
+        gris casi blanco de NEON, invisible sobre el fondo claro de TIDE/
+        EMBER). Llamado desde GuiFunctions.changeAppTheme() (main.py). No
+        toca botones/combos a propósito, para no resetear selección alguna."""
+        for label in (self.ui.labelAxisX, self.ui.labelAxisY, self.ui.labelAxisZ):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_19.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.labelLaserPowerManual.setStyleSheet(f"""
+            QLineEdit#labelLaserPowerManual {{
+                background-color: transparent;
+                color: {config.THEME.COLOR_TEXT_1};
+                font-weight: bold;
+                border: none;
+            }}
+        """)
+
     def connect_signals(self):
         """Conecta las señales específicas de la página Manual"""
         # Botones de movimiento XY

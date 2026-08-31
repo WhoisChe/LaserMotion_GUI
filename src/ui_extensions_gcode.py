@@ -22,13 +22,13 @@ GCODE_SUPPORTED = {"G0", "G1", "G4", "G28", "G90", "G91", "M0", "M3", "M5", "M90
 # fondo fijo en vez de heredar el de dragYdrop (que sigue el tema y va de
 # muy claro en TIDE/EMBER a muy oscuro en NEON) — un solo verde/rojo fijo no
 # puede dar 4.5:1 contra los 3 a la vez (ver 19_verificacion_contraste.md).
-STATUS_LOADED_STYLE = "background-color: #2E7D32; color: white; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
-STATUS_ERROR_STYLE = "background-color: #8B0000; color: white; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
+STATUS_LOADED_STYLE = "background-color: #2E7D32; color: white; font-weight: bold; border: none; border-radius: 4px; padding: 2px 6px;"
+STATUS_ERROR_STYLE = "background-color: #8B0000; color: white; font-weight: bold; border: none; border-radius: 4px; padding: 2px 6px;"
 
 # Mismo motivo, para el estado "arrastrando un archivo encima" — ACCENT_2
 # (fondo de dragYdrop durante el arrastre) varía demasiado entre temas para
 # que COLOR_TEXT_2 se lea bien encima en los 3 a la vez.
-DRAG_HOVER_LABEL_STYLE = "background-color: #FFFFFF; color: #06112B; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
+DRAG_HOVER_LABEL_STYLE = "background-color: #FFFFFF; color: #06112B; font-weight: bold; border: none; border-radius: 4px; padding: 2px 6px;"
 
 # Velocidad usada cuando la línea G-Code no especifica F (mm/s), y
 # aceleración fija aplicada a los movimientos (mm/s²)
@@ -61,6 +61,14 @@ class GCodePageExtensions:
         self.setup_drag_drop_area()
         self.setup_preview()
         self.setup_buttons()
+
+    def refresh_theme(self):
+        """Reaplica el color del título de página — se fijó una sola vez con
+        el tema activo en ese momento, así que un cambio de tema en caliente
+        lo deja con el color del tema anterior (ver refresh_theme() en
+        ManualPageExtensions, mismo motivo). label_6 no se toca aquí: vive
+        dentro de dragYdrop, que ya tiene su propio fondo de tema."""
+        self.ui.label_9.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
     # ─────────────────────────────────────────────────────────────────────
     # Vista previa de solo lectura (04_gcode.md §1) + carga directa desde
@@ -300,7 +308,7 @@ class GCodePageExtensions:
 
         # Configurar label dentro del área
         self.ui.label_6.setFont(QFont("Sitka Small", 10))
-        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2};")
+        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2}; background: transparent; border: none;")
         self.ui.label_6.setText("Drag and drop your G-Code file here\nor click 'Select File' button")
         
         # Crear botón de eliminar archivo (inicialmente oculto)
@@ -379,7 +387,7 @@ class GCodePageExtensions:
         # Salir del estilo "chip" de drag_enter_event — si el archivo es
         # válido, load_gcode_file() lo vuelve a sobreescribir con
         # STATUS_LOADED_STYLE/STATUS_ERROR_STYLE más abajo.
-        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2};")
+        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2}; background: transparent; border: none;")
 
         urls = event.mimeData().urls()
         if urls and len(urls) > 0:
@@ -535,7 +543,7 @@ class GCodePageExtensions:
         
         # Resetear UI
         self.ui.label_6.setText("Drag and drop your G-Code file here\nor click 'Select File' button")
-        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2};")
+        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2}; background: transparent; border: none;")
         
         # Deshabilitar botones
         self.ui.startBtn.setEnabled(False)

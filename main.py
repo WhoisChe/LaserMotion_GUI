@@ -64,6 +64,7 @@ class GlobalStatusPanel(QFrame):
         self._axis_leds = {axis: {} for axis in self.AXIS_ORDER}
         self._axis_position_labels = {}
         self._axis_title_labels = {}
+        self._axis_indicator_labels = {axis: {} for axis in self.AXIS_ORDER}
         self._axis_cards = {}
         self.connection_card = None
         self.laser_stop_card = None
@@ -249,6 +250,8 @@ class GlobalStatusPanel(QFrame):
         """)
         self._axis_title_labels[axis].setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self._axis_position_labels[axis].setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        for indicator_label in self._axis_indicator_labels[axis].values():
+            indicator_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
     def refresh_theme(self):
         """Reaplica los estilos que dependen de config.THEME — llamado desde
@@ -281,8 +284,8 @@ class GlobalStatusPanel(QFrame):
         # que lo contiene ya sigue el tema (COLOR_BACKGROUND_1) — invisible
         # en NEON. Debe seguir el tema igual que axis_label/value_label (ver
         # 19_verificacion_contraste.md, auditoría de contraste).
-        text_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         text_label.setAlignment(Qt.AlignVCenter)
+        self._axis_indicator_labels[axis][key] = text_label
         row.addWidget(text_label, 0, Qt.AlignVCenter)
 
         return row
@@ -595,11 +598,21 @@ class GuiFunctions():
         if current_theme != selected_theme:
             settings.setValue("THEME", selected_theme)                      # Aplicar el tema nuevo
             QAppSettings.updateAppSettings(self.main, reloadJson=True)
-            # config.THEME ya lee "THEME" de QSettings dinámicamente, pero el
-            # panel global se construyó antes de este cambio — hay que
-            # volver a aplicar sus estilos para que no se quede con los
-            # colores del tema anterior.
+            # config.THEME ya lee "THEME" de QSettings dinámicamente, pero
+            # los widgets ya construidos no releen su stylesheet solos — hay
+            # que volver a aplicar los estilos de cada página para que no se
+            # queden con los colores del tema anterior (p. ej. "Movement
+            # XYZ" o los nombres de LED "Enabled/Homed/CW-CCW" mostrando
+            # todavía el gris casi blanco de NEON sobre el fondo claro de
+            # TIDE/EMBER — ver 20_refresco_tema_en_caliente.md).
             self.main.global_status_panel.refresh_theme()
+            ui_ext = self.main.ui_ext
+            ui_ext.home_ext.refresh_theme()
+            ui_ext.manual_ext.refresh_theme()
+            ui_ext.auto_ext.refresh_theme()
+            ui_ext.gcode_ext.refresh_theme()
+            ui_ext.connection_ext.refresh_theme()
+            ui_ext.calibration_ext.refresh_theme()
 
 
 ########################################################################

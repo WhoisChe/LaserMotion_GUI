@@ -47,6 +47,20 @@ class CalibrationPageExtensions:
         self.setup_safety_window_section()
         self.setup_alignment_mode_section()
 
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples que no están dentro de
+        un botón/QLineEdit con su propio fondo — se fijaron una sola vez con
+        el tema activo en ese momento, así que un cambio de tema en caliente
+        las deja con el color del tema anterior (ver refresh_theme() en
+        ManualPageExtensions, mismo motivo). No toca botones ni los QLabel
+        superpuestos por _enable_button_wrap (esos sí están "dentro" de un
+        botón)."""
+        for label in (self.ui.label_10, self.ui.label_23, self.ui.labelZFocusStatus,
+                      self.ui.label_24, self.ui.label_safetyWindowTitle,
+                      self.ui.label_xMinField, self.ui.label_xMaxField,
+                      self.ui.label_yMinField, self.ui.label_yMaxField):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
     def connect_signals(self):
         """Conecta las señales específicas de la página de calibración"""
         # El resto de señales ya están conectadas en los setup_*() de arriba

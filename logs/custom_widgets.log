@@ -921,3 +921,95 @@
 2026-08-31 10:07:59,365 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
 2026-08-31 10:07:59,365 - INFO - Generating icons for your theme, please wait. This may take long
 2026-08-31 10:07:59,609 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:10:02,954 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:10:02,959 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:10:03,724 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 12:10:04,312 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 12:10:04,979 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 12:10:05,495 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 12:10:05,846 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 12:10:06,204 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 12:10:06,549 - INFO - Checking icons for qt designer app.
+2026-08-31 12:10:07,034 - INFO - all icons have been checked and missing icons generated!
+2026-08-31 12:10:13,751 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:10:13,754 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:10:14,026 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:10:17,604 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:10:17,604 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:10:17,871 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:10:24,615 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:10:24,615 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:10:24,873 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:10:38,160 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#F08A6B')
+2026-08-31 12:10:38,160 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:10:38,505 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 12:15:12,658 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 12:15:12,658 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:15:12,927 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:15:16,533 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 12:15:16,533 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:15:16,785 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 12:15:19,704 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 12:15:19,705 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:15:19,931 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:23:27,308 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:23:27,308 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:23:27,703 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:23:27,703 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:23:28,280 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:23:28,987 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:23:28,987 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:23:30,729 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:24:06,396 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:24:06,396 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:24:07,184 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:24:07,193 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:24:07,764 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:24:09,853 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:24:09,853 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:24:14,465 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:24:18,056 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:24:18,057 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:24:19,381 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:24:19,382 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:24:20,251 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:24:22,578 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 12:24:22,578 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:24:26,470 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 12:36:49,994 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:36:49,995 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:36:50,485 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 12:36:50,485 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:36:50,701 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:37:16,662 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:37:16,662 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:37:16,957 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:42:39,145 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:42:39,145 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:42:39,503 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:42:39,503 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:44:22,682 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 12:44:22,682 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 12:44:23,116 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 12:44:23,318 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 12:44:23,525 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 12:44:23,730 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 12:44:23,960 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 12:44:24,190 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 12:44:24,433 - INFO - Checking icons for qt designer app.
+2026-08-31 12:44:24,674 - INFO - all icons have been checked and missing icons generated!
+2026-08-31 12:44:41,895 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:44:41,895 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:44:42,138 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:44:51,446 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#F08A6B')
+2026-08-31 12:44:51,446 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:44:51,719 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 12:45:06,319 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 12:45:06,319 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:45:06,572 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 12:45:10,227 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 12:45:10,231 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:45:10,505 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 12:45:13,571 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 12:45:13,571 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 12:45:13,838 - INFO - ('DONE: Current icons color ', '#F7A618')

@@ -53,6 +53,30 @@ class AutoPageExtensions:
         self.setup_preview_and_buttons()
         self.update_preview()
 
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples que no están dentro de
+        un botón/QComboBox con su propio fondo — se fijaron una sola vez con
+        el tema activo en ese momento, así que un cambio de tema en caliente
+        las deja con el color del tema anterior (ver refresh_theme() en
+        ManualPageExtensions, mismo motivo). No repuebla combos/listas."""
+        for label in (self.ui.labelAxisAutoX, self.ui.labelAxisAutoY, self.ui.labelAxisAutoZ):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_autoMode.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_autoPreview.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
+        for label in (self.ui.label_spPosition, self.ui.label_spDuration,
+                      self.ui.label_fdStart, self.ui.label_fdEnd, self.ui.label_fdDistance,
+                      self.ui.label_fdPulses, self.ui.label_fdPower, self.ui.label_fdTravelSpeed,
+                      self.ui.label_paSpacing, self.ui.label_paDistance, self.ui.label_paPulses,
+                      self.ui.label_paPower, self.ui.label_paTravelSpeed,
+                      self.ui.label_pgType, self.ui.label_pgLinearStart, self.ui.label_pgLinearEnd,
+                      self.ui.label_pgCenter, self.ui.label_pgRadius, self.ui.label_pgDistance,
+                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed,
+                      self.ui.label_bpStart, self.ui.label_bpEnd, self.ui.label_bpDistance,
+                      self.ui.label_bpPattern, self.ui.label_bpTravelSpeed):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.update_preview()
+
     def connect_signals(self):
         """Conecta las señales específicas de la página Auto"""
         # Control por eje: enable/disable + home (copia propia de Auto)

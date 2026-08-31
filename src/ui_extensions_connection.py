@@ -80,6 +80,15 @@ class ConnectionPageExtensions:
         self.setup_host_address_input()
         self.setup_connect_button()
 
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples (título, label_21) que
+        no están dentro de un botón/QLineEdit con su propio fondo — se
+        fijaron una sola vez con el tema activo en ese momento, así que un
+        cambio de tema en caliente las deja con el color del tema anterior
+        (ver refresh_theme() en ManualPageExtensions, mismo motivo)."""
+        self.ui.label_11.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_21.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
     def connect_signals(self):
         """Conecta las señales específicas de la página de conexión"""
         # El botón connectBtn ya está conectado en setup_connect_button()
