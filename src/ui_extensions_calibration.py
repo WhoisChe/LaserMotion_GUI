@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QSizePolicy, QMessageBox, QLabel, QVBoxLayout, QBo
 
 import config
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
+from src.color_contrast import readable_text_color
 
 # Paso, velocidad y aceleración usados para el ajuste fino de enfoque en Z.
 # No hay controles de escala/velocidad en esta página, así que se usan
@@ -113,9 +114,12 @@ class CalibrationPageExtensions:
         self.ui.label_23.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_23.setWordWrap(True)
 
-        # Lectura de posición Z en vivo
+        # Lectura de posición Z en vivo — antes COLOR_ACCENT_3 (pensado
+        # para bordes/decoración, no calibrado para dar 4.5:1 como texto
+        # sobre COLOR_BACKGROUND_1 en ningún tema, ver
+        # 19_verificacion_contraste.md). COLOR_TEXT_1 sí lo está siempre.
         self.ui.labelZFocusStatus.setFont(QFont("Sitka Small", 10))
-        self.ui.labelZFocusStatus.setStyleSheet(f"color: {config.THEME.COLOR_ACCENT_3};")
+        self.ui.labelZFocusStatus.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.labelZFocusStatus.setText("Current Z: —")
 
         # Estilo común para botones de enfoque — mismos colores/hover que
@@ -132,7 +136,7 @@ class CalibrationPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:pressed {{
@@ -168,19 +172,19 @@ class CalibrationPageExtensions:
             QPushButton {{
                 background-color: {config.THEME.COLOR_BACKGROUND_2};
                 color: {config.THEME.COLOR_TEXT_1};
-                border: 2px solid #4CAF50;
+                border: 2px solid #2E7D32;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 40px;
                 margin-top: 10px;
             }}
             QPushButton:hover {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
             QPushButton:pressed {{
-                background-color: #45a049;
+                background-color: #1B5E20;
             }}
         """)
         self.ui.calibratedBtn.setText("Confirm focus")
@@ -219,7 +223,7 @@ class CalibrationPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:pressed {{
@@ -276,19 +280,19 @@ class CalibrationPageExtensions:
             QPushButton {{
                 background-color: {config.THEME.COLOR_BACKGROUND_2};
                 color: {config.THEME.COLOR_TEXT_1};
-                border: 2px solid #4CAF50;
+                border: 2px solid #2E7D32;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 50px;
                 margin-top: 10px;
             }}
             QPushButton:hover {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
             QPushButton:pressed {{
-                background-color: #45a049;
+                background-color: #1B5E20;
             }}
         """
         # Apilados verticalmente (antes en horizontal, uno al lado del otro,
@@ -385,12 +389,12 @@ class CalibrationPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
                 background-color: #FFA726;
-                color: white;
+                color: #06112B;
                 border: 2px solid #FB8C00;
             }}
         """)
@@ -412,16 +416,16 @@ class CalibrationPageExtensions:
         self.ui.alignmentFireBtn.setEnabled(False)
         self.ui.alignmentFireBtn.setStyleSheet("""
             QPushButton {
-                background-color: #F44336;
+                background-color: #D32F2F;
                 color: white;
-                border: 2px solid #DA190B;
+                border: 2px solid #B71C1C;
                 border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: #DA190B;
+                background-color: #B71C1C;
             }
             QPushButton:pressed {
-                background-color: #B71C1C;
+                background-color: #8B0000;
             }
         """)
 
@@ -477,9 +481,9 @@ class CalibrationPageExtensions:
         self._calibratedBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.calibratedBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 55px;
@@ -498,9 +502,9 @@ class CalibrationPageExtensions:
         self._zeroXBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.zeroXBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 50px;
@@ -518,9 +522,9 @@ class CalibrationPageExtensions:
         self._zeroYBtn_label.setStyleSheet("background: transparent; color: white;")
         self.ui.zeroYBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
                 border-radius: 8px;
                 padding: 10px;
                 min-height: 50px;

@@ -12,6 +12,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QSizePolicy, QMessageBox
 
 import config
+from src.color_contrast import readable_text_color
 
 # Fichero local (no versionado, ver .gitignore) donde se guarda la última IP
 # con la que se conectó con éxito, para precargarla en el futuro en vez del
@@ -130,16 +131,16 @@ class ConnectionPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
             QPushButton:checked:hover {{
-                background-color: #45a049;
+                background-color: #1B5E20;
             }}
         """)
 

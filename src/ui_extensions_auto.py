@@ -11,7 +11,22 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 import config
+from Custom_Widgets.Qss.colorsystem import is_color_dark_or_light
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
+from src.color_contrast import readable_text_color
+
+# Ámbar de aviso — COLOR_BACKGROUND_1 va de muy claro (TIDE/EMBER) a muy
+# oscuro (NEON), y ningún ámbar fijo da 4.5:1 contra los dos extremos a la
+# vez (ver 19_verificacion_contraste.md), así que se elige según si el fondo
+# del tema activo es claro u oscuro.
+WARNING_COLOR_ON_DARK_BG = "#FFA726"
+WARNING_COLOR_ON_LIGHT_BG = "#A85400"
+
+
+def _warning_color():
+    if is_color_dark_or_light(config.THEME.COLOR_BACKGROUND_1) == "dark":
+        return WARNING_COLOR_ON_DARK_BG
+    return WARNING_COLOR_ON_LIGHT_BG
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
@@ -335,13 +350,13 @@ class AutoPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
         """
         home_style = f"""
@@ -354,7 +369,7 @@ class AutoPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_1};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_1)};
             }}
         """
         for label, toggle_btn, home_btn in axis_specs:
@@ -448,7 +463,7 @@ class AutoPageExtensions:
         self.ui.pgTypeCombo.clear()
         self.ui.pgTypeCombo.addItems(["Linear", "Radial"])
         self.ui.pgTypeStack.setCurrentIndex(0)
-        self.ui.label_pgSegmentedWarning.setStyleSheet("color: #FFA726; font-style: italic;")
+        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
 
         # Estilo general de labels de los 5 paneles
         for label in (self.ui.label_spPosition, self.ui.label_spDuration,

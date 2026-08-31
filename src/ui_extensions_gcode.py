@@ -18,6 +18,18 @@ from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
 # los ejes), M3/M5 (PSO on/off), M900 (distancia fija PSO), M901 (ventana PSO)
 GCODE_SUPPORTED = {"G0", "G1", "G4", "G28", "G90", "G91", "M0", "M3", "M5", "M900", "M901"}
 
+# label_6 (dentro de dragYdrop) muestra "cargado"/"error" con su propio
+# fondo fijo en vez de heredar el de dragYdrop (que sigue el tema y va de
+# muy claro en TIDE/EMBER a muy oscuro en NEON) — un solo verde/rojo fijo no
+# puede dar 4.5:1 contra los 3 a la vez (ver 19_verificacion_contraste.md).
+STATUS_LOADED_STYLE = "background-color: #2E7D32; color: white; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
+STATUS_ERROR_STYLE = "background-color: #8B0000; color: white; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
+
+# Mismo motivo, para el estado "arrastrando un archivo encima" — ACCENT_2
+# (fondo de dragYdrop durante el arrastre) varía demasiado entre temas para
+# que COLOR_TEXT_2 se lea bien encima en los 3 a la vez.
+DRAG_HOVER_LABEL_STYLE = "background-color: #FFFFFF; color: #06112B; font-weight: bold; border-radius: 4px; padding: 2px 6px;"
+
 # Velocidad usada cuando la línea G-Code no especifica F (mm/s), y
 # aceleración fija aplicada a los movimientos (mm/s²)
 DEFAULT_FEED_MM_S = 50.0
@@ -81,7 +93,7 @@ class GCodePageExtensions:
         self.gcode_saved = True
 
         self.ui.label_6.setText("G-Code loaded from Auto")
-        self.ui.label_6.setStyleSheet("color: #769947; font-weight: bold;")
+        self.ui.label_6.setStyleSheet(STATUS_LOADED_STYLE)
         self.ui.startBtn.setEnabled(True)
         self.ui.editBtn.setEnabled(True)
         if self.remove_file_btn:
@@ -276,7 +288,16 @@ class GCodePageExtensions:
         """Configura el área de drag and drop"""
         # Habilitar drag and drop
         self.ui.dragYdrop.setAcceptDrops(True)
-        
+
+        # ui_interface.py deja dragYdrop con un gris fijo de Designer
+        # (rgb(175, 175, 175)) — con label_6 (más abajo) ya siguiendo el
+        # tema, esa pareja fondo-fijo/texto-de-tema es justo el patrón que
+        # rompe el contraste en NEON (ver 19_verificacion_contraste.md).
+        # Se sustituye aquí por el mismo estilo "en reposo" que ya usa
+        # drop_event() al soltar un archivo, para que ambos casos sigan el
+        # tema por igual.
+        self._apply_default_drop_style()
+
         # Configurar label dentro del área
         self.ui.label_6.setFont(QFont("Sitka Small", 10))
         self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2};")
@@ -289,18 +310,18 @@ class GCodePageExtensions:
         self.remove_file_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.remove_file_btn.setStyleSheet("""
             QPushButton {
-                background-color: #F44336;
+                background-color: #D32F2F;
                 color: white;
-                border: 2px solid #d32f2f;
+                border: 2px solid #B71C1C;
                 border-radius: 15px;
                 padding: 0px;
             }
             QPushButton:hover {
-                background-color: #d32f2f;
-                border: 2px solid #b71c1c;
+                background-color: #B71C1C;
+                border: 2px solid #8B0000;
             }
             QPushButton:pressed {
-                background-color: #b71c1c;
+                background-color: #8B0000;
             }
         """)
         self.remove_file_btn.setToolTip("Remove loaded file")
@@ -344,17 +365,36 @@ class GCodePageExtensions:
                             border-radius: 15px;
                         }}
                     """)
+                    # label_6 (COLOR_TEXT_2, pensado para leerse sobre
+                    # COLOR_BACKGROUND_3) no da suficiente contraste sobre
+                    # ACCENT_2 en ningún tema — ACCENT_2 varía demasiado en
+                    # luminosidad entre temas (de un azul medio en TIDE a un
+                    # verde vivo en NEON) para que un solo color de texto
+                    # sirva en los 3 (19_verificacion_contraste.md). Chip
+                    # propio, igual que STATUS_LOADED/ERROR_STYLE.
+                    self.ui.label_6.setStyleSheet(DRAG_HOVER_LABEL_STYLE)
         
     def drop_event(self, event: QDropEvent):
         """Maneja el evento de soltar archivo en el área"""
+        # Salir del estilo "chip" de drag_enter_event — si el archivo es
+        # válido, load_gcode_file() lo vuelve a sobreescribir con
+        # STATUS_LOADED_STYLE/STATUS_ERROR_STYLE más abajo.
+        self.ui.label_6.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_2};")
+
         urls = event.mimeData().urls()
         if urls and len(urls) > 0:
             file_path = urls[0].toLocalFile()
             if file_path.lower().endswith(('.gcode', '.nc', '.txt')):
                 self.load_gcode_file(file_path)
                 event.acceptProposedAction()
-        
+
         # Restaurar apariencia normal
+        self._apply_default_drop_style()
+
+    def _apply_default_drop_style(self):
+        """Estilo "en reposo" de dragYdrop (fuera de un arrastre en curso) —
+        usado tanto al construir la página como para restaurar la apariencia
+        tras drop_event()."""
         self.ui.dragYdrop.setStyleSheet(f"""
             QFrame {{
                 background-color: {config.THEME.COLOR_BACKGROUND_3};
@@ -404,7 +444,7 @@ class GCodePageExtensions:
             # Actualizar UI
             file_name = file_path.split('/')[-1]
             self.ui.label_6.setText(f"File loaded: {file_name}")
-            self.ui.label_6.setStyleSheet("color: #769947; font-weight: bold;")
+            self.ui.label_6.setStyleSheet(STATUS_LOADED_STYLE)
             
             # Resetear estado de guardado
             self.gcode_saved = False
@@ -428,7 +468,7 @@ class GCodePageExtensions:
 
         except Exception as e:
             self.ui.label_6.setText(f"Error loading file: {str(e)}")
-            self.ui.label_6.setStyleSheet("color: #F44336; font-weight: bold;")
+            self.ui.label_6.setStyleSheet(STATUS_ERROR_STYLE)
 
     def show_gcode_editor(self):
         """Muestra ventana de edición de G-Code"""
@@ -531,30 +571,36 @@ class GCodeEditorDialog(QDialog):
         # Layout principal
         layout = QVBoxLayout(self)
         
-        # Tí­tulo
+        # Tí­tulo — este diálogo mantiene su propio fondo claro fijo
+        # (#F5F5F5) sin importar el tema, igual que el editor de texto de
+        # más abajo (mismo patrón que un editor de código independiente) —
+        # el color de texto también se fija, no sigue config.THEME: si lo
+        # siguiera, en NEON COLOR_TEXT_1 es un gris casi blanco, invisible
+        # sobre este mismo fondo claro (ver 19_verificacion_contraste.md).
         title_label = QLabel("G-Code Editor")
         title_label.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet(f"""
-            QLabel#titleLabel {{
+        title_label.setStyleSheet("""
+            QLabel#titleLabel {
                 background-color: #F5F5F5;
-                color: {config.THEME.COLOR_TEXT_1};
+                color: #06112B;
                 padding: 10px;
                 border-radius: 5px;
-            }}
+            }
         """)
         layout.addWidget(title_label)
-        
-        # Información del archivo
+
+        # Información del archivo — mismo motivo que title_label: color fijo,
+        # no de tema.
         info_label = QLabel(f"File: {file_path}")
         info_label.setFont(QFont("Sitka Small", 9))
-        info_label.setStyleSheet(f"""
-            QLabel#infoLabel {{
+        info_label.setStyleSheet("""
+            QLabel#infoLabel {
                 background-color: #F5F5F5;
-                color: {config.THEME.COLOR_ACCENT_2};
+                color: #015185;
                 padding: 5px;
                 border-radius: 3px;
-            }}
+            }
         """)
         layout.addWidget(info_label)
         
@@ -573,17 +619,18 @@ class GCodeEditorDialog(QDialog):
         """)
         layout.addWidget(self.text_edit)
         
-        # Información de ayuda
+        # Información de ayuda — mismo motivo que title_label: color fijo,
+        # no de tema.
         help_label = QLabel("Tip: Edit your G-Code and click 'Save' to update the file")
         help_label.setFont(QFont("Sitka Small", 9))
-        help_label.setStyleSheet(f"""
-            QLabel#helpLabel {{
+        help_label.setStyleSheet("""
+            QLabel#helpLabel {
                 background-color: #F5F5F5;
-                color: {config.THEME.COLOR_ACCENT_2};
+                color: #015185;
                 padding: 8px;
                 border-radius: 3px;
                 font-style: italic;
-            }}
+            }
         """)
         layout.addWidget(help_label)
         

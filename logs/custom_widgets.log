@@ -590,3 +590,334 @@
 2026-08-30 11:53:15,554 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
 2026-08-30 11:53:15,949 - INFO - Checking icons for qt designer app.
 2026-08-30 11:53:16,553 - INFO - all icons have been checked and missing icons generated!
+2026-08-30 15:25:31,325 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-30 15:25:31,325 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-30 15:25:31,768 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-30 15:25:32,270 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-30 15:25:32,706 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-30 15:25:33,061 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-30 15:25:33,300 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-30 15:25:33,516 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-30 15:25:33,723 - INFO - Checking icons for qt designer app.
+2026-08-30 15:25:34,108 - INFO - all icons have been checked and missing icons generated!
+2026-08-30 15:25:42,682 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-30 15:25:42,682 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-30 15:25:42,919 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-30 15:25:57,387 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-30 15:25:57,387 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-30 15:25:57,629 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-30 15:26:01,963 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-30 15:26:01,963 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-30 15:26:02,184 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-30 15:26:06,027 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-30 15:26:06,027 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-30 15:26:06,234 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 07:56:42,432 - ERROR - Error loading your JSON files: 'C:\Users\chinq\AppData\Local\Temp\claude\c--Users-chinq-Documents-Python-PyQt6-CodeOnly\84dabe92-0e0b-4982-8855-b5d6326cdd5b\scratchpad\json-styles\style.json' does not exist
+2026-08-31 07:57:07,931 - ERROR - Error loading your JSON files: 'C:\Users\chinq\AppData\Local\Temp\claude\c--Users-chinq-Documents-Python-PyQt6-CodeOnly\84dabe92-0e0b-4982-8855-b5d6326cdd5b\scratchpad\json-styles\style.json' does not exist
+2026-08-31 07:57:38,138 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 07:57:38,178 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 07:57:39,116 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 07:57:39,694 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 07:57:40,220 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 07:57:40,771 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 07:57:41,328 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 07:57:41,835 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 07:57:42,325 - INFO - Checking icons for qt designer app.
+2026-08-31 07:57:45,921 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 07:57:45,921 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 07:57:46,893 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 07:57:50,057 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 07:57:50,057 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 07:57:50,750 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 08:04:49,285 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 08:04:49,288 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 08:04:50,545 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 08:04:50,906 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 08:04:51,135 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 08:04:51,372 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 08:04:51,629 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 08:04:51,896 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 08:04:52,171 - INFO - Checking icons for qt designer app.
+2026-08-31 08:04:52,501 - INFO - all icons have been checked and missing icons generated!
+2026-08-31 08:05:22,705 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 08:05:22,705 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:05:22,972 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 08:05:43,520 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 08:05:43,531 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:05:43,893 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 08:06:10,320 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 08:06:10,320 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:06:10,582 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 08:06:19,037 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 08:06:19,037 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:06:19,297 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 08:06:27,691 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 08:06:27,691 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:06:27,928 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 08:06:54,334 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 08:06:54,335 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:06:54,616 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 08:07:17,612 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 08:07:17,614 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:07:17,886 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 08:09:31,948 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 08:09:31,948 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 08:09:32,176 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 09:57:58,449 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 09:57:58,449 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 09:57:58,817 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:57:58,956 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:57:59,072 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:57:59,221 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:57:59,351 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:57:59,485 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:57:59,616 - INFO - Checking icons for qt designer app.
+2026-08-31 09:58:00,563 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 09:58:00,565 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:01,006 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 09:58:02,627 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 09:58:02,627 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:02,989 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 09:58:04,559 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 09:58:04,559 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:04,973 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 09:58:46,108 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 09:58:46,108 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 09:58:46,465 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:58:46,599 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:58:46,732 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:58:46,859 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:58:46,990 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:58:47,119 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:58:47,248 - INFO - Checking icons for qt designer app.
+2026-08-31 09:58:48,148 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 09:58:48,149 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:48,588 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 09:58:51,777 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 09:58:51,777 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:52,149 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 09:58:55,199 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 09:58:55,199 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:58:55,574 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 09:58:58,716 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 09:58:58,716 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 09:59:24,420 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 09:59:24,420 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 09:59:24,725 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:59:24,859 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:59:24,959 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:59:25,071 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:59:25,192 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:59:25,301 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:59:25,411 - INFO - Checking icons for qt designer app.
+2026-08-31 09:59:30,939 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 09:59:30,939 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 09:59:31,260 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:59:31,389 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:59:31,551 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:59:31,663 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 09:59:31,774 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 09:59:31,874 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 09:59:31,992 - INFO - Checking icons for qt designer app.
+2026-08-31 09:59:40,325 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 09:59:40,325 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 09:59:40,652 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:00:14,932 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:00:14,933 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:00:15,281 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:00:15,390 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:00:15,528 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:00:15,649 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:00:15,776 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:00:15,895 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:00:16,000 - INFO - Checking icons for qt designer app.
+2026-08-31 10:00:16,849 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 10:00:16,849 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:00:17,174 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:00:38,580 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:00:38,582 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:00:39,060 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:00:39,205 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:00:39,344 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:00:39,477 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:00:39,607 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:00:39,729 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:00:39,860 - INFO - Checking icons for qt designer app.
+2026-08-31 10:00:40,007 - INFO - all icons have been checked and missing icons generated!
+2026-08-31 10:00:42,098 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 10:00:42,098 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:00:42,423 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:00:45,502 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 10:00:45,502 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:00:45,886 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:00:48,934 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 10:00:48,934 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:01:25,956 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:01:25,956 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:01:26,626 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:01:26,811 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:01:27,021 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:01:27,245 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:01:27,472 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:01:27,785 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:01:28,174 - INFO - Checking icons for qt designer app.
+2026-08-31 10:01:30,316 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 10:01:30,316 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:01:30,977 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:01:34,067 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 10:01:34,067 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:01:34,529 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:01:36,488 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 10:01:36,488 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:01:36,815 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:01:38,390 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 10:01:38,390 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:01:38,610 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:02:29,166 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:02:29,166 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:02:29,504 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:29,624 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:29,735 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:29,855 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:29,971 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:30,087 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:30,202 - INFO - Checking icons for qt designer app.
+2026-08-31 10:02:30,992 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 10:02:30,992 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:02:31,205 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:02:34,681 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:02:34,681 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:02:35,046 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:35,176 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:35,290 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:35,405 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:35,530 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:35,649 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:35,782 - INFO - Checking icons for qt designer app.
+2026-08-31 10:02:36,706 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 10:02:36,706 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:02:36,996 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:02:40,191 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:02:40,191 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:02:40,541 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:40,662 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:40,788 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:40,910 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:02:41,030 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:02:41,149 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:02:41,269 - INFO - Checking icons for qt designer app.
+2026-08-31 10:02:42,066 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 10:02:42,066 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:02:42,290 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:03:43,950 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:43,951 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:44,269 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 10:03:44,269 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:03:44,407 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:03:46,214 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:46,216 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:46,540 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:46,674 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:46,799 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:03:46,931 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:47,060 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:47,192 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:03:47,326 - INFO - Checking icons for qt designer app.
+2026-08-31 10:03:48,588 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:48,593 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:48,940 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 10:03:48,940 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:03:49,086 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:03:50,867 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:50,869 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:51,236 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:51,379 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:51,509 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:03:51,638 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:51,768 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:51,897 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:03:52,029 - INFO - Checking icons for qt designer app.
+2026-08-31 10:03:53,240 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:53,240 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:53,651 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 10:03:53,651 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:03:53,806 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:03:55,565 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:03:55,565 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:03:55,916 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:56,058 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:56,193 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:03:56,332 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:03:56,464 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:03:56,601 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:04:34,393 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:04:34,393 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:04:34,707 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#F7A618')
+2026-08-31 10:04:34,707 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:04:34,843 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:04:55,644 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:04:55,645 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:04:55,976 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:04:57,710 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:04:58,120 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:04:58,222 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:04:58,340 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:04:58,448 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:04:58,560 - INFO - Checking icons for qt designer app.
+2026-08-31 10:05:11,572 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:05:11,572 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:05:11,907 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:05:14,067 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:05:33,864 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:05:33,864 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:05:34,265 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:05:36,217 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:05:37,666 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:05:39,917 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:05:40,366 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:05:40,559 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:05:40,676 - INFO - Checking icons for qt designer app.
+2026-08-31 10:05:53,625 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:05:53,626 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:05:53,961 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:05:56,597 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:05:58,380 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:05:58,380 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:05:58,713 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:06:01,251 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:06:03,108 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:06:03,109 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:06:03,460 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#116958')
+2026-08-31 10:06:03,460 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:06:05,998 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:06:08,054 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:06:08,054 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:06:08,404 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:06:11,592 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:06:11,925 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:06:12,083 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:06:12,218 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-31 10:06:12,349 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-31 10:06:12,478 - INFO - Checking icons for qt designer app.
+2026-08-31 10:06:13,769 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:06:13,769 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:06:14,150 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F08A6B')
+2026-08-31 10:06:14,150 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:06:17,485 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:06:18,694 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:06:18,695 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:06:19,060 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-31 10:07:16,034 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-31 10:07:16,034 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-31 10:07:16,491 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 10:07:16,491 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:07:16,688 - INFO - ('DONE: Current icons color ', '#116958')
+2026-08-31 10:07:30,877 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-31 10:07:30,877 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:07:31,113 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-08-31 10:07:46,462 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#F08A6B')
+2026-08-31 10:07:46,462 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:07:46,719 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-08-31 10:07:59,365 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-08-31 10:07:59,365 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-31 10:07:59,609 - INFO - ('DONE: Current icons color ', '#116958')

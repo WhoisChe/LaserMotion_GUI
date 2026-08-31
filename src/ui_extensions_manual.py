@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QMessageBox
 
 import config
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z, NEJE_B30635_MAX_POWER_MW
+from src.color_contrast import readable_text_color
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
@@ -16,6 +17,11 @@ AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 # #manualPage deja de aplicarse de forma fiable desde que manualPage es un
 # QScrollArea (ronda 2 de 14_parche_visual, PROGRESO.md); replicado aquí en
 # línea para no depender de esa cascada.
+#
+# :hover ya NO fija su propio "color" (antes lo ponía a "#06112B", el mismo
+# tono que el fondo base "#06112B" — la regla :hover no redefine el fondo,
+# así que lo hereda de la regla base, y el texto quedaba invisible sobre su
+# propio fondo). Ver 19_verificacion_contraste.md.
 DARK_FIELD_STYLE = """
     QSpinBox, QDoubleSpinBox {
         background-color: #06112B;
@@ -26,7 +32,6 @@ DARK_FIELD_STYLE = """
     }
     QSpinBox:hover, QDoubleSpinBox:hover {
         border: 2px solid #DEDCD6;
-        color: #06112B;
     }
     QSpinBox:focus, QDoubleSpinBox:focus {
         border: 2px solid #DEDCD6;
@@ -318,13 +323,13 @@ class ManualPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
         """
         home_style = f"""
@@ -337,7 +342,7 @@ class ManualPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_1};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_1)};
             }}
         """
 
@@ -461,13 +466,13 @@ class ManualPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
         """)
         self.ui.laserBoardPowerBtn.setChecked(False)
@@ -494,16 +499,16 @@ class ManualPageExtensions:
         self.ui.laserFireBtn.setText("Laser ON")
         self.ui.laserFireBtn.setStyleSheet("""
             QPushButton {
-                background-color: #F44336;
+                background-color: #D32F2F;
                 color: white;
-                border: 2px solid #DA190B;
+                border: 2px solid #B71C1C;
                 border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: #DA190B;
+                background-color: #B71C1C;
             }
             QPushButton:pressed {
-                background-color: #B71C1C;
+                background-color: #8B0000;
             }
         """)
 

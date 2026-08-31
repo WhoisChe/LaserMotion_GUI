@@ -63,6 +63,10 @@ class GlobalStatusPanel(QFrame):
         self.setObjectName(u"globalStatusPanel")
         self._axis_leds = {axis: {} for axis in self.AXIS_ORDER}
         self._axis_position_labels = {}
+        self._axis_title_labels = {}
+        self._axis_cards = {}
+        self.connection_card = None
+        self.laser_stop_card = None
         self._led_conexion = None
         self._build_ui()
 
@@ -90,9 +94,7 @@ class GlobalStatusPanel(QFrame):
         # Mismo fondo que las tarjetas (COLOR_BACKGROUND_1, no BACKGROUND_2)
         # para que el hueco entre tarjetas no se note como un tono distinto
         # — todo el banner se lee como un único panel continuo.
-        self.setStyleSheet(
-            f"QFrame#globalStatusPanel {{ background-color: {config.THEME.COLOR_BACKGROUND_1}; border-radius: 12px; }}"
-        )
+        self._apply_panel_style()
 
         outer_layout = QVBoxLayout(self)
         outer_layout.setContentsMargins(20, 12, 20, 12)
@@ -112,12 +114,7 @@ class GlobalStatusPanel(QFrame):
 
         connection_card = QFrame()
         connection_card.setObjectName(u"connectionCard")
-        connection_card.setStyleSheet(f"""
-            QFrame#connectionCard {{
-                background-color: {config.THEME.COLOR_BACKGROUND_1};
-                border-radius: 10px;
-            }}
-        """)
+        self.connection_card = connection_card
         connection_layout = QHBoxLayout(connection_card)
         connection_layout.setContentsMargins(14, 10, 14, 10)
         connection_layout.setSpacing(10)
@@ -125,21 +122,17 @@ class GlobalStatusPanel(QFrame):
         self._led_conexion = self._make_led(tooltip="Connection status with the iSMC")
         self.label_connection = QLabel("Disconnected")
         self.label_connection.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.label_connection.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         connection_layout.addWidget(self._led_conexion)
         connection_layout.addWidget(self.label_connection)
+        self._apply_connection_card_style()
         top_row.addWidget(connection_card)
 
         top_row.addStretch(1)
 
         laser_stop_card = QFrame()
         laser_stop_card.setObjectName(u"laserStopCard")
-        laser_stop_card.setStyleSheet(f"""
-            QFrame#laserStopCard {{
-                background-color: {config.THEME.COLOR_BACKGROUND_1};
-                border-radius: 10px;
-            }}
-        """)
+        self.laser_stop_card = laser_stop_card
+        self._apply_laser_stop_card_style()
         laser_stop_layout = QHBoxLayout(laser_stop_card)
         laser_stop_layout.setContentsMargins(10, 8, 10, 8)
 
@@ -157,16 +150,16 @@ class GlobalStatusPanel(QFrame):
         self.laser_stop_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.laser_stop_btn.setStyleSheet("""
             QPushButton {
-                background-color: #F44336;
+                background-color: #D32F2F;
                 color: white;
-                border: 2px solid #DA190B;
+                border: 2px solid #B71C1C;
                 border-radius: 8px;
                 padding: 8px 18px;
                 min-width: 180px;
                 min-height: 48px;
             }
-            QPushButton:hover { background-color: #DA190B; }
-            QPushButton:pressed { background-color: #B71C1C; }
+            QPushButton:hover { background-color: #B71C1C; }
+            QPushButton:pressed { background-color: #8B0000; }
         """)
         self.laser_stop_btn.clicked.connect(self._handle_laser_stop)
         laser_stop_layout.addWidget(self.laser_stop_btn)
@@ -185,13 +178,7 @@ class GlobalStatusPanel(QFrame):
         card = QFrame()
         card.setObjectName(f"axisCard_{axis}")
         card.setMinimumHeight(110)
-        card.setStyleSheet(f"""
-            QFrame#axisCard_{axis} {{
-                background-color: {config.THEME.COLOR_BACKGROUND_1};
-                border: none;
-                border-radius: 10px;
-            }}
-        """)
+        self._axis_cards[axis] = card
 
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(16, 16, 16, 16)
@@ -203,11 +190,10 @@ class GlobalStatusPanel(QFrame):
         header_row = QHBoxLayout()
         axis_label = QLabel(axis)
         axis_label.setFont(QFont("Sitka Small", 12, QFont.Weight.Bold))
-        axis_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         axis_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self._axis_title_labels[axis] = axis_label
         value_label = QLabel("—")
         value_label.setFont(QFont("Sitka Small", 12))
-        value_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         value_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         header_row.addWidget(axis_label)
         header_row.addStretch(1)
@@ -222,7 +208,58 @@ class GlobalStatusPanel(QFrame):
         led_row.addStretch(1)
         card_layout.addLayout(led_row)
 
+        self._apply_axis_card_style(axis)
         return card
+
+    # ── Estilos dependientes de config.THEME (tema activo) ──────────────
+    # config.THEME lee el tema activo dinámicamente (ver config.py), pero
+    # QFrame/QLabel no releen su stylesheet solos al cambiar de tema — solo
+    # el QSS global recompilado por Custom_Widgets se reaplica automáticamente.
+    # Estos métodos se llaman tanto al construir el panel como desde
+    # refresh_theme() cuando el usuario cambia de tema en caliente.
+    def _apply_panel_style(self):
+        self.setStyleSheet(
+            f"QFrame#globalStatusPanel {{ background-color: {config.THEME.COLOR_BACKGROUND_1}; border-radius: 12px; }}"
+        )
+
+    def _apply_connection_card_style(self):
+        self.connection_card.setStyleSheet(f"""
+            QFrame#connectionCard {{
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border-radius: 10px;
+            }}
+        """)
+        self.label_connection.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
+    def _apply_laser_stop_card_style(self):
+        self.laser_stop_card.setStyleSheet(f"""
+            QFrame#laserStopCard {{
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border-radius: 10px;
+            }}
+        """)
+
+    def _apply_axis_card_style(self, axis):
+        self._axis_cards[axis].setStyleSheet(f"""
+            QFrame#axisCard_{axis} {{
+                background-color: {config.THEME.COLOR_BACKGROUND_1};
+                border: none;
+                border-radius: 10px;
+            }}
+        """)
+        self._axis_title_labels[axis].setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self._axis_position_labels[axis].setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
+    def refresh_theme(self):
+        """Reaplica los estilos que dependen de config.THEME — llamado desde
+        GuiFunctions.changeAppTheme() (main.py) cuando el usuario elige un
+        tema distinto en `themeList`, para que el panel global no se quede
+        con los colores del tema con el que se construyó."""
+        self._apply_panel_style()
+        self._apply_connection_card_style()
+        self._apply_laser_stop_card_style()
+        for axis in self.AXIS_ORDER:
+            self._apply_axis_card_style(axis)
 
     def _build_indicator_row(self, axis, key, label_text, tooltip):
         """LED junto a su nombre (Enabled/Homed/CW-CCW) en la misma línea, en
@@ -240,7 +277,11 @@ class GlobalStatusPanel(QFrame):
 
         text_label = QLabel(label_text)
         text_label.setFont(QFont("Sitka Small", 8))
-        text_label.setStyleSheet("color: #06112B;")
+        # Antes fijo a "#06112B" (color de texto de TIDE) mientras la tarjeta
+        # que lo contiene ya sigue el tema (COLOR_BACKGROUND_1) — invisible
+        # en NEON. Debe seguir el tema igual que axis_label/value_label (ver
+        # 19_verificacion_contraste.md, auditoría de contraste).
+        text_label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         text_label.setAlignment(Qt.AlignVCenter)
         row.addWidget(text_label, 0, Qt.AlignVCenter)
 
@@ -554,6 +595,11 @@ class GuiFunctions():
         if current_theme != selected_theme:
             settings.setValue("THEME", selected_theme)                      # Aplicar el tema nuevo
             QAppSettings.updateAppSettings(self.main, reloadJson=True)
+            # config.THEME ya lee "THEME" de QSettings dinámicamente, pero el
+            # panel global se construyó antes de este cambio — hay que
+            # volver a aplicar sus estilos para que no se quede con los
+            # colores del tema anterior.
+            self.main.global_status_panel.refresh_theme()
 
 
 ########################################################################

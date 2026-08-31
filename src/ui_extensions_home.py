@@ -120,18 +120,22 @@ class HomePageExtensions:
         self.ui.horizontalLayout_laserState.insertWidget(0, self._led_laser_state)
         self.ui.horizontalLayout_laserState.setSpacing(10)
 
-        # Consigna de potencia
+        # Consigna de potencia — mismo texto que laserTitleLabel/
+        # labelLaserState (COLOR_TEXT_1): antes "white" fijo sobre un fondo
+        # transparente que en realidad muestra el fondo de la página
+        # (COLOR_BACKGROUND_1) — casi invisible en TIDE/EMBER, que son claros
+        # (ver 19_verificacion_contraste.md).
         self.ui.estadoPotencia.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.estadoPotencia.setStyleSheet("""
-            QLineEdit#estadoPotencia {
+        self.ui.estadoPotencia.setStyleSheet(f"""
+            QLineEdit#estadoPotencia {{
                 background-color: transparent;
-                color: white;
+                color: {config.THEME.COLOR_TEXT_1};
                 font-weight: bold;
                 min-width: 260px;
                 max-width: 360px;
                 min-height: 40px;
                 max-height: 40px;
-            }
+            }}
         """)
         self.ui.estadoPotencia.setText("0% · 0 mW (setpoint)")
 
