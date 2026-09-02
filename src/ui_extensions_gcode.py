@@ -140,11 +140,21 @@ class GCodePageExtensions:
         lines = self.gcode_content.split("\n")
         print(f"[Aerotech] Ejecutando G-Code: {self.current_file_path} ({len(lines)} líneas)")
 
-        for lineno, raw_line in enumerate(lines, start=1):
-            line = raw_line.strip()
-            if not line or line.startswith(";"):
-                continue  # ignorar vacías y comentarios
-            self._execute_gcode_line(lineno, line)
+        # El relé se cierra una vez, al principio, de forma incondicional
+        # (aunque el fichero no use el láser) para que la ejecución no
+        # dependa de haber activado "Laser board power" a mano desde Manual
+        # antes de pulsar "Start" — M3 solo arma el PSO, no cierra el relé
+        # por sí solo. Se abre siempre al terminar, tenga o no el fichero
+        # comandos de láser, para no dejarlo cerrado por defecto.
+        self.controller.set_laser_board_power(True)
+        try:
+            for lineno, raw_line in enumerate(lines, start=1):
+                line = raw_line.strip()
+                if not line or line.startswith(";"):
+                    continue  # ignorar vacías y comentarios
+                self._execute_gcode_line(lineno, line)
+        finally:
+            self.controller.set_laser_board_power(False)
 
     # Intérprete de una línea G-Code
     def _execute_gcode_line(self, lineno, line):

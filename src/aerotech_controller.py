@@ -45,6 +45,10 @@ class AerotechController:
         # set_laser_power_percent(). Ver comentario de esa función: hasta que
         # se confirme el canal PWM real, no se escribe sobre ninguna salida.
         self._laser_duty_cycle = 0.0
+        # Último error de get_axis_indicators() (None si la última lectura
+        # fue correcta) — permite a la interfaz mostrar un aviso visible en
+        # pantalla en vez de que el fallo quede solo en la consola.
+        self._indicator_error = None
 
     @property
     def is_connected(self):
@@ -76,6 +80,7 @@ class AerotechController:
             for axis in AXES:
                 self._status_config.axis.add(a1.AxisStatusItem.PositionFeedback, axis)
                 self._status_config.axis.add(a1.AxisStatusItem.DriveStatus, axis)
+                self._status_config.axis.add(a1.AxisStatusItem.AxisStatus, axis)
                 self._status_config.axis.add(a1.AxisStatusItem.AxisFault, axis)
 
             print(f"[Aerotech] Conectado y arrancado correctamente (host={host})")
@@ -120,23 +125,30 @@ class AerotechController:
         las antiguas get_axes_enabled()/get_axes_homed()/get_axis_faults(),
         que devolvían un booleano combinado para los 3 ejes en el caso de
         "enabled" — aquí cada eje se lee de forma independiente.
+
+        Nombres verificados contra dir(a1.DriveStatus)/dir(a1.AxisStatus)/
+        dir(a1.AxisFault) con el paquete automation1 instalado: "Homed" NO
+        existe en DriveStatus (de ahí que los LEDs no cambiaran nunca — la
+        excepción se tragaba en silencio) — vive en AxisStatus, un status
+        item aparte del eje, añadido a _status_config en connect().
+        "Enabled" sí está en DriveStatus, y CwEndOfTravelLimitFault/
+        CcwEndOfTravelLimitFault sí están en AxisFault; esos tres no cambian.
         """
-        # TODO: verificar nombres exactos de cada bit contra
-        # dir(a1.AxisStatus) / dir(a1.DriveStatus) / dir(a1.AxisFault) en la
-        # instalación real.
         empty = {"enabled": False, "homed": False, "limit_active": False}
         if not self.is_connected:
             return dict(empty)
         try:
             results = self._controller.runtime.status.get_status_items(self._status_config)
             drive_status = int(results.axis.get(a1.AxisStatusItem.DriveStatus, axis).value)
+            axis_status = int(results.axis.get(a1.AxisStatusItem.AxisStatus, axis).value)
             fault_bits = int(results.axis.get(a1.AxisStatusItem.AxisFault, axis).value)
 
             enabled = bool(drive_status & int(a1.DriveStatus.Enabled))
-            homed = bool(drive_status & int(a1.DriveStatus.Homed))
+            homed = bool(axis_status & int(a1.AxisStatus.Homed))
             limit_active = bool(fault_bits & int(a1.AxisFault.CwEndOfTravelLimitFault)) or \
                 bool(fault_bits & int(a1.AxisFault.CcwEndOfTravelLimitFault))
 
+            self._indicator_error = None
             return {
                 "enabled": enabled,
                 "homed": homed,
@@ -144,7 +156,13 @@ class AerotechController:
             }
         except Exception as e:
             print(f"[Aerotech] Error leyendo indicadores del eje {axis}: {e}")
+            self._indicator_error = f"Axis indicators unavailable ({axis}): {e}"
             return dict(empty)
+
+    def get_last_indicator_error(self):
+        """Último error de get_axis_indicators(), o None si la última lectura
+        fue correcta — para que la interfaz muestre un aviso visible."""
+        return self._indicator_error
 
     def get_sto_status(self, axis=None):
         """

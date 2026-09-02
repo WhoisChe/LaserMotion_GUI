@@ -230,37 +230,40 @@ class ManualPageExtensions:
         """Mueve X en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
+        # El eje físico movido por "X+" es AXIS_Y (cableado del hardware
+        # real invierte X/Y respecto a la etiqueta del botón, ver
+        # directrices "Ejes X/Y, LEDs, y sincronización Enable/Home" §1).
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving X+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_X, scale, velocity, acceleration)
+        self._move_relative(AXIS_Y, scale, velocity, acceleration)
 
     def move_x_negative(self):
         """Mueve X en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving X- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_X, -scale, velocity, acceleration)
+        self._move_relative(AXIS_Y, -scale, velocity, acceleration)
 
     def move_y_positive(self):
         """Mueve Y en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving Y+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_Y, scale, velocity, acceleration)
+        self._move_relative(AXIS_X, scale, velocity, acceleration)
 
     def move_y_negative(self):
         """Mueve Y en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving Y- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_Y, -scale, velocity, acceleration)
+        self._move_relative(AXIS_X, -scale, velocity, acceleration)
 
     def move_z_positive(self):
         """Mueve Z en dirección positiva"""

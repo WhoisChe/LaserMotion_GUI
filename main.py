@@ -57,7 +57,7 @@ class GlobalStatusPanel(QFrame):
         ("limit_active", "CW/CCW", "CW or CCW travel limit active"),
     ]
 
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, ui, parent=None):
         super().__init__(parent)
         self.controller = controller
         self.setObjectName(u"globalStatusPanel")
@@ -69,6 +69,15 @@ class GlobalStatusPanel(QFrame):
         self.connection_card = None
         self.laser_stop_card = None
         self._led_conexion = None
+        # Enable/Disable de Manual (toggleXBtn/Y/Z) y de Auto (toggleAutoXBtn/
+        # Y/Z) son botones independientes que no se enteran el uno del otro —
+        # se fuerzan aquí, en cada ciclo de refresco, al mismo dato real
+        # (indicators["enabled"]) para que no puedan mostrarse distintos.
+        self._axis_toggle_buttons = {
+            "X": (ui.toggleXBtn, ui.toggleAutoXBtn),
+            "Y": (ui.toggleYBtn, ui.toggleAutoYBtn),
+            "Z": (ui.toggleZBtn, ui.toggleAutoZBtn),
+        }
         self._build_ui()
 
     # ── LED reutilizable (patrón ya usado en el resto del proyecto) ────
@@ -174,6 +183,16 @@ class GlobalStatusPanel(QFrame):
         for axis in self.AXIS_ORDER:
             axes_row.addWidget(self._build_axis_card(axis), 1)
         outer_layout.addLayout(axes_row)
+
+        # Aviso visible cuando get_axis_indicators() falla (p. ej. un nombre
+        # de bit que no existe en la instalación real) — antes ese fallo solo
+        # se veía en consola y los LEDs se quedaban en gris sin más pista.
+        self.indicator_warning_label = QLabel("")
+        self.indicator_warning_label.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.indicator_warning_label.setWordWrap(True)
+        self.indicator_warning_label.setStyleSheet(f"color: {self.LED_COLOR_FAULT};")
+        self.indicator_warning_label.hide()
+        outer_layout.addWidget(self.indicator_warning_label)
 
     def _build_axis_card(self, axis):
         card = QFrame()
@@ -318,6 +337,17 @@ class GlobalStatusPanel(QFrame):
                 self.LED_COLOR_FAULT if indicators["limit_active"] else self.LED_COLOR_OK,
             )
 
+            manual_btn, auto_btn = self._axis_toggle_buttons[axis]
+            manual_btn.setChecked(indicators["enabled"])
+            auto_btn.setChecked(indicators["enabled"])
+
+        error = self.controller.get_last_indicator_error()
+        if error:
+            self.indicator_warning_label.setText(f"⚠ {error}")
+            self.indicator_warning_label.show()
+        else:
+            self.indicator_warning_label.hide()
+
     def _show_disconnected(self):
         for axis in self.AXIS_ORDER:
             self._axis_position_labels[axis].setText("—")
@@ -326,6 +356,10 @@ class GlobalStatusPanel(QFrame):
         for axis in self.AXIS_ORDER:
             for led in self._axis_leds[axis].values():
                 self._set_led_color(led, self.LED_COLOR_INACTIVE)
+            manual_btn, auto_btn = self._axis_toggle_buttons[axis]
+            manual_btn.setChecked(False)
+            auto_btn.setChecked(False)
+        self.indicator_warning_label.hide()
 
 
 ########################################################################
@@ -348,7 +382,7 @@ class MainWindow(QMainWindow):
 
         # Panel de estado global — construido fuera del QStackedWidget
         # principal, insertado justo encima de él
-        self.global_status_panel = GlobalStatusPanel(self.controller, self)
+        self.global_status_panel = GlobalStatusPanel(self.controller, self.ui, self)
         self.ui.verticalLayout_11.insertWidget(0, self.global_status_panel)
         self.ui.mainPages.currentChanged.connect(self._update_global_panel_visibility)
 
