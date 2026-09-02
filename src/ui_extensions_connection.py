@@ -12,6 +12,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QSizePolicy, QMessageBox
 
 import config
+from src.color_contrast import readable_text_color
 
 # Fichero local (no versionado, ver .gitignore) donde se guarda la última IP
 # con la que se conectó con éxito, para precargarla en el futuro en vez del
@@ -79,6 +80,15 @@ class ConnectionPageExtensions:
         self.setup_host_address_input()
         self.setup_connect_button()
 
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples (título, label_21) que
+        no están dentro de un botón/QLineEdit con su propio fondo — se
+        fijaron una sola vez con el tema activo en ese momento, así que un
+        cambio de tema en caliente las deja con el color del tema anterior
+        (ver refresh_theme() en ManualPageExtensions, mismo motivo)."""
+        self.ui.label_11.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_21.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
     def connect_signals(self):
         """Conecta las señales específicas de la página de conexión"""
         # El botón connectBtn ya está conectado en setup_connect_button()
@@ -130,16 +140,16 @@ class ConnectionPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
             QPushButton:checked:hover {{
-                background-color: #45a049;
+                background-color: #1B5E20;
             }}
         """)
 

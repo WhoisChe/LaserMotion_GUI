@@ -11,7 +11,22 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 import config
+from Custom_Widgets.Qss.colorsystem import is_color_dark_or_light
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
+from src.color_contrast import readable_text_color
+
+# Ámbar de aviso — COLOR_BACKGROUND_1 va de muy claro (TIDE/EMBER) a muy
+# oscuro (NEON), y ningún ámbar fijo da 4.5:1 contra los dos extremos a la
+# vez (ver 19_verificacion_contraste.md), así que se elige según si el fondo
+# del tema activo es claro u oscuro.
+WARNING_COLOR_ON_DARK_BG = "#FFA726"
+WARNING_COLOR_ON_LIGHT_BG = "#A85400"
+
+
+def _warning_color():
+    if is_color_dark_or_light(config.THEME.COLOR_BACKGROUND_1) == "dark":
+        return WARNING_COLOR_ON_DARK_BG
+    return WARNING_COLOR_ON_LIGHT_BG
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
@@ -36,6 +51,30 @@ class AutoPageExtensions:
         self.setup_mode_selector()
         self.setup_panels()
         self.setup_preview_and_buttons()
+        self.update_preview()
+
+    def refresh_theme(self):
+        """Reaplica el color de las etiquetas simples que no están dentro de
+        un botón/QComboBox con su propio fondo — se fijaron una sola vez con
+        el tema activo en ese momento, así que un cambio de tema en caliente
+        las deja con el color del tema anterior (ver refresh_theme() en
+        ManualPageExtensions, mismo motivo). No repuebla combos/listas."""
+        for label in (self.ui.labelAxisAutoX, self.ui.labelAxisAutoY, self.ui.labelAxisAutoZ):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_autoMode.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_autoPreview.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
+        for label in (self.ui.label_spPosition, self.ui.label_spDuration,
+                      self.ui.label_fdStart, self.ui.label_fdEnd, self.ui.label_fdDistance,
+                      self.ui.label_fdPulses, self.ui.label_fdPower, self.ui.label_fdTravelSpeed,
+                      self.ui.label_paSpacing, self.ui.label_paDistance, self.ui.label_paPulses,
+                      self.ui.label_paPower, self.ui.label_paTravelSpeed,
+                      self.ui.label_pgType, self.ui.label_pgLinearStart, self.ui.label_pgLinearEnd,
+                      self.ui.label_pgCenter, self.ui.label_pgRadius, self.ui.label_pgDistance,
+                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed,
+                      self.ui.label_bpStart, self.ui.label_bpEnd, self.ui.label_bpDistance,
+                      self.ui.label_bpPattern, self.ui.label_bpTravelSpeed):
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.update_preview()
 
     def connect_signals(self):
@@ -335,13 +374,13 @@ class AutoPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_2};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_2)};
                 border: 2px solid {config.THEME.COLOR_ACCENT_1};
             }}
             QPushButton:checked {{
-                background-color: #4CAF50;
+                background-color: #2E7D32;
                 color: white;
-                border: 2px solid #45a049;
+                border: 2px solid #1B5E20;
             }}
         """
         home_style = f"""
@@ -354,7 +393,7 @@ class AutoPageExtensions:
             }}
             QPushButton:hover {{
                 background-color: {config.THEME.COLOR_ACCENT_1};
-                color: white;
+                color: {readable_text_color(config.THEME.COLOR_ACCENT_1)};
             }}
         """
         for label, toggle_btn, home_btn in axis_specs:
@@ -448,7 +487,7 @@ class AutoPageExtensions:
         self.ui.pgTypeCombo.clear()
         self.ui.pgTypeCombo.addItems(["Linear", "Radial"])
         self.ui.pgTypeStack.setCurrentIndex(0)
-        self.ui.label_pgSegmentedWarning.setStyleSheet("color: #FFA726; font-style: italic;")
+        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
 
         # Estilo general de labels de los 5 paneles
         for label in (self.ui.label_spPosition, self.ui.label_spDuration,
