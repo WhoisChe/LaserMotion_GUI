@@ -590,3 +590,35 @@
 2026-08-30 11:53:15,554 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
 2026-08-30 11:53:15,949 - INFO - Checking icons for qt designer app.
 2026-08-30 11:53:16,553 - INFO - all icons have been checked and missing icons generated!
+2026-08-30 23:18:02,078 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-08-30 23:18:02,086 - INFO - Live monitoring json-styles/style.json for changes
+2026-08-30 23:18:03,070 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-30 23:18:05,001 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-30 23:18:06,293 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-30 23:18:07,926 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-08-30 23:18:08,609 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-08-30 23:18:09,305 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-08-30 23:18:09,966 - INFO - Checking icons for qt designer app.
+2026-08-30 23:18:11,186 - INFO - all icons have been checked and missing icons generated!
+2026-08-30 23:19:22,910 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-08-30 23:19:22,911 - INFO - Generating icons for your theme, please wait. This may take long
+2026-08-30 23:19:23,880 - INFO - ('DONE: Current icons color ', '#F7A618')
+2026-09-02 08:26:19,356 - INFO - Live monitoring Qss/scss/defaultStyle.scss file for changes
+2026-09-02 08:26:19,365 - INFO - Live monitoring json-styles/style.json for changes
+2026-09-02 08:26:20,328 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-09-02 08:26:22,138 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-09-02 08:26:23,562 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-09-02 08:26:25,306 - INFO - Checking icons for TIDE theme. Icons color: #F7A618
+2026-09-02 08:26:25,945 - INFO - Checking icons for NEON theme. Icons color: #116958
+2026-09-02 08:26:26,560 - INFO - Checking icons for EMBER theme. Icons color: #F08A6B
+2026-09-02 08:26:27,171 - INFO - Checking icons for qt designer app.
+2026-09-02 08:26:28,474 - INFO - all icons have been checked and missing icons generated!
+2026-09-02 08:26:31,297 - INFO - ('Current icons color ', '#F7A618', 'New icons color', '#F08A6B')
+2026-09-02 08:26:31,297 - INFO - Generating icons for your theme, please wait. This may take long
+2026-09-02 08:26:31,958 - INFO - ('DONE: Current icons color ', '#F08A6B')
+2026-09-02 08:26:34,462 - INFO - ('Current icons color ', '#F08A6B', 'New icons color', '#116958')
+2026-09-02 08:26:34,462 - INFO - Generating icons for your theme, please wait. This may take long
+2026-09-02 08:26:35,079 - INFO - ('DONE: Current icons color ', '#116958')
+2026-09-02 08:26:37,547 - INFO - ('Current icons color ', '#116958', 'New icons color', '#F7A618')
+2026-09-02 08:26:37,547 - INFO - Generating icons for your theme, please wait. This may take long
+2026-09-02 08:26:38,484 - INFO - ('DONE: Current icons color ', '#F7A618')
