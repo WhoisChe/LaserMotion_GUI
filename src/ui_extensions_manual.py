@@ -640,13 +640,18 @@ class ManualPageExtensions:
         self.ui.labelLaserPowerManual.setToolTip(
             "Power setpoint — not a real measurement, this is the command sent to the laser"
         )
-        self.ui.labelLaserPowerManual.setMinimumWidth(120)
+        # min-width en el propio QSS, no solo setMinimumWidth() — un
+        # QLineEdit con stylesheet propio ignora el mínimo fijado por C++
+        # (mismo caso que setCorner1Btn/setCorner2Btn en la ventana de
+        # seguridad) y se quedaba recortado a un ancho menor que su propio
+        # texto ("100% · 500 mW" no cabía en el ancho real, ~57px).
         self.ui.labelLaserPowerManual.setStyleSheet(f"""
             QLineEdit#labelLaserPowerManual {{
                 background-color: transparent;
                 color: {config.THEME.COLOR_TEXT_1};
                 font-weight: bold;
                 border: none;
+                min-width: 140px;
             }}
         """)
         self.ui.labelLaserPowerManual.setText("0% · 0 mW")
