@@ -25,7 +25,6 @@ from src.ui_extensions_manual import ManualPageExtensions
 from src.ui_extensions_auto import AutoPageExtensions
 from src.ui_extensions_gcode import GCodePageExtensions
 from src.ui_extensions_connection import ConnectionPageExtensions
-from src.ui_extensions_calibration import CalibrationPageExtensions
 
 
 ########################################################################
@@ -153,7 +152,7 @@ class GlobalStatusPanel(QFrame):
         # pueda comprimirlo, y min-width repetido en el QSS de instancia
         # para que ninguna regla de QSS global con mayor prioridad de
         # cascada lo reduzca por debajo de este mínimo.
-        self.laser_stop_btn = QPushButton("Laser stop")
+        self.laser_stop_btn = QPushButton("STOP")
         self.laser_stop_btn.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
         self.laser_stop_btn.setMinimumWidth(180)
         self.laser_stop_btn.setMinimumHeight(48)
@@ -466,7 +465,6 @@ class UIExtensions:
         self.auto_ext = AutoPageExtensions(ui, main_window, self.controller)
         self.gcode_ext = GCodePageExtensions(ui, main_window, self.controller)
         self.connection_ext = ConnectionPageExtensions(ui, main_window, self.controller)
-        self.calibration_ext = CalibrationPageExtensions(ui, main_window, self.controller)
 
     def apply_all_modifications(self):
         """Aplica todas las modificaciones de diseño"""
@@ -486,7 +484,6 @@ class UIExtensions:
         self.auto_ext.apply_modifications()
         self.gcode_ext.apply_modifications()
         self.connection_ext.apply_modifications()
-        self.calibration_ext.apply_modifications()
 
     def connect_all_signals(self):
         """Conecta todas las señales de cada página"""
@@ -495,7 +492,6 @@ class UIExtensions:
         self.auto_ext.connect_signals()
         self.gcode_ext.connect_signals()
         self.connection_ext.connect_signals()
-        self.calibration_ext.connect_signals()
 
     def apply_global_fonts(self):
         """Aplica las fuentes globales a toda la aplicación"""
@@ -512,7 +508,6 @@ class UIExtensions:
             self.ui.label_3,   # Settings
             self.ui.label_4,   # Help
             self.ui.label_11,  # Connection Page
-            self.ui.label_10,  # Calibration Page
             self.ui.label_19,  # Movement XYZ (Manual)
             self.ui.label_7,   # Laser (Manual)
             self.ui.label_9,   # Upload G-Code
@@ -554,7 +549,6 @@ class GuiFunctions():
 
         # Expandir el menu derecho
         self.ui.connectionBtn.clicked.connect(lambda:self.ui.rightMenu.expandMenu())
-        self.ui.calibrationBtn.clicked.connect(lambda:self.ui.rightMenu.expandMenu())
 
         # Cerrar el menu derecho
         self.ui.closeRightMenuBtn.clicked.connect(lambda:self.ui.rightMenu.collapseMenu())
@@ -646,7 +640,6 @@ class GuiFunctions():
             ui_ext.auto_ext.refresh_theme()
             ui_ext.gcode_ext.refresh_theme()
             ui_ext.connection_ext.refresh_theme()
-            ui_ext.calibration_ext.refresh_theme()
 
 
 ########################################################################

@@ -83,12 +83,6 @@ CHECKS = [
     # ── src/ui_extensions_auto.py ────────────────────────────────────────
     ("Auto: título de sección/labels de panel", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
     ("Auto: vista previa (gcodePreviewAuto)", "#F0F0F0", "#2B2B2B"),
-    # _warning_color() elige #FFA726 (fondo oscuro) o #A85400 (fondo claro)
-    # según THEME.COLOR_BACKGROUND_1 del tema activo — cada fila solo se
-    # comprueba contra los temas donde ese color realmente se usa (ver
-    # "themes" opcional en CHECKS / _resolve_checks_for_theme).
-    ("Auto: aviso 'Power gradient siempre segmentado' (fondo claro)", "#A85400", "THEME.COLOR_BACKGROUND_1", ("TIDE", "EMBER")),
-    ("Auto: aviso 'Power gradient siempre segmentado' (fondo oscuro)", "#FFA726", "THEME.COLOR_BACKGROUND_1", ("NEON",)),
     ("Auto/Manual: botón eje — reposo", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_2"),
     ("Auto/Manual: botón eje — hover (Enable)", "READABLE:THEME.COLOR_ACCENT_2", "THEME.COLOR_ACCENT_2"),
     ("Auto/Manual: botón Home — hover", "READABLE:THEME.COLOR_ACCENT_1", "THEME.COLOR_ACCENT_1"),
@@ -107,7 +101,6 @@ CHECKS = [
 
     # ── src/ui_extensions_home.py ────────────────────────────────────────
     ("Home: laserTitleLabel / labelLaserState", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
-    ("Home: estadoPotencia (consigna de potencia)", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
 
     # ── src/ui_extensions_connection.py ──────────────────────────────────
     ("Connection: títulos / labels", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
@@ -115,15 +108,10 @@ CHECKS = [
     ("Connection: connectBtn — hover", "READABLE:THEME.COLOR_ACCENT_2", "THEME.COLOR_ACCENT_2"),
     ("Connection: connectBtn — checked (conectado)", "#FFFFFF", "#2E7D32"),
 
-    # ── src/ui_extensions_calibration.py ─────────────────────────────────
-    ("Calibration: títulos / labels", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
-    ("Calibration: labelZFocusStatus (Z en vivo)", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_1"),
-    ("Calibration: botones (focus/calibración/alignment) — reposo", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_2"),
-    ("Calibration: botones — hover", "READABLE:THEME.COLOR_ACCENT_2", "THEME.COLOR_ACCENT_2"),
-    ("Calibration: xMin/xMax/yMin/yMax fields", "THEME.COLOR_TEXT_1", "THEME.COLOR_BACKGROUND_2"),
-    ("Calibration: Confirm focus / Corner 1-2 / Zero X-Y — éxito", "#FFFFFF", "#2E7D32"),
-    ("Calibration: Alignment mode — checked", "#06112B", "#FFA726"),
-    ("Calibration: alignmentFireBtn", "#FFFFFF", "#D32F2F"),
+    # Master safety window (src/ui_extensions_manual.py, migrada desde la
+    # antigua página Calibration): mismos pares de color ya cubiertos arriba
+    # (THEME.COLOR_TEXT_1/BACKGROUND_2 para los campos xMin/xMax/yMin/yMax,
+    # #FFFFFF/#2E7D32 para los botones Corner 1/2 — ver líneas 95 y 114).
 ]
 
 

@@ -23,11 +23,6 @@ SYNC_PORTS_AVAILABLE = False
 # de cada mesa (ANT130XY-060 para X/Y, ANT130LZS-035 para Z).
 DEFAULT_ACCELERATION_MM_S2 = {"X": 100.0, "Y": 100.0, "Z": 100.0}
 
-# Tope de potencia (%) forzado por "Laser alignment mode" en Calibration —
-# suficiente para ver el punto del láser sin quemar/marcar la pieza mientras
-# se alinea. Ajustar según sensibilidad del material usado en el laboratorio.
-ALIGNMENT_MODE_MAX_POWER_PERCENT = 8
-
 
 import json
 import os

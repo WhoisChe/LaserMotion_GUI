@@ -3,30 +3,23 @@
 ########################################################################
 ## Reescrita por completo en la migración de agosto de 2026
 ## (03_auto.md): Auto deja de ejecutar movimiento directamente y pasa a ser
-## un generador de G-Code con 5 modos (Single point, Fixed-distance firing,
-## Point array, Power gradient, Binary pattern).
+## un generador de G-Code con 4 modos (Single point, Fixed-distance firing,
+## Point array, Power gradient). Binary pattern se descartó del selector —
+## pso_configure_bitmap() sigue existiendo en aerotech_controller.py sin
+## uso, no hace falta tocarlo.
 ########################################################################
 
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
 import config
-from Custom_Widgets.Qss.colorsystem import is_color_dark_or_light
 from src.aerotech_controller import AXIS_X, AXIS_Y, AXIS_Z
 from src.color_contrast import readable_text_color
-
-# Ámbar de aviso — COLOR_BACKGROUND_1 va de muy claro (TIDE/EMBER) a muy
-# oscuro (NEON), y ningún ámbar fijo da 4.5:1 contra los dos extremos a la
-# vez (ver 19_verificacion_contraste.md), así que se elige según si el fondo
-# del tema activo es claro u oscuro.
-WARNING_COLOR_ON_DARK_BG = "#FFA726"
-WARNING_COLOR_ON_LIGHT_BG = "#A85400"
-
-
-def _warning_color():
-    if is_color_dark_or_light(config.THEME.COLOR_BACKGROUND_1) == "dark":
-        return WARNING_COLOR_ON_DARK_BG
-    return WARNING_COLOR_ON_LIGHT_BG
+# Mismo fondo azul oscuro/texto claro que ya usan scaleList/scaleMultiplier/
+# velocity en Manual (ver ui_extensions_manual.py) — reutilizado tal cual
+# para que los combos de escala y los campos numéricos de Auto sigan el
+# mismo formato de color, en vez de duplicar los estilos aquí.
+from src.ui_extensions_manual import DARK_COMBO_STYLE, DARK_FIELD_STYLE
 
 AXIS_CONST = {"X": AXIS_X, "Y": AXIS_Y, "Z": AXIS_Z}
 
@@ -63,17 +56,14 @@ class AutoPageExtensions:
             label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_autoMode.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_autoPreview.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
-        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
         for label in (self.ui.label_spPosition, self.ui.label_spDuration,
                       self.ui.label_fdStart, self.ui.label_fdEnd, self.ui.label_fdDistance,
                       self.ui.label_fdPulses, self.ui.label_fdPower, self.ui.label_fdTravelSpeed,
-                      self.ui.label_paSpacing, self.ui.label_paDistance, self.ui.label_paPulses,
+                      self.ui.label_paDistance, self.ui.label_paPulses,
                       self.ui.label_paPower, self.ui.label_paTravelSpeed,
                       self.ui.label_pgType, self.ui.label_pgLinearStart, self.ui.label_pgLinearEnd,
                       self.ui.label_pgCenter, self.ui.label_pgRadius, self.ui.label_pgDistance,
-                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed,
-                      self.ui.label_bpStart, self.ui.label_bpEnd, self.ui.label_bpDistance,
-                      self.ui.label_bpPattern, self.ui.label_bpTravelSpeed):
+                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed):
             label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.update_preview()
 
@@ -106,8 +96,6 @@ class AutoPageExtensions:
             combo.currentIndexChanged.connect(self.update_preview)
         for checkbox in (self.ui.spFireCheck, self.ui.fdLimitWindow, self.ui.paLimitWindow):
             checkbox.stateChanged.connect(self.update_preview)
-        for toggle in self._bit_toggles():
-            toggle.clicked.connect(self.update_preview)
 
         # Botones de salida
         self.ui.openInGCodeBtn.clicked.connect(self.handle_open_in_gcode)
@@ -157,7 +145,6 @@ class AutoPageExtensions:
             self._generate_fixed_distance,
             self._generate_point_array,
             self._generate_power_gradient,
-            self._generate_binary_pattern,
         ]
         mode_index = self.ui.modeSelector.currentIndex()
         if not (0 <= mode_index < len(generators)):
@@ -203,6 +190,11 @@ class AutoPageExtensions:
         ]
 
     def _generate_point_array(self):
+        """Cada pasada reutiliza exactamente el mismo mecanismo que
+        Fixed-distance firing (M900 + G1), repetido una vez por pasada, con
+        el láser apagado explícitamente (M5) entre una pasada y la
+        siguiente — espaciado siempre uniforme, sin tabla de distancias
+        editable (03_auto.md §1.2)."""
         if not self._pass_list:
             return []
 
@@ -210,7 +202,6 @@ class AutoPageExtensions:
         pulses = self.ui.paPulses.value()
         power = self.ui.paPower.value()
         speed = self.ui.paTravelSpeed.value()
-        uniform = self.ui.paSpacingCombo.currentText() == "Uniform"
 
         lines = []
         for p in self._pass_list:
@@ -223,13 +214,6 @@ class AutoPageExtensions:
                 return None
 
             lines.append(f"G0 X{start_point[0]:.4f} Y{start_point[1]:.4f}")
-            if not uniform:
-                # TODO: el espaciado "Irregular" requiere
-                # pso_configure_array_distances() con una lista de distancias
-                # punto a punto; esta UI aún no captura esa lista, así que se
-                # usa M900 con la distancia fija como aproximación hasta
-                # definir cómo introducir espaciados irregulares en pantalla.
-                pass
             lines.append(f"M900 D{distance_mm:.4f} P{pulses}")
             lines.append(f"M3 S{power:.0f}")
             lines.append(f"G1 X{end_point[0]:.4f} Y{end_point[1]:.4f} F{speed:.2f}")
@@ -256,7 +240,7 @@ class AutoPageExtensions:
         n_segments = max(1, round(total_dist / distance_mm)) if distance_mm > 0 and total_dist > 0 else 1
 
         # Siempre segmentado (G1 cortos + M3 S<valor> escalonado), nunca
-        # array PSO nativo — ver label_pgSegmentedWarning en el panel.
+        # array PSO nativo.
         lines = [f"G0 X{sx:.4f} Y{sy:.4f}"]
         for i in range(n_segments):
             t_mid = (i + 0.5) / n_segments
@@ -269,31 +253,12 @@ class AutoPageExtensions:
         lines.append("M5")
         return lines
 
-    def _generate_binary_pattern(self):
-        sx, sy = self.ui.bpStartX.value(), self.ui.bpStartY.value()
-        ex, ey = self.ui.bpEndX.value(), self.ui.bpEndY.value()
-        distance_mm = self.ui.bpDistance.value() * DISTANCE_FACTORS_TO_MM.get(self.ui.bpDistanceScale.currentData(), 1.0)
-        speed = self.ui.bpTravelSpeed.value()
-        bits = "".join("1" if toggle.isChecked() else "0" for toggle in self._bit_toggles())
-
-        # El dialecto G-Code de 04_gcode.md no define un M-code para un
-        # patrón de bits — se deja como comentario informativo (el
-        # intérprete ignora líneas que empiezan por ";"); la ejecución real
-        # del patrón pasaría por controller.pso_configure_bitmap() de forma
-        # directa, no a través de este texto.
-        return [
-            f"G0 X{sx:.4f} Y{sy:.4f}",
-            f"M900 D{distance_mm:.4f} P1",
-            f"; binary pattern {bits} — see pso_configure_bitmap()",
-            f"G1 X{ex:.4f} Y{ey:.4f} F{speed:.2f}",
-        ]
-
     def _validate_window(self, points):
         """Valida una lista de puntos (x, y) contra la ventana maestra de
         Calibration. Si todavía no hay ventana calibrada, deja pasar (no hay
         nada contra qué validar)."""
         try:
-            window = self.main.ui_ext.calibration_ext.get_safety_window()
+            window = self.main.ui_ext.manual_ext.get_safety_window()
         except Exception:
             window = None
         if not window:
@@ -340,21 +305,13 @@ class AutoPageExtensions:
             self.ui.pgStartX, self.ui.pgStartY, self.ui.pgEndX, self.ui.pgEndY,
             self.ui.pgCenterX, self.ui.pgCenterY, self.ui.pgRadius,
             self.ui.pgDistance, self.ui.pgPowerStart, self.ui.pgPowerEnd, self.ui.pgTravelSpeed,
-            self.ui.bpStartX, self.ui.bpStartY, self.ui.bpEndX, self.ui.bpEndY,
-            self.ui.bpDistance, self.ui.bpTravelSpeed,
         ]
 
     def _all_combos(self):
         return [
             self.ui.spDurationScale, self.ui.fdDistanceScale,
-            self.ui.paAxisCombo, self.ui.paSpacingCombo, self.ui.paDistanceScale,
-            self.ui.pgTypeCombo, self.ui.pgDistanceScale, self.ui.bpDistanceScale,
-        ]
-
-    def _bit_toggles(self):
-        return [
-            self.ui.bpBitToggle0, self.ui.bpBitToggle1, self.ui.bpBitToggle2, self.ui.bpBitToggle3,
-            self.ui.bpBitToggle4, self.ui.bpBitToggle5, self.ui.bpBitToggle6, self.ui.bpBitToggle7,
+            self.ui.paAxisCombo, self.ui.paDistanceScale,
+            self.ui.pgTypeCombo, self.ui.pgDistanceScale,
         ]
 
     def setup_axis_control_section(self):
@@ -416,7 +373,6 @@ class AutoPageExtensions:
             "Fixed-distance firing",
             "Point array",
             "Power gradient",
-            "Binary pattern",
         ])
         self.ui.modeSelector.setFont(QFont("Sitka Small", 10))
 
@@ -429,13 +385,12 @@ class AutoPageExtensions:
                         self.ui.fdStartX, self.ui.fdStartY, self.ui.fdEndX, self.ui.fdEndY,
                         self.ui.paStart, self.ui.paEnd, self.ui.paCross,
                         self.ui.pgStartX, self.ui.pgStartY, self.ui.pgEndX, self.ui.pgEndY,
-                        self.ui.pgCenterX, self.ui.pgCenterY, self.ui.pgRadius,
-                        self.ui.bpStartX, self.ui.bpStartY, self.ui.bpEndX, self.ui.bpEndY):
+                        self.ui.pgCenterX, self.ui.pgCenterY, self.ui.pgRadius):
             spinbox.setMinimum(-1000.0)
             spinbox.setMaximum(1000.0)
             spinbox.setSuffix(" mm")
         # Distancia entre eventos (valor sin unidad, unidad va en el combo)
-        for spinbox in (self.ui.fdDistance, self.ui.paDistance, self.ui.pgDistance, self.ui.bpDistance):
+        for spinbox in (self.ui.fdDistance, self.ui.paDistance, self.ui.pgDistance):
             spinbox.setMinimum(0.0)
             spinbox.setMaximum(100000.0)
         # Potencia (%)
@@ -445,7 +400,7 @@ class AutoPageExtensions:
             spinbox.setSuffix(" %")
         self.ui.pgPowerEnd.setValue(100.0)
         # Velocidad de desplazamiento (mm/s)
-        for spinbox in (self.ui.fdTravelSpeed, self.ui.paTravelSpeed, self.ui.pgTravelSpeed, self.ui.bpTravelSpeed):
+        for spinbox in (self.ui.fdTravelSpeed, self.ui.paTravelSpeed, self.ui.pgTravelSpeed):
             spinbox.setMinimum(0.1)
             spinbox.setMaximum(1000.0)
             spinbox.setValue(10.0)
@@ -461,7 +416,7 @@ class AutoPageExtensions:
         self.ui.spDuration.setValue(1.0)
 
         # Combos de escala de distancia (nm/μm/mm/cm)
-        for combo in (self.ui.fdDistanceScale, self.ui.paDistanceScale, self.ui.pgDistanceScale, self.ui.bpDistanceScale):
+        for combo in (self.ui.fdDistanceScale, self.ui.paDistanceScale, self.ui.pgDistanceScale):
             combo.clear()
             for value, text in (("nm", "Nanometers (nm)"), ("μm", "Micrometers (μm)"),
                                  ("mm", "Millimeters (mm)"), ("cm", "Centimeters (cm)")):
@@ -477,34 +432,36 @@ class AutoPageExtensions:
         self.ui.spDurationScale.setCurrentIndex(3)
         self.ui.spDurationScale.setFont(QFont("Sitka Small", 9))
 
-        # Point array: eje + espaciado
+        # Point array: eje de cada pasada (nunca diagonal — siempre X o Y,
+        # ver 00_global_architecture.md §3). El espaciado es siempre
+        # uniforme, sin selector: cada pasada reutiliza el mismo mecanismo
+        # que Fixed-distance firing (ver _generate_point_array()).
         self.ui.paAxisCombo.clear()
         self.ui.paAxisCombo.addItems(["X", "Y"])
-        self.ui.paSpacingCombo.clear()
-        self.ui.paSpacingCombo.addItems(["Uniform", "Irregular"])
 
         # Power gradient: tipo + sub-panel
         self.ui.pgTypeCombo.clear()
         self.ui.pgTypeCombo.addItems(["Linear", "Radial"])
         self.ui.pgTypeStack.setCurrentIndex(0)
-        self.ui.label_pgSegmentedWarning.setStyleSheet(f"color: {_warning_color()}; font-style: italic;")
 
-        # Estilo general de labels de los 5 paneles
+        # Estilo general de labels de los 4 paneles
         for label in (self.ui.label_spPosition, self.ui.label_spDuration,
                       self.ui.label_fdStart, self.ui.label_fdEnd, self.ui.label_fdDistance,
                       self.ui.label_fdPulses, self.ui.label_fdPower, self.ui.label_fdTravelSpeed,
-                      self.ui.label_paSpacing, self.ui.label_paDistance, self.ui.label_paPulses,
+                      self.ui.label_paDistance, self.ui.label_paPulses,
                       self.ui.label_paPower, self.ui.label_paTravelSpeed,
                       self.ui.label_pgType, self.ui.label_pgLinearStart, self.ui.label_pgLinearEnd,
                       self.ui.label_pgCenter, self.ui.label_pgRadius, self.ui.label_pgDistance,
-                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed,
-                      self.ui.label_bpStart, self.ui.label_bpEnd, self.ui.label_bpDistance,
-                      self.ui.label_bpPattern, self.ui.label_bpTravelSpeed):
+                      self.ui.label_pgPower, self.ui.label_pgTravelSpeed):
             label.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
             label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
 
-        for toggle in self._bit_toggles():
-            toggle.setFont(QFont("Sitka Small", 9))
+        # Mismo formato de color que los combos/campos de Manual (scaleList/
+        # scaleMultiplier/velocity) — fondo azul oscuro, texto claro.
+        for combo in self._all_combos():
+            combo.setStyleSheet(DARK_COMBO_STYLE)
+        for spinbox in self._all_spinboxes():
+            spinbox.setStyleSheet(DARK_FIELD_STYLE)
 
     def setup_preview_and_buttons(self):
         self.ui.label_autoPreview.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))

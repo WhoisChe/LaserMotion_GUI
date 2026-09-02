@@ -144,10 +144,19 @@ class ManualPageExtensions:
         # por defecto al arrancar.
         self._board_power = False
 
+        # Master safety window (antes en Calibration, migrada aquí debajo
+        # del D-pad/Z — ver setup_safety_window_section()): dos esquinas
+        # capturadas por movimiento real (jog de esta misma página), no por
+        # texto. get_safety_window() la siguen consultando "Limit to
+        # position window" de Auto y M901 de G-Code.
+        self._corner1 = None   # (x, y) mm
+        self._corner2 = None   # (x, y) mm
+
     def apply_modifications(self):
         """Aplica todas las modificaciones de la página Manual"""
         self.setup_axis_control_section()
         self.setup_movement_section()
+        self.setup_safety_window_section()
         self.setup_laser_power_section()
 
     def refresh_theme(self):
@@ -159,7 +168,10 @@ class ManualPageExtensions:
         gris casi blanco de NEON, invisible sobre el fondo claro de TIDE/
         EMBER). Llamado desde GuiFunctions.changeAppTheme() (main.py). No
         toca botones/combos a propósito, para no resetear selección alguna."""
-        for label in (self.ui.labelAxisX, self.ui.labelAxisY, self.ui.labelAxisZ):
+        for label in (self.ui.labelAxisX, self.ui.labelAxisY, self.ui.labelAxisZ,
+                      self.ui.label_safetyWindowTitle, self.ui.label_safetyWindowHint,
+                      self.ui.label_xMinField, self.ui.label_xMaxField,
+                      self.ui.label_yMinField, self.ui.label_yMaxField):
             label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_19.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.labelLaserPowerManual.setStyleSheet(f"""
@@ -199,6 +211,10 @@ class ManualPageExtensions:
         self.ui.homeYBtn.clicked.connect(lambda: self.controller.home_axes([AXIS_Y]))
         self.ui.homeZBtn.clicked.connect(lambda: self.controller.home_axes([AXIS_Z]))
 
+        # Master safety window — captura de esquinas por movimiento real
+        self.ui.setCorner1Btn.clicked.connect(self.capture_corner_1)
+        self.ui.setCorner2Btn.clicked.connect(self.capture_corner_2)
+
         # Consigna de potencia del láser (solo fija el valor mostrado/color;
         # NO dispara nada por sí sola — ver 02_manual.md §1.4)
         self.ui.laserPowerSlider.valueChanged.connect(self.handle_laser_power_changed)
@@ -230,40 +246,37 @@ class ManualPageExtensions:
         """Mueve X en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        # El eje físico movido por "X+" es AXIS_Y (cableado del hardware
-        # real invierte X/Y respecto a la etiqueta del botón, ver
-        # directrices "Ejes X/Y, LEDs, y sincronización Enable/Home" §1).
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving X+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_Y, scale, velocity, acceleration)
+        self._move_relative(AXIS_X, scale, velocity, acceleration)
 
     def move_x_negative(self):
         """Mueve X en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
 
         print(f"Moving X- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_Y, -scale, velocity, acceleration)
+        self._move_relative(AXIS_X, -scale, velocity, acceleration)
 
     def move_y_positive(self):
         """Mueve Y en dirección positiva"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving Y+ | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_X, scale, velocity, acceleration)
+        self._move_relative(AXIS_Y, scale, velocity, acceleration)
 
     def move_y_negative(self):
         """Mueve Y en dirección negativa"""
         scale = self.get_current_scale()
         velocity = self._applied_velocity
-        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_X]
+        acceleration = config.DEFAULT_ACCELERATION_MM_S2[AXIS_Y]
 
         print(f"Moving Y- | Scale: {scale} | Vel: {velocity} | Acc: {acceleration}")
-        self._move_relative(AXIS_X, -scale, velocity, acceleration)
+        self._move_relative(AXIS_Y, -scale, velocity, acceleration)
 
     def move_z_positive(self):
         """Mueve Z en dirección positiva"""
@@ -391,6 +404,7 @@ class ManualPageExtensions:
 
         # Configurar selector de escala y velocidad (ya no hay aceleración)
         self.ui.label_31.setFont(QFont("Sitka Small", 10))
+        self.ui.label_increment.setFont(QFont("Sitka Small", 10))
         self.setup_scale_selector()
         self.ui.label_32.setFont(QFont("Sitka Small", 10))
         self.setup_velocity_selector()
@@ -448,6 +462,124 @@ class ManualPageExtensions:
 
         self.ui.confirmBtn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.confirmBtn.setStyleSheet(DARK_CONFIRM_BTN_STYLE)
+
+    # ─────────────────────────────────────────────────────────────────────
+    # Master safety window (antes en Calibration — misma lógica exacta,
+    # migrada aquí debajo del D-pad/Z). get_safety_window() la siguen
+    # consultando "Limit to position window" de Auto y M901 de G-Code.
+    # ─────────────────────────────────────────────────────────────────────
+    def setup_safety_window_section(self):
+        self.ui.label_safetyWindowTitle.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.label_safetyWindowTitle.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
+        self.ui.label_safetyWindowHint.setFont(QFont("Sitka Small", 9))
+        self.ui.label_safetyWindowHint.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
+        for label in (self.ui.label_xMinField, self.ui.label_xMaxField,
+                      self.ui.label_yMinField, self.ui.label_yMaxField):
+            label.setFont(QFont("Sitka Small", 9))
+            label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
+        for field in (self.ui.xMinField, self.ui.xMaxField, self.ui.yMinField, self.ui.yMaxField):
+            field.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+            field.setStyleSheet(f"""
+                QLineEdit {{
+                    background-color: {config.THEME.COLOR_BACKGROUND_2};
+                    color: {config.THEME.COLOR_TEXT_1};
+                    border: 2px solid {config.THEME.COLOR_ACCENT_3};
+                    border-radius: 5px;
+                }}
+            """)
+
+        # Mismo estilo que "Confirm focus" tenía en Calibration — botones
+        # más largos que antes, Manual no está limitado al panel lateral
+        # estrecho de Calibration. min-width fijo en el propio QSS (en vez
+        # de QFontMetrics sobre el texto real) — su texto es más largo que
+        # "Corner 1"/"Corner 2" a secas ("Set Corner 1 (move here first)"),
+        # y sin un ancho mínimo explícito el QHBoxLayout que los comparte
+        # con la rejilla de campos los dejaba más estrechos que su propio
+        # texto, cortándolo.
+        corner_button_style = f"""
+            QPushButton {{
+                background-color: {config.THEME.COLOR_BACKGROUND_2};
+                color: {config.THEME.COLOR_TEXT_1};
+                border: 2px solid #2E7D32;
+                border-radius: 8px;
+                padding: 10px;
+                min-width: 260px;
+                min-height: 50px;
+            }}
+            QPushButton:hover {{
+                background-color: #2E7D32;
+                color: white;
+                border: 2px solid #1B5E20;
+            }}
+            QPushButton:pressed {{
+                background-color: #1B5E20;
+            }}
+        """
+        self.ui.setCorner1Btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.setCorner1Btn.setStyleSheet(corner_button_style)
+        self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
+        self.ui.setCorner2Btn.setStyleSheet(corner_button_style)
+
+    def capture_corner_1(self):
+        """Captura la posición X/Y actual como primera esquina de la ventana
+        maestra (mover primero con el jog de esta misma página hasta la
+        esquina real)."""
+        if not self._confirm_redefine_if_needed():
+            return
+        x, y, _ = self.controller.get_axis_positions()
+        self._corner1 = (x, y)
+        print(f"[Manual] Safety window corner 1 set at X={x:.3f} Y={y:.3f}")
+        self._recompute_safety_window()
+
+    def capture_corner_2(self):
+        """Captura la posición X/Y actual como segunda esquina de la ventana
+        maestra."""
+        if not self._confirm_redefine_if_needed():
+            return
+        x, y, _ = self.controller.get_axis_positions()
+        self._corner2 = (x, y)
+        print(f"[Manual] Safety window corner 2 set at X={x:.3f} Y={y:.3f}")
+        self._recompute_safety_window()
+
+    def _confirm_redefine_if_needed(self):
+        """Redefinir una ventana ya calibrada (las dos esquinas ya
+        capturadas) exige confirmación explícita del usuario."""
+        if self._corner1 is None or self._corner2 is None:
+            return True
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Redefine safety window?")
+        msg.setText("The safety window is already calibrated. Redefining a corner will change it.")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+        return msg.exec() == QMessageBox.StandardButton.Yes
+
+    def _recompute_safety_window(self):
+        if self._corner1 is None or self._corner2 is None:
+            return
+        window = self.get_safety_window()
+        self.ui.xMinField.setText(f"{window['x_min']:.3f}")
+        self.ui.xMaxField.setText(f"{window['x_max']:.3f}")
+        self.ui.yMinField.setText(f"{window['y_min']:.3f}")
+        self.ui.yMaxField.setText(f"{window['y_max']:.3f}")
+
+    def get_safety_window(self):
+        """
+        Expone la ventana maestra de posición a Auto y G-Code (M901).
+        Devuelve {"x_min", "x_max", "y_min", "y_max"} o None si todavía no
+        se han capturado las dos esquinas.
+        """
+        if self._corner1 is None or self._corner2 is None:
+            return None
+        x1, y1 = self._corner1
+        x2, y2 = self._corner2
+        return {
+            "x_min": min(x1, x2), "x_max": max(x1, x2),
+            "y_min": min(y1, y2), "y_max": max(y1, y2),
+        }
 
     # ─────────────────────────────────────────────────────────────────────
     # Compuerta de confirmación de Velocity

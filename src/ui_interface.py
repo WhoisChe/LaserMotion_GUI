@@ -71,6 +71,15 @@ def _icon_path(alias):
     return f"Qss/icons/{_current_icons_color()}/{match.group(1)}"
 
 
+def _scaled_pixmap(path, height):
+    """Carga una imagen y la escala a "height" px de alto conservando su
+    proporción original (Qt.KeepAspectRatio) — para logos/imágenes cuyo
+    ancho debe salir del propio archivo en vez de forzarse aparte, así que
+    una sustitución futura con proporciones distintas sigue escalando bien
+    a partir de la misma altura."""
+    return QPixmap(path).scaledToHeight(height, Qt.SmoothTransformation)
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -352,9 +361,15 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setContentsMargins(5, 0, 0, 5)
         self.usal = QLabel(self.header)
         self.usal.setObjectName(u"usal")
-        self.usal.setMaximumSize(QSize(16777215, 35))
-        self.usal.setPixmap(QPixmap(u"images/logo_usal1.png"))
-        self.usal.setScaledContents(True)
+        # Altura fija a 43 px, ancho libre — por debajo del techo que
+        # permite el header sin crecer (frame_2/connectionBtn es hoy el
+        # hijo más alto, a 58 px). El pixmap ya sale escalado a esa altura
+        # conservando su proporción (_scaled_pixmap), así que el QLabel no
+        # debe imponer un ancho propio que lo recorte ni
+        # setScaledContents(True), que deformaría la imagen si el layout le
+        # diera una caja con una proporción distinta a la del pixmap.
+        self.usal.setFixedHeight(43)
+        self.usal.setPixmap(_scaled_pixmap(u"images/logo_usal1.png", 43))
 
         self.horizontalLayout_5.addWidget(self.usal, 0, Qt.AlignLeft|Qt.AlignVCenter)
 
@@ -372,14 +387,6 @@ class Ui_MainWindow(object):
         self.connectionBtn.setIcon(icon8)
 
         self.horizontalLayout_6.addWidget(self.connectionBtn)
-
-        self.calibrationBtn = QPushButton(self.frame_2)
-        self.calibrationBtn.setObjectName(u"calibrationBtn")
-        icon9 = QIcon()
-        icon9.addFile(_icon_path(u":/material_design/icons/material_design/control_camera.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.calibrationBtn.setIcon(icon9)
-
-        self.horizontalLayout_6.addWidget(self.calibrationBtn)
 
 
         self.horizontalLayout_5.addWidget(self.frame_2, 0, Qt.AlignHCenter|Qt.AlignBottom)
@@ -507,17 +514,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_laser.addWidget(self.laserStateRow, 0, Qt.AlignHCenter|Qt.AlignVCenter)
 
-        self.estadoPotencia = QLineEdit(self.laserOutputCard)
-        self.estadoPotencia.setObjectName(u"estadoPotencia")
-        self.estadoPotencia.setReadOnly(True)
-        self.estadoPotencia.setAlignment(Qt.AlignCenter)
-        self.estadoPotencia.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.estadoPotencia.setMinimumSize(QSize(260, 40))
-        self.estadoPotencia.setMaximumSize(QSize(360, 40))
-        self.estadoPotencia.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-
-        self.verticalLayout_laser.addWidget(self.estadoPotencia, 0, Qt.AlignHCenter|Qt.AlignVCenter)
-
 
         self.verticalLayout_10.addWidget(self.laserOutputCard)
 
@@ -533,10 +529,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_18.addItem(self.horizontalSpacer_6)
 
         # ── Imagen de la estación (a la derecha de la tarjeta de láser) ──
+        # Escalada por altura conservando proporción (_scaled_pixmap, ver
+        # también el logo usal más arriba) — sin setScaledContents(True),
+        # que deformaría la imagen si el layout le diera una caja con una
+        # proporción distinta a la del pixmap ya escalado.
         self.estacionAerotech = QLabel(self.homePage)
         self.estacionAerotech.setObjectName(u"estacionAerotech")
-        self.estacionAerotech.setPixmap(QPixmap(u"images/Estacion nanoposicionamiento.png"))
-        self.estacionAerotech.setScaledContents(True)
+        self.estacionAerotech.setPixmap(_scaled_pixmap(u"images/Estacion nanoposicionamiento.png", 380))
 
         self.horizontalLayout_18.addWidget(self.estacionAerotech, 0, Qt.AlignHCenter|Qt.AlignVCenter)
 
@@ -545,8 +544,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_18.addItem(self.horizontalSpacer_8)
 
         self.mainPages.addWidget(self.homePage)
-        # QScrollArea en vez de QWidget plano — mismo patrón que
-        # calibrationPage (08_ui_polish_fixes.md §2.1): el D-pad XY, los
+        # QScrollArea en vez de QWidget plano: el D-pad XY, los
         # controles Z y la columna del láser no siempre caben en el alto
         # disponible en ventanas más pequeñas. El objectName "manualPage" se
         # mantiene en el QScrollArea (no en el widget de contenido) porque
@@ -680,23 +678,27 @@ class Ui_MainWindow(object):
         self.frame_4.setFrameShadow(QFrame.Raised)
         self.gridLayout_4 = QGridLayout(self.frame_4)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
+        # "Scale", "Increment" y "Velocity" son las 3 columnas de la misma
+        # fila 0 del grid, cada una con su control debajo en la fila 1 —
+        # así las 3 etiquetas quedan garantizadas a la misma altura (antes
+        # "Increment" vivía en un QVBoxLayout anidado dentro de la fila 1,
+        # un nivel más abajo que "Scale"/"Velocity").
         self.label_31 = QLabel(self.frame_4)
         self.label_31.setObjectName(u"label_31")
 
         self.gridLayout_4.addWidget(self.label_31, 0, 0, 1, 1)
 
+        self.label_increment = QLabel(self.frame_4)
+        self.label_increment.setObjectName(u"label_increment")
+
+        self.gridLayout_4.addWidget(self.label_increment, 0, 2, 1, 1)
+
         self.label_32 = QLabel(self.frame_4)
         self.label_32.setObjectName(u"label_32")
 
-        self.gridLayout_4.addWidget(self.label_32, 0, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.label_32, 0, 4, 1, 1)
 
-        self.scaleRow = QFrame(self.frame_4)
-        self.scaleRow.setObjectName(u"scaleRow")
-        self.horizontalLayout_scaleRow = QHBoxLayout(self.scaleRow)
-        self.horizontalLayout_scaleRow.setObjectName(u"horizontalLayout_scaleRow")
-        self.horizontalLayout_scaleRow.setContentsMargins(0, 0, 0, 0)
-
-        self.scaleList = QComboBox(self.scaleRow)
+        self.scaleList = QComboBox(self.frame_4)
         self.scaleList.setObjectName(u"scaleList")
         sizePolicy1.setHeightForWidth(self.scaleList.sizePolicy().hasHeightForWidth())
         self.scaleList.setSizePolicy(sizePolicy1)
@@ -704,18 +706,15 @@ class Ui_MainWindow(object):
         self.scaleList.setMaximumSize(QSize(16777215, 16777215))
         self.scaleList.setStyleSheet(u"outline: none")
 
-        self.horizontalLayout_scaleRow.addWidget(self.scaleList)
+        self.gridLayout_4.addWidget(self.scaleList, 1, 0, 1, 1)
 
-        self.scaleMultiplier = QSpinBox(self.scaleRow)
+        self.scaleMultiplier = QSpinBox(self.frame_4)
         self.scaleMultiplier.setObjectName(u"scaleMultiplier")
         self.scaleMultiplier.setMinimum(1)
         self.scaleMultiplier.setMaximum(999)
         self.scaleMultiplier.setValue(1)
-        self.scaleMultiplier.setPrefix(u"×")
 
-        self.horizontalLayout_scaleRow.addWidget(self.scaleMultiplier)
-
-        self.gridLayout_4.addWidget(self.scaleRow, 1, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.scaleMultiplier, 1, 2, 1, 1)
 
         self.velocity = QDoubleSpinBox(self.frame_4)
         self.velocity.setObjectName(u"velocity")
@@ -724,7 +723,7 @@ class Ui_MainWindow(object):
         self.velocity.setMinimumSize(QSize(0, 0))
         self.velocity.setMaximumSize(QSize(16777215, 16777215))
 
-        self.gridLayout_4.addWidget(self.velocity, 1, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.velocity, 1, 4, 1, 1)
 
         self.horizontalSpacer_2 = QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
@@ -977,6 +976,87 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_22.addWidget(self.widget_8, 0, Qt.AlignHCenter)
 
+        self.verticalSpacer_safetyWindow = QSpacerItem(20, 16, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout_22.addItem(self.verticalSpacer_safetyWindow)
+
+        # ── Master Safety Window (antes en Calibration, migrada aquí debajo
+        # del D-pad/Z — Calibration como página independiente desapareció).
+        # get_safety_window() la siguen consultando "Limit to position
+        # window" de Auto y M901 de G-Code, solo cambia desde qué página se
+        # define.
+        self.frame_safetyWindow = QFrame(self.movementManual)
+        self.frame_safetyWindow.setObjectName(u"frame_safetyWindow")
+        self.frame_safetyWindow.setFrameShape(QFrame.StyledPanel)
+        self.frame_safetyWindow.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_safetyWindow = QVBoxLayout(self.frame_safetyWindow)
+        self.verticalLayout_safetyWindow.setObjectName(u"verticalLayout_safetyWindow")
+        self.label_safetyWindowTitle = QLabel(self.frame_safetyWindow)
+        self.label_safetyWindowTitle.setObjectName(u"label_safetyWindowTitle")
+        self.verticalLayout_safetyWindow.addWidget(self.label_safetyWindowTitle, 0, Qt.AlignHCenter)
+
+        self.label_safetyWindowHint = QLabel(self.frame_safetyWindow)
+        self.label_safetyWindowHint.setObjectName(u"label_safetyWindowHint")
+        self.label_safetyWindowHint.setWordWrap(True)
+        self.label_safetyWindowHint.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_safetyWindow.addWidget(self.label_safetyWindowHint)
+
+        self.horizontalLayout_safetyWindowBody = QHBoxLayout()
+        self.horizontalLayout_safetyWindowBody.setObjectName(u"horizontalLayout_safetyWindowBody")
+
+        self.gridLayout_safetyWindow = QGridLayout()
+        self.gridLayout_safetyWindow.setObjectName(u"gridLayout_safetyWindow")
+        self.label_xMinField = QLabel(self.frame_safetyWindow)
+        self.label_xMinField.setObjectName(u"label_xMinField")
+        self.gridLayout_safetyWindow.addWidget(self.label_xMinField, 0, 0)
+        self.xMinField = QLineEdit(self.frame_safetyWindow)
+        self.xMinField.setObjectName(u"xMinField")
+        self.xMinField.setReadOnly(True)
+        self.xMinField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.xMinField, 0, 1)
+        self.label_xMaxField = QLabel(self.frame_safetyWindow)
+        self.label_xMaxField.setObjectName(u"label_xMaxField")
+        self.gridLayout_safetyWindow.addWidget(self.label_xMaxField, 1, 0)
+        self.xMaxField = QLineEdit(self.frame_safetyWindow)
+        self.xMaxField.setObjectName(u"xMaxField")
+        self.xMaxField.setReadOnly(True)
+        self.xMaxField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.xMaxField, 1, 1)
+        self.label_yMinField = QLabel(self.frame_safetyWindow)
+        self.label_yMinField.setObjectName(u"label_yMinField")
+        self.gridLayout_safetyWindow.addWidget(self.label_yMinField, 2, 0)
+        self.yMinField = QLineEdit(self.frame_safetyWindow)
+        self.yMinField.setObjectName(u"yMinField")
+        self.yMinField.setReadOnly(True)
+        self.yMinField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.yMinField, 2, 1)
+        self.label_yMaxField = QLabel(self.frame_safetyWindow)
+        self.label_yMaxField.setObjectName(u"label_yMaxField")
+        self.gridLayout_safetyWindow.addWidget(self.label_yMaxField, 3, 0)
+        self.yMaxField = QLineEdit(self.frame_safetyWindow)
+        self.yMaxField.setObjectName(u"yMaxField")
+        self.yMaxField.setReadOnly(True)
+        self.yMaxField.setAlignment(Qt.AlignCenter)
+        self.gridLayout_safetyWindow.addWidget(self.yMaxField, 3, 1)
+        self.horizontalLayout_safetyWindowBody.addLayout(self.gridLayout_safetyWindow)
+
+        # Botones de captura al otro lado de los campos, más largos que en
+        # Calibration (panel lateral estrecho) — aquí Manual tiene todo el
+        # ancho de la página principal.
+        self.verticalLayout_safetyWindowButtons = QVBoxLayout()
+        self.verticalLayout_safetyWindowButtons.setObjectName(u"verticalLayout_safetyWindowButtons")
+        self.setCorner1Btn = QPushButton(self.frame_safetyWindow)
+        self.setCorner1Btn.setObjectName(u"setCorner1Btn")
+        self.setCorner2Btn = QPushButton(self.frame_safetyWindow)
+        self.setCorner2Btn.setObjectName(u"setCorner2Btn")
+        self.verticalLayout_safetyWindowButtons.addWidget(self.setCorner1Btn)
+        self.verticalLayout_safetyWindowButtons.addWidget(self.setCorner2Btn)
+        self.horizontalLayout_safetyWindowBody.addLayout(self.verticalLayout_safetyWindowButtons)
+
+        self.verticalLayout_safetyWindow.addLayout(self.horizontalLayout_safetyWindowBody)
+
+        self.verticalLayout_22.addWidget(self.frame_safetyWindow)
+
         self.verticalSpacer_10 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_22.addItem(self.verticalSpacer_10)
@@ -1022,7 +1102,13 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_21.addWidget(self.frame_6)
 
-        self.verticalSpacer_11 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        # Antes un spacer Expanding — dejaba el conjunto de abajo (board
+        # power/laserOC/slider/Laser ON) centrado verticalmente en el hueco
+        # disponible, con un salto grande respecto al título "⚡ Laser". Un
+        # spacer fijo y pequeño lo deja pegado al título; el spacer Expanding
+        # que sigue a frame_7 (verticalSpacer_16) es el que absorbe el resto
+        # del espacio sobrante hacia abajo.
+        self.verticalSpacer_11 = QSpacerItem(20, 12, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         self.verticalLayout_21.addItem(self.verticalSpacer_11)
 
@@ -1096,7 +1182,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_34.addWidget(self.laserFireBtn)
 
 
-        self.verticalLayout_21.addWidget(self.frame_7, 0, Qt.AlignVCenter)
+        self.verticalLayout_21.addWidget(self.frame_7, 0, Qt.AlignTop)
 
         self.verticalSpacer_16 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -1184,10 +1270,25 @@ class Ui_MainWindow(object):
         self.horizontalLayout_autoBody = QHBoxLayout()
         self.horizontalLayout_autoBody.setObjectName(u"horizontalLayout_autoBody")
 
-        self.verticalLayout_autoLeft = QVBoxLayout()
+        # QScrollArea con marco oculto — mismo patrón que manualPage: el
+        # selector de modo y sus campos (modeStack) no siempre caben en el
+        # alto disponible, así que se envuelven en scroll en vez de dejar
+        # que se compriman o recorten. setFrameShape(NoFrame) + fondo
+        # transparente en el QScrollArea y su viewport para que se vea como
+        # una continuación natural de la página, no como una caja aparte.
+        self.autoLeftScroll = QScrollArea()
+        self.autoLeftScroll.setObjectName(u"autoLeftScroll")
+        self.autoLeftScroll.setWidgetResizable(True)
+        self.autoLeftScroll.setFrameShape(QFrame.NoFrame)
+        self.autoLeftScroll.setStyleSheet(u"QScrollArea { background: transparent; border: none; }")
+        self.autoLeftScroll.viewport().setStyleSheet(u"background: transparent;")
+
+        self.autoLeftScrollContents = QWidget()
+        self.autoLeftScrollContents.setObjectName(u"autoLeftScrollContents")
+        self.verticalLayout_autoLeft = QVBoxLayout(self.autoLeftScrollContents)
         self.verticalLayout_autoLeft.setObjectName(u"verticalLayout_autoLeft")
 
-        self.modeSelectorRow = QFrame(self.autoPage)
+        self.modeSelectorRow = QFrame(self.autoLeftScrollContents)
         self.modeSelectorRow.setObjectName(u"modeSelectorRow")
         self.horizontalLayout_modeSelectorRow = QHBoxLayout(self.modeSelectorRow)
         self.horizontalLayout_modeSelectorRow.setObjectName(u"horizontalLayout_modeSelectorRow")
@@ -1199,7 +1300,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_modeSelectorRow.addWidget(self.modeSelector)
         self.verticalLayout_autoLeft.addWidget(self.modeSelectorRow)
 
-        self.modeStack = QStackedWidget(self.autoPage)
+        self.modeStack = QStackedWidget(self.autoLeftScrollContents)
         self.modeStack.setObjectName(u"modeStack")
 
         # -- Panel 0: Single point --
@@ -1328,12 +1429,6 @@ class Ui_MainWindow(object):
         self.paPassesList.setObjectName(u"paPassesList")
         self.paPassesList.setMaximumHeight(90)
         self.verticalLayout_panelPointArray.addWidget(self.paPassesList)
-        self.label_paSpacing = QLabel(self.panelPointArray)
-        self.label_paSpacing.setObjectName(u"label_paSpacing")
-        self.verticalLayout_panelPointArray.addWidget(self.label_paSpacing)
-        self.paSpacingCombo = QComboBox(self.panelPointArray)
-        self.paSpacingCombo.setObjectName(u"paSpacingCombo")
-        self.verticalLayout_panelPointArray.addWidget(self.paSpacingCombo)
         self.label_paDistance = QLabel(self.panelPointArray)
         self.label_paDistance.setObjectName(u"label_paDistance")
         self.verticalLayout_panelPointArray.addWidget(self.label_paDistance)
@@ -1460,97 +1555,13 @@ class Ui_MainWindow(object):
         self.pgTravelSpeed = QDoubleSpinBox(self.panelPowerGradient)
         self.pgTravelSpeed.setObjectName(u"pgTravelSpeed")
         self.verticalLayout_panelPowerGradient.addWidget(self.pgTravelSpeed)
-        self.label_pgSegmentedWarning = QLabel(self.panelPowerGradient)
-        self.label_pgSegmentedWarning.setObjectName(u"label_pgSegmentedWarning")
-        self.label_pgSegmentedWarning.setWordWrap(True)
-        self.verticalLayout_panelPowerGradient.addWidget(self.label_pgSegmentedWarning)
         self.verticalLayout_panelPowerGradient.addStretch(1)
         self.modeStack.addWidget(self.panelPowerGradient)
 
-        # -- Panel 4: Binary pattern --
-        self.panelBinaryPattern = QWidget()
-        self.panelBinaryPattern.setObjectName(u"panelBinaryPattern")
-        self.verticalLayout_panelBinaryPattern = QVBoxLayout(self.panelBinaryPattern)
-        self.label_bpStart = QLabel(self.panelBinaryPattern)
-        self.label_bpStart.setObjectName(u"label_bpStart")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpStart)
-        self.horizontalLayout_bpStart = QHBoxLayout()
-        self.bpStartX = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpStartX.setObjectName(u"bpStartX")
-        self.bpStartY = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpStartY.setObjectName(u"bpStartY")
-        self.horizontalLayout_bpStart.addWidget(self.bpStartX)
-        self.horizontalLayout_bpStart.addWidget(self.bpStartY)
-        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpStart)
-        self.label_bpEnd = QLabel(self.panelBinaryPattern)
-        self.label_bpEnd.setObjectName(u"label_bpEnd")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpEnd)
-        self.horizontalLayout_bpEnd = QHBoxLayout()
-        self.bpEndX = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpEndX.setObjectName(u"bpEndX")
-        self.bpEndY = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpEndY.setObjectName(u"bpEndY")
-        self.horizontalLayout_bpEnd.addWidget(self.bpEndX)
-        self.horizontalLayout_bpEnd.addWidget(self.bpEndY)
-        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpEnd)
-        self.label_bpDistance = QLabel(self.panelBinaryPattern)
-        self.label_bpDistance.setObjectName(u"label_bpDistance")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpDistance)
-        self.horizontalLayout_bpDistance = QHBoxLayout()
-        self.bpDistance = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpDistance.setObjectName(u"bpDistance")
-        self.bpDistanceScale = QComboBox(self.panelBinaryPattern)
-        self.bpDistanceScale.setObjectName(u"bpDistanceScale")
-        self.horizontalLayout_bpDistance.addWidget(self.bpDistance)
-        self.horizontalLayout_bpDistance.addWidget(self.bpDistanceScale)
-        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpDistance)
-        self.label_bpPattern = QLabel(self.panelBinaryPattern)
-        self.label_bpPattern.setObjectName(u"label_bpPattern")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpPattern)
-        self.horizontalLayout_bpPattern = QHBoxLayout()
-        self.horizontalLayout_bpPattern.setObjectName(u"horizontalLayout_bpPattern")
-        self.bpBitToggle0 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle0.setObjectName(u"bpBitToggle0")
-        self.bpBitToggle0.setCheckable(True)
-        self.bpBitToggle1 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle1.setObjectName(u"bpBitToggle1")
-        self.bpBitToggle1.setCheckable(True)
-        self.bpBitToggle2 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle2.setObjectName(u"bpBitToggle2")
-        self.bpBitToggle2.setCheckable(True)
-        self.bpBitToggle3 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle3.setObjectName(u"bpBitToggle3")
-        self.bpBitToggle3.setCheckable(True)
-        self.bpBitToggle4 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle4.setObjectName(u"bpBitToggle4")
-        self.bpBitToggle4.setCheckable(True)
-        self.bpBitToggle5 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle5.setObjectName(u"bpBitToggle5")
-        self.bpBitToggle5.setCheckable(True)
-        self.bpBitToggle6 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle6.setObjectName(u"bpBitToggle6")
-        self.bpBitToggle6.setCheckable(True)
-        self.bpBitToggle7 = QPushButton(self.panelBinaryPattern)
-        self.bpBitToggle7.setObjectName(u"bpBitToggle7")
-        self.bpBitToggle7.setCheckable(True)
-        for _bp_toggle in (self.bpBitToggle0, self.bpBitToggle1, self.bpBitToggle2, self.bpBitToggle3,
-                           self.bpBitToggle4, self.bpBitToggle5, self.bpBitToggle6, self.bpBitToggle7):
-            _bp_toggle.setMinimumSize(QSize(28, 28))
-            _bp_toggle.setMaximumSize(QSize(28, 28))
-            self.horizontalLayout_bpPattern.addWidget(_bp_toggle)
-        self.verticalLayout_panelBinaryPattern.addLayout(self.horizontalLayout_bpPattern)
-        self.label_bpTravelSpeed = QLabel(self.panelBinaryPattern)
-        self.label_bpTravelSpeed.setObjectName(u"label_bpTravelSpeed")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.label_bpTravelSpeed)
-        self.bpTravelSpeed = QDoubleSpinBox(self.panelBinaryPattern)
-        self.bpTravelSpeed.setObjectName(u"bpTravelSpeed")
-        self.verticalLayout_panelBinaryPattern.addWidget(self.bpTravelSpeed)
-        self.verticalLayout_panelBinaryPattern.addStretch(1)
-        self.modeStack.addWidget(self.panelBinaryPattern)
-
         self.verticalLayout_autoLeft.addWidget(self.modeStack)
 
-        self.horizontalLayout_autoBody.addLayout(self.verticalLayout_autoLeft, 1)
+        self.autoLeftScroll.setWidget(self.autoLeftScrollContents)
+        self.horizontalLayout_autoBody.addWidget(self.autoLeftScroll, 1)
 
         # ── Vista previa de G-Code + botones de salida ──────────────────
         self.verticalLayout_autoRight = QVBoxLayout()
@@ -1615,6 +1626,25 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_15.addItem(self.verticalSpacer_4)
 
+        # "Select File" reubicado encima de los dos recuadros (drag&drop +
+        # vista previa) — justo debajo del título de la sección y por
+        # encima de frameGcode, ocupando el ancho completo de la página
+        # igual que startBtn más abajo.
+        self.selectFileBtn = QPushButton(self.gcodePage)
+        self.selectFileBtn.setObjectName(u"selectFileBtn")
+        font7 = QFont()
+        font7.setBold(False)
+        self.selectFileBtn.setFont(font7)
+        icon22 = QIcon()
+        icon22.addFile(_icon_path(u":/font_awesome_solid/icons/font_awesome/solid/file-import.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.selectFileBtn.setIcon(icon22)
+
+        self.verticalLayout_15.addWidget(self.selectFileBtn)
+
+        self.verticalSpacer_selectFile = QSpacerItem(20, 12, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout_15.addItem(self.verticalSpacer_selectFile)
+
         self.frameGcode = QFrame(self.gcodePage)
         self.frameGcode.setObjectName(u"frameGcode")
         self.frameGcode.setFrameShape(QFrame.StyledPanel)
@@ -1662,17 +1692,6 @@ class Ui_MainWindow(object):
         self.verticalSpacer_8 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_24.addItem(self.verticalSpacer_8)
-
-        self.selectFileBtn = QPushButton(self.frameGcode)
-        self.selectFileBtn.setObjectName(u"selectFileBtn")
-        font7 = QFont()
-        font7.setBold(False)
-        self.selectFileBtn.setFont(font7)
-        icon22 = QIcon()
-        icon22.addFile(_icon_path(u":/font_awesome_solid/icons/font_awesome/solid/file-import.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.selectFileBtn.setIcon(icon22)
-
-        self.verticalLayout_24.addWidget(self.selectFileBtn)
 
         self.editBtn = QPushButton(self.frameGcode)
         self.editBtn.setObjectName(u"editBtn")
@@ -1795,238 +1814,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_18.addWidget(self.connectBtn)
 
         self.rightMenuPages.addWidget(self.connectionPage)
-        # QScrollArea en vez de QWidget plano: el contenido de esta página
-        # (enfoque + calibración XY + ventana de seguridad + alineación) no
-        # cabe siempre en el espacio disponible del panel lateral, así que
-        # se envuelve en scroll en vez de dejar que los widgets se compriman
-        # o se recorten. El objectName "calibrationPage" se mantiene en el
-        # QScrollArea (y no en el widget de contenido) porque la navegación
-        # del menú lateral (json-styles/style.json, "calibrationBtn":
-        # "calibrationPage") busca ese nombre dentro de rightMenuPages.
-        self.calibrationPage = QScrollArea()
-        self.calibrationPage.setObjectName(u"calibrationPage")
-        sizePolicy4.setHeightForWidth(self.calibrationPage.sizePolicy().hasHeightForWidth())
-        self.calibrationPage.setSizePolicy(sizePolicy4)
-        self.calibrationPage.setWidgetResizable(True)
-        self.calibrationPage.setFrameShape(QFrame.NoFrame)
-        # setFrameShape(NoFrame) por sí solo no basta — el viewport interno
-        # del QScrollArea sigue pintando su propio fondo (color de paleta
-        # base), distinto del fondo real detrás de rightMenuPages, así que
-        # se ven como dos cajas anidadas. Se hace transparente tanto el
-        # QScrollArea como su viewport para que se vea como una sola caja
-        # (08_ui_polish_fixes.md ronda 2, §3.2).
-        self.calibrationPage.setStyleSheet(u"QScrollArea { background: transparent; border: none; }")
-        self.calibrationPage.viewport().setStyleSheet(u"background: transparent;")
-        self.calibrationPageContents = QWidget()
-        self.calibrationPageContents.setObjectName(u"calibrationPageContents")
-        self.verticalLayout_17 = QVBoxLayout(self.calibrationPageContents)
-        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
-        self.verticalLayout_17.setContentsMargins(-1, -1, 0, -1)
-        self.label_10 = QLabel(self.calibrationPageContents)
-        self.label_10.setObjectName(u"label_10")
-        self.label_10.setFont(font2)
-        self.label_10.setStyleSheet(u"")
-        self.label_10.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout_17.addWidget(self.label_10, 0, Qt.AlignHCenter|Qt.AlignTop)
-
-        self.verticalSpacer_15 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_17.addItem(self.verticalSpacer_15)
-
-        self.frame_15 = QFrame(self.calibrationPageContents)
-        self.frame_15.setObjectName(u"frame_15")
-        self.frame_15.setFrameShape(QFrame.StyledPanel)
-        self.frame_15.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_27 = QVBoxLayout(self.frame_15)
-        self.verticalLayout_27.setObjectName(u"verticalLayout_27")
-        self.label_23 = QLabel(self.frame_15)
-        self.label_23.setObjectName(u"label_23")
-        sizePolicy12.setHeightForWidth(self.label_23.sizePolicy().hasHeightForWidth())
-        self.label_23.setSizePolicy(sizePolicy12)
-        self.label_23.setWordWrap(False)
-
-        self.verticalLayout_27.addWidget(self.label_23, 0, Qt.AlignHCenter)
-
-        # ── Lectura de posición Z en vivo (05_calibration.md §1.1) ──────
-        self.labelZFocusStatus = QLabel(self.frame_15)
-        self.labelZFocusStatus.setObjectName(u"labelZFocusStatus")
-        self.labelZFocusStatus.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_27.addWidget(self.labelZFocusStatus, 0, Qt.AlignHCenter)
-
-        self.widget_9 = QWidget(self.frame_15)
-        self.widget_9.setObjectName(u"widget_9")
-        sizePolicy.setHeightForWidth(self.widget_9.sizePolicy().hasHeightForWidth())
-        self.widget_9.setSizePolicy(sizePolicy)
-        self.verticalLayout_26 = QVBoxLayout(self.widget_9)
-        self.verticalLayout_26.setObjectName(u"verticalLayout_26")
-        self.frame_17 = QFrame(self.widget_9)
-        self.frame_17.setObjectName(u"frame_17")
-        sizePolicy.setHeightForWidth(self.frame_17.sizePolicy().hasHeightForWidth())
-        self.frame_17.setSizePolicy(sizePolicy)
-        self.frame_17.setFrameShape(QFrame.StyledPanel)
-        self.frame_17.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_28 = QVBoxLayout(self.frame_17)
-        self.verticalLayout_28.setObjectName(u"verticalLayout_28")
-        self.zUpFocusing = QPushButton(self.frame_17)
-        self.zUpFocusing.setObjectName(u"zUpFocusing")
-        sizePolicy12.setHeightForWidth(self.zUpFocusing.sizePolicy().hasHeightForWidth())
-        self.zUpFocusing.setSizePolicy(sizePolicy12)
-        self.zUpFocusing.setMinimumSize(QSize(0, 17))
-        icon26 = QIcon()
-        icon26.addFile(_icon_path(u":/feather/icons/feather/arrow-up.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.zUpFocusing.setIcon(icon26)
-
-        self.verticalLayout_28.addWidget(self.zUpFocusing)
-
-        self.zDownFocusing = QPushButton(self.frame_17)
-        self.zDownFocusing.setObjectName(u"zDownFocusing")
-        sizePolicy12.setHeightForWidth(self.zDownFocusing.sizePolicy().hasHeightForWidth())
-        self.zDownFocusing.setSizePolicy(sizePolicy12)
-        self.zDownFocusing.setMinimumSize(QSize(0, 17))
-        icon27 = QIcon()
-        icon27.addFile(_icon_path(u":/feather/icons/feather/arrow-down.png"), QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.zDownFocusing.setIcon(icon27)
-
-        self.verticalLayout_28.addWidget(self.zDownFocusing)
-
-
-        self.verticalLayout_26.addWidget(self.frame_17)
-
-        self.calibratedBtn = QPushButton(self.widget_9)
-        self.calibratedBtn.setObjectName(u"calibratedBtn")
-        sizePolicy12.setHeightForWidth(self.calibratedBtn.sizePolicy().hasHeightForWidth())
-        self.calibratedBtn.setSizePolicy(sizePolicy12)
-        self.calibratedBtn.setMinimumSize(QSize(0, 17))
-
-        self.verticalLayout_26.addWidget(self.calibratedBtn)
-
-
-        self.verticalLayout_27.addWidget(self.widget_9)
-
-
-        self.verticalLayout_17.addWidget(self.frame_15)
-
-        self.frame_16 = QFrame(self.calibrationPageContents)
-        self.frame_16.setObjectName(u"frame_16")
-        sizePolicy.setHeightForWidth(self.frame_16.sizePolicy().hasHeightForWidth())
-        self.frame_16.setSizePolicy(sizePolicy)
-        self.frame_16.setFrameShape(QFrame.StyledPanel)
-        self.frame_16.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_29 = QVBoxLayout(self.frame_16)
-        self.verticalLayout_29.setObjectName(u"verticalLayout_29")
-        self.label_24 = QLabel(self.frame_16)
-        self.label_24.setObjectName(u"label_24")
-        sizePolicy12.setHeightForWidth(self.label_24.sizePolicy().hasHeightForWidth())
-        self.label_24.setSizePolicy(sizePolicy12)
-
-        self.verticalLayout_29.addWidget(self.label_24, 0, Qt.AlignHCenter)
-
-        self.zeroXBtn = QPushButton(self.frame_16)
-        self.zeroXBtn.setObjectName(u"zeroXBtn")
-        sizePolicy12.setHeightForWidth(self.zeroXBtn.sizePolicy().hasHeightForWidth())
-        self.zeroXBtn.setSizePolicy(sizePolicy12)
-        self.zeroXBtn.setMinimumSize(QSize(0, 17))
-
-        self.verticalLayout_29.addWidget(self.zeroXBtn)
-
-        self.zeroYBtn = QPushButton(self.frame_16)
-        self.zeroYBtn.setObjectName(u"zeroYBtn")
-        sizePolicy12.setHeightForWidth(self.zeroYBtn.sizePolicy().hasHeightForWidth())
-        self.zeroYBtn.setSizePolicy(sizePolicy12)
-        self.zeroYBtn.setMinimumSize(QSize(0, 17))
-
-        self.verticalLayout_29.addWidget(self.zeroYBtn)
-
-
-        self.verticalLayout_17.addWidget(self.frame_16)
-
-        # ── Master safety window (05_calibration.md §1.2) ───────────────
-        self.frame_safetyWindow = QFrame(self.calibrationPageContents)
-        self.frame_safetyWindow.setObjectName(u"frame_safetyWindow")
-        self.frame_safetyWindow.setFrameShape(QFrame.StyledPanel)
-        self.frame_safetyWindow.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_safetyWindow = QVBoxLayout(self.frame_safetyWindow)
-        self.verticalLayout_safetyWindow.setObjectName(u"verticalLayout_safetyWindow")
-        self.label_safetyWindowTitle = QLabel(self.frame_safetyWindow)
-        self.label_safetyWindowTitle.setObjectName(u"label_safetyWindowTitle")
-        self.verticalLayout_safetyWindow.addWidget(self.label_safetyWindowTitle, 0, Qt.AlignHCenter)
-
-        self.gridLayout_safetyWindow = QGridLayout()
-        self.gridLayout_safetyWindow.setObjectName(u"gridLayout_safetyWindow")
-        self.label_xMinField = QLabel(self.frame_safetyWindow)
-        self.label_xMinField.setObjectName(u"label_xMinField")
-        self.gridLayout_safetyWindow.addWidget(self.label_xMinField, 0, 0)
-        self.xMinField = QLineEdit(self.frame_safetyWindow)
-        self.xMinField.setObjectName(u"xMinField")
-        self.xMinField.setReadOnly(True)
-        self.xMinField.setAlignment(Qt.AlignCenter)
-        self.gridLayout_safetyWindow.addWidget(self.xMinField, 0, 1)
-        self.label_xMaxField = QLabel(self.frame_safetyWindow)
-        self.label_xMaxField.setObjectName(u"label_xMaxField")
-        self.gridLayout_safetyWindow.addWidget(self.label_xMaxField, 1, 0)
-        self.xMaxField = QLineEdit(self.frame_safetyWindow)
-        self.xMaxField.setObjectName(u"xMaxField")
-        self.xMaxField.setReadOnly(True)
-        self.xMaxField.setAlignment(Qt.AlignCenter)
-        self.gridLayout_safetyWindow.addWidget(self.xMaxField, 1, 1)
-        self.label_yMinField = QLabel(self.frame_safetyWindow)
-        self.label_yMinField.setObjectName(u"label_yMinField")
-        self.gridLayout_safetyWindow.addWidget(self.label_yMinField, 2, 0)
-        self.yMinField = QLineEdit(self.frame_safetyWindow)
-        self.yMinField.setObjectName(u"yMinField")
-        self.yMinField.setReadOnly(True)
-        self.yMinField.setAlignment(Qt.AlignCenter)
-        self.gridLayout_safetyWindow.addWidget(self.yMinField, 2, 1)
-        self.label_yMaxField = QLabel(self.frame_safetyWindow)
-        self.label_yMaxField.setObjectName(u"label_yMaxField")
-        self.gridLayout_safetyWindow.addWidget(self.label_yMaxField, 3, 0)
-        self.yMaxField = QLineEdit(self.frame_safetyWindow)
-        self.yMaxField.setObjectName(u"yMaxField")
-        self.yMaxField.setReadOnly(True)
-        self.yMaxField.setAlignment(Qt.AlignCenter)
-        self.gridLayout_safetyWindow.addWidget(self.yMaxField, 3, 1)
-        self.verticalLayout_safetyWindow.addLayout(self.gridLayout_safetyWindow)
-
-        self.horizontalLayout_safetyWindowButtons = QHBoxLayout()
-        self.setCorner1Btn = QPushButton(self.frame_safetyWindow)
-        self.setCorner1Btn.setObjectName(u"setCorner1Btn")
-        self.setCorner2Btn = QPushButton(self.frame_safetyWindow)
-        self.setCorner2Btn.setObjectName(u"setCorner2Btn")
-        self.horizontalLayout_safetyWindowButtons.addWidget(self.setCorner1Btn)
-        self.horizontalLayout_safetyWindowButtons.addWidget(self.setCorner2Btn)
-        self.verticalLayout_safetyWindow.addLayout(self.horizontalLayout_safetyWindowButtons)
-
-        self.verticalLayout_17.addWidget(self.frame_safetyWindow)
-
-        # ── Laser alignment mode (05_calibration.md §1.3) ───────────────
-        self.frame_alignmentMode = QFrame(self.calibrationPageContents)
-        self.frame_alignmentMode.setObjectName(u"frame_alignmentMode")
-        self.frame_alignmentMode.setFrameShape(QFrame.StyledPanel)
-        self.frame_alignmentMode.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_alignmentMode = QVBoxLayout(self.frame_alignmentMode)
-        self.verticalLayout_alignmentMode.setObjectName(u"verticalLayout_alignmentMode")
-        self.alignmentModeToggle = QPushButton(self.frame_alignmentMode)
-        self.alignmentModeToggle.setObjectName(u"alignmentModeToggle")
-        self.alignmentModeToggle.setCheckable(True)
-        self.verticalLayout_alignmentMode.addWidget(self.alignmentModeToggle)
-        self.label_alignmentPower = QLabel(self.frame_alignmentMode)
-        self.label_alignmentPower.setObjectName(u"label_alignmentPower")
-        self.label_alignmentPower.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_alignmentMode.addWidget(self.label_alignmentPower)
-        self.alignmentFireBtn = QPushButton(self.frame_alignmentMode)
-        self.alignmentFireBtn.setObjectName(u"alignmentFireBtn")
-        self.alignmentFireBtn.setEnabled(False)
-        self.verticalLayout_alignmentMode.addWidget(self.alignmentFireBtn)
-
-        self.verticalLayout_17.addWidget(self.frame_alignmentMode)
-
-        self.verticalSpacer_9 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_17.addItem(self.verticalSpacer_9)
-
-        self.calibrationPage.setWidget(self.calibrationPageContents)
-        self.rightMenuPages.addWidget(self.calibrationPage)
 
         self.verticalLayout_16.addWidget(self.rightMenuPages)
 
@@ -2101,10 +1888,6 @@ class Ui_MainWindow(object):
         self.connectionBtn.setToolTip(QCoreApplication.translate("MainWindow", u"Connections", None))
 #endif // QT_CONFIG(tooltip)
         self.connectionBtn.setText("")
-#if QT_CONFIG(tooltip)
-        self.calibrationBtn.setToolTip(QCoreApplication.translate("MainWindow", u"Calibration", None))
-#endif // QT_CONFIG(tooltip)
-        self.calibrationBtn.setText("")
         self.minimizeBtn.setText("")
         self.restoreBtn.setText("")
         self.closeBtn.setText("")
@@ -2112,7 +1895,6 @@ class Ui_MainWindow(object):
         self.laserIcon.setText("")
         self.laserTitleLabel.setText(QCoreApplication.translate("MainWindow", u"Laser Output:", None))
         self.labelLaserState.setText(QCoreApplication.translate("MainWindow", u"OFF", None))
-        self.estadoPotencia.setText(QCoreApplication.translate("MainWindow", u"0% · 0 mW (setpoint)", None))
         self.label_36.setText("")
         self.labelAxisX.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.toggleXBtn.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
@@ -2125,6 +1907,7 @@ class Ui_MainWindow(object):
         self.homeZBtn.setText(QCoreApplication.translate("MainWindow", u"Home", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Movement XYZ", None))
         self.label_31.setText(QCoreApplication.translate("MainWindow", u"Scale", None))
+        self.label_increment.setText(QCoreApplication.translate("MainWindow", u"Increment", None))
         self.label_32.setText(QCoreApplication.translate("MainWindow", u"Velocity", None))
         self.confirmBtn.setText(QCoreApplication.translate("MainWindow", u"Confirm", None))
         self.labelXMinus.setText(QCoreApplication.translate("MainWindow", u"X-", None))
@@ -2169,7 +1952,6 @@ class Ui_MainWindow(object):
         self.fdLimitWindow.setText(QCoreApplication.translate("MainWindow", u"Limit to position window", None))
         self.paAddPassBtn.setText(QCoreApplication.translate("MainWindow", u"Add pass", None))
         self.paRemovePassBtn.setText(QCoreApplication.translate("MainWindow", u"Remove pass", None))
-        self.label_paSpacing.setText(QCoreApplication.translate("MainWindow", u"Spacing", None))
         self.label_paDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
         self.label_paPulses.setText(QCoreApplication.translate("MainWindow", u"Pulses per event", None))
         self.label_paPower.setText(QCoreApplication.translate("MainWindow", u"Power (%)", None))
@@ -2183,22 +1965,8 @@ class Ui_MainWindow(object):
         self.label_pgDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
         self.label_pgPower.setText(QCoreApplication.translate("MainWindow", u"Power start % → end %", None))
         self.label_pgTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
-        self.label_pgSegmentedWarning.setText(QCoreApplication.translate("MainWindow", u"Segmented approximation — not a native PSO array.", None))
-        self.label_bpStart.setText(QCoreApplication.translate("MainWindow", u"Start point (X, Y)", None))
-        self.label_bpEnd.setText(QCoreApplication.translate("MainWindow", u"End point (X, Y)", None))
-        self.label_bpDistance.setText(QCoreApplication.translate("MainWindow", u"Distance between events", None))
-        self.label_bpPattern.setText(QCoreApplication.translate("MainWindow", u"Bit pattern", None))
-        self.bpBitToggle0.setText(QCoreApplication.translate("MainWindow", u"0", None))
-        self.bpBitToggle1.setText(QCoreApplication.translate("MainWindow", u"1", None))
-        self.bpBitToggle2.setText(QCoreApplication.translate("MainWindow", u"2", None))
-        self.bpBitToggle3.setText(QCoreApplication.translate("MainWindow", u"3", None))
-        self.bpBitToggle4.setText(QCoreApplication.translate("MainWindow", u"4", None))
-        self.bpBitToggle5.setText(QCoreApplication.translate("MainWindow", u"5", None))
-        self.bpBitToggle6.setText(QCoreApplication.translate("MainWindow", u"6", None))
-        self.bpBitToggle7.setText(QCoreApplication.translate("MainWindow", u"7", None))
-        self.label_bpTravelSpeed.setText(QCoreApplication.translate("MainWindow", u"Travel speed (mm/s)", None))
         self.label_autoPreview.setText(QCoreApplication.translate("MainWindow", u"G-Code preview", None))
-        self.openInGCodeBtn.setText(QCoreApplication.translate("MainWindow", u"Open in G-Code", None))
+        self.openInGCodeBtn.setText(QCoreApplication.translate("MainWindow", u"Open in G-Code Exec", None))
         self.downloadFileBtn.setText(QCoreApplication.translate("MainWindow", u"Download file", None))
         self.label_20.setText("")
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Upload the G-Code file", None))
@@ -2211,16 +1979,8 @@ class Ui_MainWindow(object):
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"iSMC controller IP address", None))
         self.hostAddressInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"192.168.7.1", None))
         self.connectBtn.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
-        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Calibration Page", None))
-        self.label_23.setText(QCoreApplication.translate("MainWindow", u"Focusing Z - Axis", None))
-        self.labelZFocusStatus.setText(QCoreApplication.translate("MainWindow", u"Current Z: — mm", None))
-        self.zUpFocusing.setText("")
-        self.zDownFocusing.setText("")
-        self.calibratedBtn.setText(QCoreApplication.translate("MainWindow", u"Confirm focus", None))
-        self.label_24.setText(QCoreApplication.translate("MainWindow", u"X/Y Axis Calibration", None))
-        self.zeroXBtn.setText(QCoreApplication.translate("MainWindow", u"Zero X", None))
-        self.zeroYBtn.setText(QCoreApplication.translate("MainWindow", u"Zero Y", None))
         self.label_safetyWindowTitle.setText(QCoreApplication.translate("MainWindow", u"Master Safety Window", None))
+        self.label_safetyWindowHint.setText(QCoreApplication.translate("MainWindow", u"Define the safe firing area using two opposite corners. Move there with the jog above, then press the matching button.", None))
         self.label_xMinField.setText(QCoreApplication.translate("MainWindow", u"X min", None))
         self.xMinField.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.label_xMaxField.setText(QCoreApplication.translate("MainWindow", u"X max", None))
@@ -2229,11 +1989,8 @@ class Ui_MainWindow(object):
         self.yMinField.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.label_yMaxField.setText(QCoreApplication.translate("MainWindow", u"Y max", None))
         self.yMaxField.setText(QCoreApplication.translate("MainWindow", u"—", None))
-        self.setCorner1Btn.setText(QCoreApplication.translate("MainWindow", u"Set corner 1", None))
-        self.setCorner2Btn.setText(QCoreApplication.translate("MainWindow", u"Set corner 2", None))
-        self.alignmentModeToggle.setText(QCoreApplication.translate("MainWindow", u"Laser alignment mode", None))
-        self.label_alignmentPower.setText(QCoreApplication.translate("MainWindow", u"Capped at — %", None))
-        self.alignmentFireBtn.setText(QCoreApplication.translate("MainWindow", u"Fire", None))
+        self.setCorner1Btn.setText(QCoreApplication.translate("MainWindow", u"Set Corner 1 (move here first)", None))
+        self.setCorner2Btn.setText(QCoreApplication.translate("MainWindow", u"Set Corner 2 (opposite corner)", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"ETSII B\u00e9jar | Ingenier\u00eda Electr\u00f3nica Industrial y Autom\u00e1tica | Christine Marie Quan Jo", None))
         self.size_grip.setText("")
     # retranslateUi

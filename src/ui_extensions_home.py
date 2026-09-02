@@ -2,9 +2,9 @@
 ## HOME PAGE EXTENSIONS
 ########################################################################
 
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QSizePolicy, QGraphicsDropShadowEffect, QFrame
+from PySide6.QtWidgets import QGraphicsDropShadowEffect, QFrame
 from PySide6.QtGui import QColor
 
 import config
@@ -46,23 +46,12 @@ class HomePageExtensions:
 
     def refresh_theme(self):
         """Reaplica el color de las etiquetas simples de la tarjeta "Laser
-        Output" (título, estado ON/OFF, consigna de potencia) — se fijaron
-        una sola vez con el tema activo en ese momento, así que un cambio de
-        tema en caliente las deja con el color del tema anterior (ver
-        refresh_theme() en ManualPageExtensions, mismo motivo)."""
+        Output" (título, estado ON/OFF) — se fijaron una sola vez con el
+        tema activo en ese momento, así que un cambio de tema en caliente
+        las deja con el color del tema anterior (ver refresh_theme() en
+        ManualPageExtensions, mismo motivo)."""
         self.ui.laserTitleLabel.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.labelLaserState.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
-        self.ui.estadoPotencia.setStyleSheet(f"""
-            QLineEdit#estadoPotencia {{
-                background-color: transparent;
-                color: {config.THEME.COLOR_TEXT_1};
-                font-weight: bold;
-                min-width: 260px;
-                max-width: 360px;
-                min-height: 40px;
-                max-height: 40px;
-            }}
-        """)
 
     def connect_signals(self):
         """Conecta las señales específicas de la página Home"""
@@ -101,14 +90,13 @@ class HomePageExtensions:
     # ─────────────────────────────────────────────────────────────────────
     def update_laser_card(self):
         """Refresca la tarjeta 'Laser Output' con el estado actual del PSO."""
-        is_on, duty_percent, power_mw, is_measured = self.controller.get_laser_output_state()
+        is_on, _duty_percent, _power_mw, is_measured = self.controller.get_laser_output_state()
         self._set_led_color(
             self._led_laser_state,
             LED_COLOR_OK if is_on else LED_COLOR_INACTIVE,
             dashed_border=not is_measured,
         )
         self.ui.labelLaserState.setText("ON" if is_on else "OFF")
-        self.ui.estadoPotencia.setText(f"{duty_percent:.0f}% · {power_mw:.0f} mW (setpoint)")
 
     # ─────────────────────────────────────────────────────────────────────
     # Configuración inicial de la interfaz de usuario
@@ -139,29 +127,6 @@ class HomePageExtensions:
         self._led_laser_state = self._make_led(LED_COLOR_INACTIVE, size=20, tooltip="Laser output state")
         self.ui.horizontalLayout_laserState.insertWidget(0, self._led_laser_state)
         self.ui.horizontalLayout_laserState.setSpacing(10)
-
-        # Consigna de potencia — mismo texto que laserTitleLabel/
-        # labelLaserState (COLOR_TEXT_1): antes "white" fijo sobre un fondo
-        # transparente que en realidad muestra el fondo de la página
-        # (COLOR_BACKGROUND_1) — casi invisible en TIDE/EMBER, que son claros
-        # (ver 19_verificacion_contraste.md).
-        self.ui.estadoPotencia.setFont(QFont("Sitka Small", 11, QFont.Weight.Bold))
-        self.ui.estadoPotencia.setStyleSheet(f"""
-            QLineEdit#estadoPotencia {{
-                background-color: transparent;
-                color: {config.THEME.COLOR_TEXT_1};
-                font-weight: bold;
-                min-width: 260px;
-                max-width: 360px;
-                min-height: 40px;
-                max-height: 40px;
-            }}
-        """)
-        self.ui.estadoPotencia.setText("0% · 0 mW (setpoint)")
-
-        # Imagen de la estación, al lado de la tarjeta
-        self.ui.estacionAerotech.setMaximumSize(QSize(300, 300))
-        self.ui.estacionAerotech.setScaledContents(True)
 
         # Aplicar sombra a la tarjeta
         self.apply_card_shadow(self.ui.laserOutputCard)

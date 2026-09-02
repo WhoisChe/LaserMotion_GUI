@@ -99,7 +99,6 @@
         {
             "Buttons": [
                 "connectionBtn",
-                "calibrationBtn",
                 "closeRightMenuBtn"
             ],
             "Style":[
@@ -239,8 +238,7 @@
 				{
           "navigationButtons": [
             {
-              "connectionBtn":"connectionPage",
-					    "calibrationBtn": "calibrationPage"
+              "connectionBtn":"connectionPage"
             }
           ]
 				}

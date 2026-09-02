@@ -285,7 +285,7 @@ class GCodePageExtensions:
 
     def _get_master_window(self):
         try:
-            return self.main.ui_ext.calibration_ext.get_safety_window()
+            return self.main.ui_ext.manual_ext.get_safety_window()
         except Exception:
             return None
 
