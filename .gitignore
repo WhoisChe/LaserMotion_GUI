@@ -1,5 +1,7 @@
 venv/
-   __pycache__/
-   *.pyc
-   logs/
-   local_connection_settings.json
+__pycache__/
+*.pyc
+logs/
+local_connection_settings.json
+Qss/scss/_variables.scss
+generated-files/css/main.css
