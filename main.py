@@ -277,7 +277,8 @@ class GlobalStatusPanel(QFrame):
             return
 
         # Aerotech: Obtiene la posición actual de los tres ejes
-        x, y, z = self.controller.get_axis_positions()          
+        x, y, z = self.controller.get_axis_positions()
+        self._axis_position_labels["X"].setText(f"{x:.3f} mm")
         self._axis_position_labels["Y"].setText(f"{y:.3f} mm")
         self._axis_position_labels["Z"].setText(f"{z:.3f} mm")
         # Pone el LED de conexión en verde
