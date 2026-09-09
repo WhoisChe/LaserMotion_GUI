@@ -303,10 +303,14 @@ class GlobalStatusPanel(QFrame):
             # Aerotech: sincroniza el botón de Auto con el mismo estado real
             auto_btn.setChecked(indicators["enabled"])
 
-        # Aerotech: Ve si hubo algún error al leer indicadores 
-        error = self.controller.get_last_indicator_error()
-        if error:
-            self.indicator_warning_label.setText(f"⚠ {error}")
+        # Aerotech: Ve si hubo algún error al leer indicadores o al llamar a
+        # un método pso_* (nombres sin confirmar contra el hardware real,
+        # ver aerotech_controller.py) — cualquiera de los dos debe verse en
+        # pantalla, no solo en consola.
+        errors = [e for e in (self.controller.get_last_indicator_error(),
+                               self.controller.get_last_pso_error()) if e]
+        if errors:
+            self.indicator_warning_label.setText("⚠ " + " | ".join(errors))
             self.indicator_warning_label.show()
         else:
             self.indicator_warning_label.hide()

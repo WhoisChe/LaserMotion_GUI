@@ -1055,6 +1055,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_safetyWindow.addLayout(self.horizontalLayout_safetyWindowBody)
 
+        self.safetyWindowStatusLabel = QLabel(self.frame_safetyWindow)
+        self.safetyWindowStatusLabel.setObjectName(u"safetyWindowStatusLabel")
+        self.safetyWindowStatusLabel.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_safetyWindow.addWidget(self.safetyWindowStatusLabel)
+
         self.verticalLayout_22.addWidget(self.frame_safetyWindow)
 
         self.verticalSpacer_10 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
@@ -1991,6 +1996,7 @@ class Ui_MainWindow(object):
         self.yMaxField.setText(QCoreApplication.translate("MainWindow", u"—", None))
         self.setCorner1Btn.setText(QCoreApplication.translate("MainWindow", u"Set Corner 1 (move here first)", None))
         self.setCorner2Btn.setText(QCoreApplication.translate("MainWindow", u"Set Corner 2 (opposite corner)", None))
+        self.safetyWindowStatusLabel.setText(QCoreApplication.translate("MainWindow", u"No corners captured yet", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"ETSII B\u00e9jar | Ingenier\u00eda Electr\u00f3nica Industrial y Autom\u00e1tica | Christine Marie Quan Jo", None))
         self.size_grip.setText("")
     # retranslateUi

@@ -49,6 +49,12 @@ class AerotechController:
         # fue correcta) — permite a la interfaz mostrar un aviso visible en
         # pantalla en vez de que el fallo quede solo en la consola.
         self._indicator_error = None
+        # Último error de cualquier método pso_* (None si la última llamada
+        # fue correcta) — los nombres de runtime.commands.pso.* están sin
+        # confirmar contra el hardware real (ver comentario en la sección
+        # PSO más abajo), así que un nombre de método equivocado no debe
+        # pasar desapercibido durante una demostración con solo un print().
+        self._pso_error = None
 
     @property
     def is_connected(self):
@@ -163,6 +169,13 @@ class AerotechController:
         """Último error de get_axis_indicators(), o None si la última lectura
         fue correcta — para que la interfaz muestre un aviso visible."""
         return self._indicator_error
+
+    def get_last_pso_error(self):
+        """Último error de cualquier método pso_* (reset/output_on/output_off/
+        configure_*), o None si la última llamada fue correcta — para que la
+        interfaz muestre un aviso visible en vez de que un nombre de método
+        equivocado quede solo en la consola."""
+        return self._pso_error
 
     def get_sto_status(self, axis=None):
         """
@@ -375,8 +388,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.reset(axis)
             print(f"[Aerotech] PSO reset -> eje {axis}")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_reset({axis}): {e}")
+            self._pso_error = f"PSO reset failed ({axis}): {e}"
 
     def pso_configure_fixed_distance(self, axis=PSO_LASER_AXIS, distance_mm=0.0):
         """Configura un evento PSO cada distance_mm recorridos por el eje."""
@@ -385,8 +400,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.distance_events_configure(axis, distance_mm)
             print(f"[Aerotech] PSO distancia fija -> eje {axis}, {distance_mm} mm")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_fixed_distance({axis}): {e}")
+            self._pso_error = f"PSO fixed distance failed ({axis}): {e}"
 
     def pso_configure_array_distances(self, axis=PSO_LASER_AXIS, distances_mm: list = None):
         """Configura un array de eventos PSO en distancias irregulares/no uniformes."""
@@ -396,8 +413,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.array_configure(axis, list(distances_mm))
             print(f"[Aerotech] PSO array -> eje {axis}, {len(distances_mm)} distancias")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_array_distances({axis}): {e}")
+            self._pso_error = f"PSO array distances failed ({axis}): {e}"
 
     def pso_configure_waveform(self, axis=PSO_LASER_AXIS, power_percent=0.0, total_time_us=20000, pulse_count=1):
         """
@@ -417,8 +436,10 @@ class AerotechController:
             print(f"[Aerotech] PSO waveform -> eje {axis}, {power_percent:.0f}% "
                   f"({on_time_us:.0f}/{total_time_us} µs, {pulse_count} pulso(s))")
             self._laser_duty_cycle = power_percent
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_waveform({axis}): {e}")
+            self._pso_error = f"PSO waveform failed ({axis}): {e}"
 
     def pso_configure_window(self, axis=PSO_LASER_AXIS, window_number=1, min_mm=0.0, max_mm=0.0, as_mask: bool = False):
         """Configura una ventana PSO (rango de posición en el que puede disparar)."""
@@ -427,8 +448,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.window_configure(axis, window_number, min_mm, max_mm, as_mask)
             print(f"[Aerotech] PSO ventana {window_number} -> eje {axis}, [{min_mm}, {max_mm}] mm, mask={as_mask}")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_window({axis}): {e}")
+            self._pso_error = f"PSO window failed ({axis}): {e}"
 
     def pso_configure_bitmap(self, axis=PSO_LASER_AXIS, bits: list = None):
         """Configura un patrón de bits (binary pattern) para disparo PSO."""
@@ -438,8 +461,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.bitmap_configure(axis, list(bits))
             print(f"[Aerotech] PSO bitmap -> eje {axis}, {len(bits)} bits")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_configure_bitmap({axis}): {e}")
+            self._pso_error = f"PSO bitmap failed ({axis}): {e}"
 
     def pso_output_on(self, axis=PSO_LASER_AXIS):
         """
@@ -453,8 +478,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.output_on(axis)
             print(f"[Aerotech] PSO output ON -> eje {axis}")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_output_on({axis}): {e}")
+            self._pso_error = f"PSO output ON failed ({axis}): {e}"
 
     def pso_output_off(self, axis=PSO_LASER_AXIS):
         """Corta la salida PSO directamente — usado por el botón 'Laser stop'."""
@@ -463,8 +490,10 @@ class AerotechController:
         try:
             self._controller.runtime.commands.pso.output_off(axis)
             print(f"[Aerotech] PSO output OFF -> eje {axis}")
+            self._pso_error = None
         except Exception as e:
             print(f"[Aerotech] Error en pso_output_off({axis}): {e}")
+            self._pso_error = f"PSO output OFF failed ({axis}): {e}"
 
     # ─────────────────────────────────────────────────────────────────
     # Secuencia de disparo — el relé debe estar cerrado antes de PSO

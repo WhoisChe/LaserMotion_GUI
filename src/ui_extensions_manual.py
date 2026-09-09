@@ -144,6 +144,13 @@ class ManualPageExtensions:
         # por defecto al arrancar.
         self._board_power = False
 
+        # True mientras _start_firing() sincroniza laserBoardPowerBtn con un
+        # relé que fire_laser() ya cerró de verdad — handle_laser_board_power_toggled
+        # debe saltarse la confirmación en ese caso (ver nota ahí): pedirla
+        # aquí solo bloquearía la UI sobre un relé que ya está cerrado, con
+        # el botón de disparo todavía pulsado.
+        self._syncing_board_btn = False
+
         # Master safety window (antes en Calibration, migrada aquí debajo
         # del D-pad/Z — ver setup_safety_window_section()): dos esquinas
         # capturadas por movimiento real (jog de esta misma página), no por
@@ -171,7 +178,8 @@ class ManualPageExtensions:
         for label in (self.ui.labelAxisX, self.ui.labelAxisY, self.ui.labelAxisZ,
                       self.ui.label_safetyWindowTitle, self.ui.label_safetyWindowHint,
                       self.ui.label_xMinField, self.ui.label_xMaxField,
-                      self.ui.label_yMinField, self.ui.label_yMaxField):
+                      self.ui.label_yMinField, self.ui.label_yMaxField,
+                      self.ui.safetyWindowStatusLabel):
             label.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.label_19.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
         self.ui.labelLaserPowerManual.setStyleSheet(f"""
@@ -523,6 +531,9 @@ class ManualPageExtensions:
         self.ui.setCorner2Btn.setFont(QFont("Sitka Small", 10, QFont.Weight.Bold))
         self.ui.setCorner2Btn.setStyleSheet(corner_button_style)
 
+        self.ui.safetyWindowStatusLabel.setFont(QFont("Sitka Small", 9, QFont.Weight.Bold))
+        self.ui.safetyWindowStatusLabel.setStyleSheet(f"color: {config.THEME.COLOR_TEXT_1};")
+
     def capture_corner_1(self):
         """Captura la posición X/Y actual como primera esquina de la ventana
         maestra (mover primero con el jog de esta misma página hasta la
@@ -558,13 +569,20 @@ class ManualPageExtensions:
         return msg.exec() == QMessageBox.StandardButton.Yes
 
     def _recompute_safety_window(self):
+        if self._corner1 is not None and self._corner2 is None:
+            self.ui.safetyWindowStatusLabel.setText(
+                f"Corner 1 set at ({self._corner1[0]:.3f}, {self._corner1[1]:.3f}) — waiting for Corner 2"
+            )
+            return
         if self._corner1 is None or self._corner2 is None:
+            self.ui.safetyWindowStatusLabel.setText("No corners captured yet")
             return
         window = self.get_safety_window()
         self.ui.xMinField.setText(f"{window['x_min']:.3f}")
         self.ui.xMaxField.setText(f"{window['x_max']:.3f}")
         self.ui.yMinField.setText(f"{window['y_min']:.3f}")
         self.ui.yMaxField.setText(f"{window['y_max']:.3f}")
+        self.ui.safetyWindowStatusLabel.setText("Safety window set")
 
     def get_safety_window(self):
         """
@@ -689,7 +707,16 @@ class ManualPageExtensions:
 
     def handle_laser_board_power_toggled(self, checked):
         """laserBoardPowerBtn.toggled — abre/cierra el relé que alimenta la
-        placa adaptadora del NEJE (ver 07_laser_hardware_integration.md §2)."""
+        placa adaptadora del NEJE (ver 07_laser_hardware_integration.md §2).
+        Cerrar el relé puede producir emisión del láser sin que el PSO haya
+        hecho nada (confirmado en pruebas de laboratorio), así que activar
+        el relé exige confirmación explícita, igual que redefinir la ventana
+        de seguridad. Excepción: si _start_firing() ya cerró el relé real vía
+        fire_laser() y solo está sincronizando el botón a posteriori, no se
+        vuelve a pedir confirmación — el relé ya está cerrado."""
+        if checked and not self._syncing_board_btn and not self._confirm_energize_board():
+            self.ui.laserBoardPowerBtn.setChecked(False)
+            return
         self._board_power = checked
         self.controller.set_laser_board_power(checked)
         self.ui.laserBoardPowerBtn.setText(f"Laser board power: {'ON' if checked else 'OFF'}")
@@ -699,6 +726,18 @@ class ManualPageExtensions:
             self._apply_laser_icon_color(0)
         elif self._firing:
             self._apply_laser_icon_color(self.ui.laserPowerSlider.value())
+
+    def _confirm_energize_board(self):
+        """Cerrar el relé de la placa adaptadora puede producir emisión del
+        láser sin que el PSO haya hecho nada (confirmado en laboratorio) —
+        exige confirmación explícita antes de energizarla."""
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Energize laser board?")
+        msg.setText("This may cause the laser to emit immediately. Confirm you are ready.")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setDefaultButton(QMessageBox.StandardButton.No)
+        return msg.exec() == QMessageBox.StandardButton.Yes
 
     def _start_firing(self):
         """laserFireBtn.pressed — dispara mientras se mantiene pulsado.
@@ -710,7 +749,11 @@ class ManualPageExtensions:
         self._firing = True
         self.controller.fire_laser(power_percent)
         if not self.ui.laserBoardPowerBtn.isChecked():
-            self.ui.laserBoardPowerBtn.setChecked(True)
+            self._syncing_board_btn = True
+            try:
+                self.ui.laserBoardPowerBtn.setChecked(True)
+            finally:
+                self._syncing_board_btn = False
         self._apply_laser_icon_color(power_percent)
 
     def _stop_firing(self):
