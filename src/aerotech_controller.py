@@ -50,10 +50,10 @@ class AerotechController:
         # pantalla en vez de que el fallo quede solo en la consola.
         self._indicator_error = None
         # Último error de cualquier método pso_* (None si la última llamada
-        # fue correcta) — los nombres de runtime.commands.pso.* están sin
-        # confirmar contra el hardware real (ver comentario en la sección
-        # PSO más abajo), así que un nombre de método equivocado no debe
-        # pasar desapercibido durante una demostración con solo un print().
+        # fue correcta) — pensado originalmente para nombres de
+        # runtime.commands.pso.* sin confirmar (ya confirmados, ver sección
+        # PSO más abajo), pero se mantiene: cualquier otro fallo real de
+        # PSO tampoco debe pasar desapercibido con solo un print().
         self._pso_error = None
 
     @property
@@ -374,19 +374,23 @@ class AerotechController:
     # ─────────────────────────────────────────────────────────────────
     # PSO (Position Synchronized Output) — salida dedicada del láser NEJE
     # B30635, cableada a la salida PSO del drive 1 / eje X (PSO_LASER_AXIS).
+    #
+    # Nombres confirmados contra dir(controller.runtime.commands.pso) en la
+    # instalación real (ya no son hipótesis): todo en minúsculas, sin guion
+    # bajo, nombre de AeroScript tal cual (PsoOutputOn -> psooutputon), igual
+    # que motion/io. No existe una función única de "configurar Waveform":
+    # hacen falta varias llamadas encadenadas (ver pso_configure_waveform).
+    # Si algún enum (PsoWaveformMode, PsoOutputSource, PsoEventMask) no
+    # existe con ese nombre exacto en esta instalación, no estaba en la
+    # lista de dir() (que solo cubre funciones, no enums) — confirmar con
+    # dir(a1) / dir(a1.PsoWaveformMode) contra hardware real antes de fiarse.
     # ─────────────────────────────────────────────────────────────────
-    # TODO: namespace y nombres de método SIN CONFIRMAR contra la API
-    # instalada. El namespace probable es runtime.commands.pso.*, pero los
-    # ejemplos oficiales de Aerotech para la familia XC4 usan nombres/enums
-    # que no son necesariamente literales en XC2e/iXC2e — verificar contra
-    # dir(self._controller.runtime.commands.pso) en la instalación real
-    # antes de confiar en estas llamadas con hardware conectado.
     def pso_reset(self, axis=PSO_LASER_AXIS):
         """Reinicia la configuración PSO del eje antes de reconfigurarla."""
         if not self.is_connected:
             return
         try:
-            self._controller.runtime.commands.pso.reset(axis)
+            self._controller.runtime.commands.pso.psoreset(axis)
             print(f"[Aerotech] PSO reset -> eje {axis}")
             self._pso_error = None
         except Exception as e:
@@ -398,7 +402,10 @@ class AerotechController:
         if not self.is_connected:
             return
         try:
-            self._controller.runtime.commands.pso.distance_events_configure(axis, distance_mm)
+            pso = self._controller.runtime.commands.pso
+            pso.psodistanceconfigurefixeddistance(axis, distance_mm)
+            pso.psodistancecounteron(axis)
+            pso.psodistanceeventson(axis)
             print(f"[Aerotech] PSO distancia fija -> eje {axis}, {distance_mm} mm")
             self._pso_error = None
         except Exception as e:
@@ -406,12 +413,15 @@ class AerotechController:
             self._pso_error = f"PSO fixed distance failed ({axis}): {e}"
 
     def pso_configure_array_distances(self, axis=PSO_LASER_AXIS, distances_mm: list = None):
-        """Configura un array de eventos PSO en distancias irregulares/no uniformes."""
+        """Configura un array de eventos PSO en distancias irregulares/no
+        uniformes. Sin uso real actualmente (Point array ya no usa espaciado
+        irregular) — nombre corregido igualmente por consistencia, pero sin
+        probar todavía contra hardware."""
         if not self.is_connected:
             return
         distances_mm = distances_mm or []
         try:
-            self._controller.runtime.commands.pso.array_configure(axis, list(distances_mm))
+            self._controller.runtime.commands.pso.psodistanceconfigurearraydistances(axis, list(distances_mm))
             print(f"[Aerotech] PSO array -> eje {axis}, {len(distances_mm)} distancias")
             self._pso_error = None
         except Exception as e:
@@ -425,14 +435,25 @@ class AerotechController:
         También actualiza self._laser_duty_cycle, para que
         get_laser_output_state() refleje esta consigna (mismo almacén que
         usaba set_laser_power_percent(), ahora ya no llamado desde Manual).
+
+        No hay una única llamada de "configurar Waveform": modo, tiempo
+        total, tiempo de encendido y número de pulsos se fijan por separado
+        y se aplican con psowaveformapplypulseconfiguration(), y la salida
+        PSO debe apuntarse explícitamente a la fuente Waveform antes de
+        encenderla con psowaveformon().
         """
         if not self.is_connected:
             return
         on_time_us = total_time_us * power_percent / 100
         try:
-            self._controller.runtime.commands.pso.waveform_configure(
-                axis, on_time_us, total_time_us, pulse_count
-            )
+            pso = self._controller.runtime.commands.pso
+            pso.psowaveformconfiguremode(axis, a1.PsoWaveformMode.Pulse)
+            pso.psowaveformconfigurepulsefixedtotaltime(axis, total_time_us)
+            pso.psowaveformconfigurepulsefixedontime(axis, on_time_us)
+            pso.psowaveformconfigurepulsefixedcount(axis, pulse_count)
+            pso.psowaveformapplypulseconfiguration(axis)
+            pso.psooutputconfiguresource(axis, a1.PsoOutputSource.Waveform)
+            pso.psowaveformon(axis)
             print(f"[Aerotech] PSO waveform -> eje {axis}, {power_percent:.0f}% "
                   f"({on_time_us:.0f}/{total_time_us} µs, {pulse_count} pulso(s))")
             self._laser_duty_cycle = power_percent
@@ -442,11 +463,19 @@ class AerotechController:
             self._pso_error = f"PSO waveform failed ({axis}): {e}"
 
     def pso_configure_window(self, axis=PSO_LASER_AXIS, window_number=1, min_mm=0.0, max_mm=0.0, as_mask: bool = False):
-        """Configura una ventana PSO (rango de posición en el que puede disparar)."""
+        """Configura una ventana PSO (rango de posición en el que puede
+        disparar). as_mask enmascara los eventos PSO dentro de la ventana en
+        vez de conmutar la salida directamente sobre WindowOutput."""
         if not self.is_connected:
             return
         try:
-            self._controller.runtime.commands.pso.window_configure(axis, window_number, min_mm, max_mm, as_mask)
+            pso = self._controller.runtime.commands.pso
+            pso.psowindowconfigurefixedrange(axis, window_number, min_mm, max_mm)
+            pso.psowindowoutputon(axis, window_number)
+            if as_mask:
+                pso.psoeventconfiguremask(axis, a1.PsoEventMask.WindowMask)
+            else:
+                pso.psooutputconfiguresource(axis, a1.PsoOutputSource.WindowOutput)
             print(f"[Aerotech] PSO ventana {window_number} -> eje {axis}, [{min_mm}, {max_mm}] mm, mask={as_mask}")
             self._pso_error = None
         except Exception as e:
@@ -454,12 +483,15 @@ class AerotechController:
             self._pso_error = f"PSO window failed ({axis}): {e}"
 
     def pso_configure_bitmap(self, axis=PSO_LASER_AXIS, bits: list = None):
-        """Configura un patrón de bits (binary pattern) para disparo PSO."""
+        """Configura un patrón de bits (binary pattern) para disparo PSO.
+        Sin uso real actualmente (Binary pattern se descartó del selector de
+        Auto) — nombre corregido igualmente por consistencia, pero sin
+        probar todavía contra hardware."""
         if not self.is_connected:
             return
         bits = bits or []
         try:
-            self._controller.runtime.commands.pso.bitmap_configure(axis, list(bits))
+            self._controller.runtime.commands.pso.psobitmapconfigurearray(axis, list(bits))
             print(f"[Aerotech] PSO bitmap -> eje {axis}, {len(bits)} bits")
             self._pso_error = None
         except Exception as e:
@@ -476,7 +508,7 @@ class AerotechController:
             print("[Aerotech] Sin conexión — PSO output on ignorado")
             return
         try:
-            self._controller.runtime.commands.pso.output_on(axis)
+            self._controller.runtime.commands.pso.psooutputon(axis)
             print(f"[Aerotech] PSO output ON -> eje {axis}")
             self._pso_error = None
         except Exception as e:
@@ -488,7 +520,7 @@ class AerotechController:
         if not self.is_connected:
             return
         try:
-            self._controller.runtime.commands.pso.output_off(axis)
+            self._controller.runtime.commands.pso.psooutputoff(axis)
             print(f"[Aerotech] PSO output OFF -> eje {axis}")
             self._pso_error = None
         except Exception as e:
