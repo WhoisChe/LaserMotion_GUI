@@ -161,7 +161,7 @@ class AutoPageExtensions:
         lines = [f"G0 X{x:.4f} Y{y:.4f} Z{z:.4f}"]
         if self.ui.spFireCheck.isChecked():
             duration_s = self.ui.spDuration.value() * TIME_FACTORS_TO_S.get(self.ui.spDurationScale.currentData(), 1.0)
-            duration_us = duration_s * 1e6
+            duration_us = duration_s * 1e-6
             # Single point no tiene campo de potencia propio en la tabla de
             # 03_auto.md §1.2 — se dispara a 100% durante la duración indicada.
             lines.append("M3 S100")
