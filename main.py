@@ -42,12 +42,18 @@ class GlobalStatusPanel(QFrame):
     LED_COLOR_INACTIVE = "#808080"
     LED_COLOR_FAULT = "#F44336"
 
-    AXIS_ORDER = ("X", "Y", "Z")        # Orden de los ejes para mostrar en el panel 
+    AXIS_ORDER = ("X", "Y", "Z")        # Orden de los ejes para mostrar en el panel
     INDICATORS = [                      # Nombre de los LEDs
         ("enabled", "Enabled", "Enabled"),
         ("homed", "Homed", "Homed"),
         ("limit_active", "CW/CCW", "CW or CCW travel limit active"),
     ]
+
+    # Límite de posición "blando" (según la interfaz, no un fault real del
+    # controlador): X e Y encienden el LED CW/CCW en rojo al alcanzar ±30 mm,
+    # como aviso visual temprano antes de llegar a un límite físico real.
+    SOFT_LIMIT_AXES = ("X", "Y")
+    SOFT_LIMIT_MM = 30.0
 
     def __init__(self, controller, ui, parent=None):
         super().__init__(parent)
@@ -281,20 +287,24 @@ class GlobalStatusPanel(QFrame):
         self._axis_position_labels["X"].setText(f"{x:.3f} mm")
         self._axis_position_labels["Y"].setText(f"{y:.3f} mm")
         self._axis_position_labels["Z"].setText(f"{z:.3f} mm")
+        positions = {"X": x, "Y": y, "Z": z}
         # Pone el LED de conexión en verde
-        self._set_led_color(self._led_conexion, self.LED_COLOR_OK)  
+        self._set_led_color(self._led_conexion, self.LED_COLOR_OK)
         # Aerotech: Al estar conectado, muestra "Connected" junto con la dirección IP
-        self.label_connection.setText(f"Connected — {self.controller.host}")   
+        self.label_connection.setText(f"Connected — {self.controller.host}")
 
         for axis in self.AXIS_ORDER:
              # Aerotech: Se ve el estado de enabled/homed/limit_active de este eje
-            indicators = self.controller.get_axis_indicators(axis)   
-            leds = self._axis_leds[axis]                       
+            indicators = self.controller.get_axis_indicators(axis)
+            leds = self._axis_leds[axis]
             self._set_led_color(leds["enabled"], self.LED_COLOR_OK if indicators["enabled"] else self.LED_COLOR_INACTIVE)
             self._set_led_color(leds["homed"], self.LED_COLOR_OK if indicators["homed"] else self.LED_COLOR_INACTIVE)
+            # Límite blando de interfaz (±30 mm en X/Y) además del fault real
+            # de fin de carrera — cualquiera de los dos pone el LED en rojo.
+            soft_limit_hit = axis in self.SOFT_LIMIT_AXES and abs(positions[axis]) >= self.SOFT_LIMIT_MM
             self._set_led_color(
                 leds["limit_active"],
-                self.LED_COLOR_FAULT if indicators["limit_active"] else self.LED_COLOR_OK,
+                self.LED_COLOR_FAULT if (indicators["limit_active"] or soft_limit_hit) else self.LED_COLOR_OK,
             )
 
             manual_btn, auto_btn = self._axis_toggle_buttons[axis]  
