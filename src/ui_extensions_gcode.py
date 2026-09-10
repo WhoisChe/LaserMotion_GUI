@@ -222,13 +222,9 @@ class GCodePageExtensions:
                 print(f"[L{lineno}] M0 -> pausa (ejes deshabilitados)")
 
             elif cmd == "M3":
-                # pso_configure_waveform() ya enciende con el duty cycle
-                # calculado (su último paso interno es psowaveformon()) —
-                # NO llamar a pso_output_on() después: ese forzado directo
-                # pisa el duty cycle a un alto fijo, dejando S1 y S100 con
-                # el mismo resultado (confirmado en laboratorio).
                 power = params.get("S", 0.0)
                 self.controller.pso_configure_waveform(PSO_AXIS, power, pulse_count=self._pending_pulse_count)
+                self.controller.pso_output_on(PSO_AXIS)
                 print(f"[L{lineno}] M3 -> PSO ON eje {PSO_AXIS} @ {power:.0f}% ({self._pending_pulse_count} pulso(s))")
 
             elif cmd == "M5":

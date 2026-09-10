@@ -500,13 +500,9 @@ class AerotechController:
 
     def pso_output_on(self, axis=PSO_LASER_AXIS):
         """
-        Activa la salida PSO directamente, forzada a alto fijo e
-        independiente del duty cycle de Waveform — NO usar justo después de
-        pso_configure_waveform(), que ya enciende con el duty cycle
-        calculado por sí sola (ver fire_laser()). Se mantiene disponible
-        para un encendido directo sin pasar por Waveform si hiciera falta
-        en el futuro (p. ej. un modo de alineación fija a potencia
-        constante), pero no está en uso en la secuencia de disparo actual.
+        Activa la salida PSO directamente (sin pasar por Waveform/Distance) —
+        es lo que usan el disparo de mantener-pulsado de Manual y el modo de
+        alineación de Calibration.
         """
         if not self.is_connected:
             print("[Aerotech] Sin conexión — PSO output on ignorado")
@@ -538,19 +534,12 @@ class AerotechController:
         """
         Habilita el eje del láser, cierra el relé (si no lo estaba ya) y
         arma+dispara el PSO. Orden verificado en el laboratorio: sin el eje
-        habilitado, DigitalOutputSet no llega a disparar.
-
-        pso_configure_waveform() ya enciende la salida por sí sola (su
-        último paso interno es psowaveformon(), con el duty cycle ya
-        calculado) — NO llamar a pso_output_on() después: ese forzado
-        directo es independiente del Waveform y pisa el duty cycle
-        configurado a un alto fijo, dejando la salida siempre al mismo
-        nivel sin importar la potencia pedida (confirmado en laboratorio:
-        S1 y S100 daban el mismo resultado hasta quitar esta llamada).
+        habilitado, DigitalOutputSet + PsoOutputOn no llegan a disparar.
         """
         self.enable_axes([PSO_LASER_AXIS])
         self.set_laser_board_power(True)
         self.pso_configure_waveform(power_percent=power_percent)
+        self.pso_output_on()
 
     def stop_laser(self, cut_power: bool = False):
         """Corta el disparo PSO. Si cut_power=True, también abre el relé."""
