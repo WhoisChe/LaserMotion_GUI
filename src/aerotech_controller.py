@@ -428,7 +428,7 @@ class AerotechController:
             print(f"[Aerotech] Error en pso_configure_array_distances({axis}): {e}")
             self._pso_error = f"PSO array distances failed ({axis}): {e}"
 
-    def pso_configure_waveform(self, axis=PSO_LASER_AXIS, power_percent=0.0, total_time_us=20000, pulse_count=1):
+    def pso_configure_waveform(self, axis=PSO_LASER_AXIS, power_percent=0.0, total_time_us=1000, pulse_count=1):
         """
         Configura el pulso PSO por evento cuyo ancho codifica la potencia
         (0-100%) del láser: on_time_us = total_time_us * power_percent / 100.
