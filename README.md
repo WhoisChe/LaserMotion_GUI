@@ -1,6 +1,6 @@
 # LaserMotion GUI
 
-![Estación láser de nanoposicionamiento](docs-images/setup.jpg)
+![Estación láser de nanoposicionamiento](docs-images/station_setup.png)
 
 Interfaz gráfica de escritorio (Python + PySide6) para controlar una estación láser de nanoposicionamiento sobre mesas Aerotech ANT130XY/ANT130LZS: movimiento manual de ejes, generación y ejecución de G-Code, disparo del láser (PSO) y configuración de la conexión con el controlador, todo desde un panel visual con distintos temas.
 
