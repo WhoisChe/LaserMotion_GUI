@@ -5,3 +5,5 @@ logs/
 local_connection_settings.json
 Qss/scss/_variables.scss
 generated-files/css/main.css
+build/
+dist/
