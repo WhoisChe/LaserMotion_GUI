@@ -332,6 +332,31 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_8.addWidget(self.label_4)
 
+        self.helpScrollArea = QScrollArea(self.helpPage)
+        self.helpScrollArea.setObjectName(u"helpScrollArea")
+        self.helpScrollArea.setWidgetResizable(True)
+        self.helpScrollArea.setFrameShape(QFrame.NoFrame)
+        self.helpScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.helpScrollAreaContents = QWidget()
+        self.helpScrollAreaContents.setObjectName(u"helpScrollAreaContents")
+        self.verticalLayout_help = QVBoxLayout(self.helpScrollAreaContents)
+        self.verticalLayout_help.setObjectName(u"verticalLayout_help")
+        self.helpContentLabel = QLabel(self.helpScrollAreaContents)
+        self.helpContentLabel.setObjectName(u"helpContentLabel")
+        self.helpContentLabel.setWordWrap(True)
+        self.helpContentLabel.setTextFormat(Qt.RichText)
+        self.helpContentLabel.setOpenExternalLinks(True)
+        self.helpContentLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        font2 = QFont()
+        font2.setPointSize(8)
+        self.helpContentLabel.setFont(font2)
+
+        self.verticalLayout_help.addWidget(self.helpContentLabel)
+
+        self.helpScrollArea.setWidget(self.helpScrollAreaContents)
+
+        self.verticalLayout_8.addWidget(self.helpScrollArea)
+
         self.centerMenuPages.addWidget(self.helpPage)
 
         self.verticalLayout_5.addWidget(self.centerMenuPages)
@@ -1888,6 +1913,7 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Theme", None))
         self.themeList.setCurrentText("")
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Help", None))
+        self.helpContentLabel.setText(QCoreApplication.translate("MainWindow", u"<p style=\"margin-top:0px;\"><b>Manual — Safety Window</b><br>Safety Window: defines the rectangular area (X/Y) where the laser is allowed to fire from Auto and G-Code. Move to a corner with the jog controls, press Set Corner 1; move to the opposite corner, press Set Corner 2. The 4 fields fill in automatically.</p><p><b>Auto — modes</b><br><b>Single point:</b> moves to a position and optionally fires once, at rest.<br><b>Fixed-distance firing:</b> fires at regular distance intervals while moving, without stopping.<br><b>Point array:</b> repeats fixed-distance firing over several axis-aligned passes.<br><b>Power gradient:</b> fires with power that changes step by step along the path.</p><p><b>G-Code — command reference</b><br><b>G0</b> — rapid move, straight line (no firing). X Y Z (destination), F (speed, default 50 mm/s)<br><b>G1</b> — controlled move, straight line (fires while moving). X Y Z (destination), F (speed, default 50 mm/s)<br><b>G4</b> — pause/wait. P (milliseconds)<br><b>G28</b> — homing<br><b>G90</b> — coordinates are absolute<br><b>G91</b> — coordinates are relative to the current point<br><b>M0</b> — program pause, disables all 3 axes<br><b>M3</b> — turns the laser on. S (power, 0-100%)<br><b>M5</b> — turns the laser off<br><b>M900</b> — configures fixed-distance firing. D (distance between shots), P (pulses per event)<br><b>M901</b> — defines a position safety window. X (min/max) and Y (min/max)</p><p>For more information, you can check (in English):<br><a href=\"https://github.com/WhoisChe/LaserMotion_GUI\">https://github.com/WhoisChe/LaserMotion_GUI</a></p>", None))
         self.usal.setText("")
 #if QT_CONFIG(tooltip)
         self.connectionBtn.setToolTip(QCoreApplication.translate("MainWindow", u"Connections", None))

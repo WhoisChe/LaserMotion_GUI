@@ -440,7 +440,10 @@ class AerotechController:
         total, tiempo de encendido y número de pulsos se fijan por separado
         y se aplican con psowaveformapplypulseconfiguration(), y la salida
         PSO debe apuntarse explícitamente a la fuente Waveform antes de
-        encenderla con psowaveformon().
+        encenderla con psowaveformon(). psooutputconfigureoutput() selecciona
+        además el pin físico de salida (drive iXC2e del eje X, ver cableado
+        en el encabezado del módulo) — sin esa llamada la señal PSO queda
+        configurada pero no necesariamente enrutada al conector real.
         """
         if not self.is_connected:
             return
@@ -453,6 +456,7 @@ class AerotechController:
             pso.psowaveformconfigurepulsefixedcount(axis, pulse_count)
             pso.psowaveformapplypulseconfiguration(axis)
             pso.psooutputconfiguresource(axis, a1.PsoOutputSource.Waveform)
+            pso.psooutputconfigureoutput(axis, a1.PsoOutputPin.iXC2eDedicatedOutput)
             pso.psowaveformon(axis)
             print(f"[Aerotech] PSO waveform -> eje {axis}, {power_percent:.0f}% "
                   f"({on_time_us:.0f}/{total_time_us} µs, {pulse_count} pulso(s))")
